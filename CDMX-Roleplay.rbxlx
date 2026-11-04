@@ -1,0 +1,4913 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><Item class="Workspace" referent="RBX0000001C"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="ReplicatedStorage" referent="RBX00000006"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX00000005"><Properties><string name="Name">Shared</string></Properties><Item class="ModuleScript" referent="RBX00000001"><Properties><string name="Name">Cars</string><ProtectedString name="Source"><![CDATA[-- Cars: catálogo de vehículos.
+-- Los nombres son parodias de modelos reales: se reconocen, pero no usan las
+-- marcas registradas (usar marcas reales puede hacer que Roblox retire el juego).
+
+local Cars = {}
+
+-- Carrocerías: medidas en studs. L = largo, W = ancho, BodyH = alto de la carrocería.
+-- Roof = cabina abierta (techo + pilares): largo, posición Z del centro y altura.
+Cars.Styles = {
+	Sedan = { L = 15, W = 8, BodyH = 2.4, Roof = { L = 7.8, Z = 1, H = 4.2 }, Wheel = 3 },
+	Hatch = { L = 13, W = 7.6, BodyH = 2.4, Roof = { L = 7.4, Z = 1.6, H = 4 }, Wheel = 2.8 },
+	Pickup = { L = 17, W = 8.2, BodyH = 2.8, Roof = { L = 6, Z = -1.8, H = 4.2 }, Wheel = 3.4, Bed = true },
+	SUV = { L = 16, W = 8.4, BodyH = 3, Roof = { L = 10.5, Z = 1.6, H = 4.6 }, Wheel = 3.4 },
+	Sport = { L = 15, W = 8.2, BodyH = 2, Roof = { L = 6, Z = 1.4, H = 3.2 }, Wheel = 2.8 },
+	Van = { L = 18, W = 8.4, BodyH = 3, Roof = { L = 14.5, Z = 1.4, H = 5.4 }, Wheel = 3.2 },
+	Bus = { L = 30, W = 9, BodyH = 3, Roof = { L = 27, Z = 0.8, H = 6.5 }, Wheel = 3.6 },
+	Moto = { L = 6, W = 2.2, BodyH = 1.6, Wheel = 2.6, Moto = true },
+}
+
+local function rgb(r, g, b)
+	return Color3.fromRGB(r, g, b)
+end
+
+local PAINT = {
+	Blanco = rgb(240, 240, 240), Negro = rgb(25, 25, 28), Plata = rgb(180, 182, 188), Rojo = rgb(190, 30, 35),
+	Azul = rgb(30, 70, 160), Verde = rgb(60, 140, 80), Amarillo = rgb(240, 200, 40), Gris = rgb(100, 102, 108),
+	Vino = rgb(110, 20, 35), Naranja = rgb(235, 110, 30), Rosa = rgb(235, 80, 150), Arena = rgb(200, 180, 140),
+}
+Cars.Paint = PAINT
+Cars.PaintOrder = { "Blanco", "Negro", "Plata", "Rojo", "Azul", "Verde", "Amarillo", "Gris", "Vino", "Naranja", "Rosa", "Arena" }
+
+-- Catálogo de la Agencia Reforma ------------------------------------------
+Cars.List = {
+	{ Id = "Vochito", Name = "Volkswagon Vochito", Style = "Hatch", Price = 6000, MaxSpeed = 55, Seats = 4,
+		Desc = "El escarabajo eterno. Lento, ruidoso y querido por todos." },
+	{ Id = "Tsuro", Name = "Nizzan Tsuro", Style = "Sedan", Price = 8000, MaxSpeed = 65, Seats = 4,
+		Desc = "El rey de la CDMX: taxi, carro familiar y leyenda." },
+	{ Id = "Rion", Name = "Kya Rion", Style = "Hatch", Price = 14000, MaxSpeed = 70, Seats = 4,
+		Desc = "Compacto, económico y fácil de estacionar en la Roma." },
+	{ Id = "Avio", Name = "Chebrolet Avio", Style = "Sedan", Price = 12000, MaxSpeed = 68, Seats = 4,
+		Desc = "El sedán de app de transporte por excelencia." },
+	{ Id = "Versu", Name = "Nizzan Versu", Style = "Sedan", Price = 15000, MaxSpeed = 72, Seats = 4,
+		Desc = "Sucesor espiritual del Tsuro. Más cómodo, igual de chilango." },
+	{ Id = "Jeta", Name = "Volkswagon Jeta", Style = "Sedan", Price = 18000, MaxSpeed = 78, Seats = 4,
+		Desc = "Clásico de la clase media. Aguanta todo." },
+	{ Id = "Civik", Name = "Hondo Civik", Style = "Sedan", Price = 22000, MaxSpeed = 82, Seats = 4,
+		Desc = "Confiable y rápido. Ideal para Periférico." },
+	{ Id = "Hilox", Name = "Toyoda Hilox", Style = "Pickup", Price = 25000, MaxSpeed = 70, Seats = 2,
+		Desc = "Pickup indestructible para la chamba pesada." },
+	{ Id = "Lobo", Name = "Forb Lobo", Style = "Pickup", Price = 30000, MaxSpeed = 76, Seats = 2,
+		Desc = "La troca norteña que también conquistó la capital." },
+	{ Id = "Suburbia", Name = "Chebrolet Suburbia", Style = "SUV", Price = 45000, MaxSpeed = 75, Seats = 4,
+		Desc = "Camionetota negra. Te abren paso en Polanco." },
+	{ Id = "Serie3", Name = "BMV Serie 3", Style = "Sedan", Price = 70000, MaxSpeed = 95, Seats = 4,
+		Desc = "Lujo alemán para llegar a Masaryk con estilo." },
+	{ Id = "ClaseC", Name = "Merceditas Clase C", Style = "Sedan", Price = 85000, MaxSpeed = 95, Seats = 4,
+		Desc = "Elegancia de la estrella... de parodia." },
+	{ Id = "Uracan", Name = "Lamborjini Uracán", Style = "Sport", Price = 250000, MaxSpeed = 130, Seats = 1,
+		Desc = "Para presumir en Reforma un domingo." },
+	{ Id = "FT150", Name = "Itáliko FT-150", Style = "Moto", Price = 3500, MaxSpeed = 75, Seats = 1,
+		Desc = "La moto de los repartidores. Se cuela entre el tráfico." },
+}
+
+-- Vehículos de trabajo (gratis para quien tenga el trabajo) -------------------
+Cars.JobVehicles = {
+	Taxi = { Name = "Taxi Nizzan Tsuro", Style = "Sedan", Job = "Taxista", MaxSpeed = 70, Seats = 4,
+		Color = PAINT.Rosa, Accent = PAINT.Blanco, Sign = "TAXI", SideText = "CDMX" },
+	Patrulla = { Name = "Patrulla Doge Chargher", Style = "Sedan", Job = "Policia", MaxSpeed = 90, Seats = 2,
+		Color = PAINT.Blanco, Accent = rgb(20, 40, 110), Siren = { rgb(255, 30, 30), rgb(30, 80, 255) }, SideText = "POLICÍA" },
+	Ambulancia = { Name = "Ambulancia ERUM", Style = "Van", Job = "Paramedico", MaxSpeed = 80, Seats = 2,
+		Color = PAINT.Blanco, Accent = rgb(200, 30, 30), Siren = { rgb(255, 30, 30), rgb(255, 255, 255) }, SideText = "AMBULANCIA" },
+	Micro = { Name = "Microbús Ruta 2", Style = "Bus", Job = "Microbusero", MaxSpeed = 55, Seats = 8,
+		Color = rgb(70, 150, 90), Accent = rgb(220, 220, 215), SideText = "RUTA 2" },
+	Reparto = { Name = "Moto de reparto", Style = "Moto", Job = "Repartidor", MaxSpeed = 75, Seats = 1,
+		Color = rgb(235, 110, 30), Accent = PAINT.Negro },
+	Vocho = { Name = "Vochito de renta", Style = "Hatch", Job = nil, Price = 100, MaxSpeed = 55, Seats = 4,
+		Color = PAINT.Verde, Accent = PAINT.Blanco },
+}
+
+function Cars.Get(id)
+	for _, car in ipairs(Cars.List) do
+		if car.Id == id then
+			return car
+		end
+	end
+	return nil
+end
+
+return Cars
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000002"><Properties><string name="Name">Config</string><ProtectedString name="Source"><![CDATA[-- Configuración central de "CDMX Roleplay"
+-- Cambia aquí sueldos, precios, estaciones, etc.
+
+local Config = {}
+
+Config.GAME_NAME = "CDMX Roleplay"
+Config.CURRENCY = "$"
+Config.STARTING_MONEY = 500
+Config.PAYCHECK_INTERVAL = 60 -- segundos entre cada quincena (sueldo)
+Config.DATASTORE_NAME = "CDMX_RP_v1"
+Config.AUTOSAVE_INTERVAL = 120
+Config.DAY_LENGTH_MINUTES = 20 -- duración de un día completo en el juego
+Config.JOB_CHANGE_COOLDOWN = 10
+
+-- Trabajos ------------------------------------------------------------------
+-- Id: identificador interno. Team: nombre del equipo en la lista de jugadores.
+Config.Jobs = {
+	{
+		Id = "Ciudadano",
+		Name = "Ciudadano",
+		Salary = 50,
+		Color = "Medium stone grey",
+		Description = "Vive la ciudad: pasea, come tacos y usa el Metro.",
+	},
+	{
+		Id = "Policia",
+		Name = "Policía (SSC)",
+		Salary = 150,
+		Color = "Navy blue",
+		Description = "Patrulla la ciudad y arresta a los rateros buscados con tus esposas.",
+	},
+	{
+		Id = "Paramedico",
+		Name = "Paramédico (ERUM)",
+		Salary = 140,
+		Color = "Bright red",
+		Description = "Cura a los heridos con tu botiquín. Ganas un bono por cada curación.",
+	},
+	{
+		Id = "Taxista",
+		Name = "Taxista",
+		Salary = 100,
+		Color = "Hot pink",
+		Description = "Saca tu taxi rosa de la base y cobra a tus pasajeros por distancia.",
+	},
+	{
+		Id = "Taquero",
+		Name = "Taquero",
+		Salary = 110,
+		Color = "Bright orange",
+		Description = "Quédate cerca de una taquería: ganas comisión por cada orden que se venda.",
+	},
+	{
+		Id = "Vendedor",
+		Name = "Vendedor ambulante",
+		Salary = 80,
+		Color = "Bright yellow",
+		Description = "Quédate junto a un puesto: ganas comisión por cada elote, guajolota o churro vendido.",
+	},
+	{
+		Id = "Repartidor",
+		Name = "Repartidor",
+		Salary = 70,
+		Color = "Neon orange",
+		Description = "Saca tu moto junto a la Taquería El Güero y entrega pedidos por la ciudad (+$60 por entrega).",
+	},
+	{
+		Id = "Microbusero",
+		Name = "Microbusero",
+		Salary = 90,
+		Color = "Sea green",
+		Description = "Maneja el micro de la Ruta 2 (Zócalo – Chapultepec). Ganas $25 por cada parada.",
+	},
+	{
+		Id = "Ladron",
+		Name = "Ratero",
+		Salary = 0,
+		Color = "Really black",
+		Description = "Asalta tienditas para ganar dinero... pero cuidado con la policía.",
+	},
+}
+
+-- Tiendas y productos ------------------------------------------------------
+-- Heal = vida que recupera al comerlo.
+Config.Shops = {
+	Taqueria = {
+		Name = "Taquería",
+		CommissionJob = "Taquero",
+		Items = {
+			{ Id = "Pastor", Name = "Tacos al pastor (orden)", Price = 45, Heal = 40, Color = "Bright orange" },
+			{ Id = "Suadero", Name = "Tacos de suadero", Price = 40, Heal = 35, Color = "Reddish brown" },
+			{ Id = "Quesadilla", Name = "Quesadilla (con o sin queso)", Price = 30, Heal = 25, Color = "Bright yellow" },
+			{ Id = "Horchata", Name = "Agua de horchata", Price = 20, Heal = 15, Color = "Institutional white" },
+		},
+	},
+	Puesto = {
+		Name = "Puesto callejero",
+		CommissionJob = "Vendedor",
+		Items = {
+			{ Id = "Elote", Name = "Elote con todo", Price = 30, Heal = 25, Color = "New Yeller" },
+			{ Id = "Guajolota", Name = "Guajolota (torta de tamal)", Price = 25, Heal = 30, Color = "Brick yellow" },
+			{ Id = "Churros", Name = "Churros con chocolate", Price = 35, Heal = 20, Color = "Nougat" },
+			{ Id = "Esquite", Name = "Esquites", Price = 25, Heal = 20, Color = "Pastel yellow" },
+		},
+	},
+	Tiendita = {
+		Name = "Tiendita de la esquina",
+		Items = {
+			{ Id = "Refresco", Name = "Refresco", Price = 22, Heal = 10, Color = "Bright red" },
+			{ Id = "Papitas", Name = "Papitas con chile", Price = 18, Heal = 10, Color = "Bright orange" },
+			{ Id = "Gansito", Name = "Pastelito", Price = 15, Heal = 10, Color = "Pink" },
+			{ Id = "Garrafon", Name = "Garrafón de agua", Price = 40, Heal = 35, Color = "Pastel light blue" },
+		},
+	},
+}
+
+-- Comisión que recibe el jugador con el trabajo indicado por cada venta.
+Config.SALE_COMMISSION = 10
+
+-- Metro ----------------------------------------------------------------------
+Config.METRO_FARE = 5
+
+-- Vehículos ------------------------------------------------------------------
+-- El catálogo y los vehículos de trabajo están en Shared/Cars.luau
+Config.TAXI_MIN_FARE = 15
+Config.TAXI_FARE_PER_100_STUDS = 8
+
+-- Crimen y policía ---------------------------------------------------------
+Config.ROBBERY_MIN = 150
+Config.ROBBERY_MAX = 400
+Config.ROBBERY_COOLDOWN = 90 -- por tienda
+Config.WANTED_DURATION = 180
+Config.ARREST_REWARD = 250
+Config.ARREST_RANGE = 10
+Config.JAIL_TIME = 60
+
+-- Combate -------------------------------------------------------------------
+-- Las armas están en Shared/Weapons.luau
+Config.HOSPITAL_FEE = 100 -- lo que cobra el hospital al reaparecer
+Config.ASSAULT_WANTED = 120 -- segundos de búsqueda por atacar a alguien
+Config.SAFE_ZONES = { -- aquí nadie recibe daño
+	{ Name = "Zócalo", Center = Vector3.new(0, 0, 20), Radius = 95 },
+	{ Name = "Hospital", Center = Vector3.new(160, 0, 400), Radius = 60 },
+	{ Name = "Reclusorio", Center = Vector3.new(620, 0, -690), Radius = 95 },
+}
+
+-- Trabajos con misiones repetibles -----------------------------------------
+Config.DELIVERY_PAY = 60
+Config.DELIVERY_BONUS_PER_100 = 4
+Config.BUS_STOP_PAY = 25
+
+-- Paramédicos ----------------------------------------------------------------
+Config.HEAL_AMOUNT = 50
+Config.HEAL_REWARD = 40
+Config.HEAL_RANGE = 10
+Config.HEAL_COOLDOWN = 5
+
+function Config.GetJob(id)
+	for _, job in ipairs(Config.Jobs) do
+		if job.Id == id then
+			return job
+		end
+	end
+	return nil
+end
+
+function Config.GetItem(shopId, itemId)
+	local shop = Config.Shops[shopId]
+	if not shop then
+		return nil
+	end
+	for _, item in ipairs(shop.Items) do
+		if item.Id == itemId then
+			return item
+		end
+	end
+	return nil
+end
+
+return Config
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000003"><Properties><string name="Name">Story</string><ProtectedString name="Source"><![CDATA[-- Story: "Llegada a la ciudad".
+-- Llegas de provincia con una maleta y nada más. Doña Lupe te da chamba en su
+-- taquería, el Profe te enseña la ciudad, El Chino te presenta al barrio... hasta
+-- que Los Tlacuaches empiezan a cobrar "piso". Tú decides: el camino honrado
+-- (con la SSC) o el chueco (con El Chino). Ambos terminan frente a El Patrón.
+--
+-- Tipos de paso:
+--   Talk   { Npc, Lines }                          habla con un personaje
+--   Choice { Npc, Lines, Options = {{Text, Path}} } decide el camino
+--   GoTo   { Pos, Radius, Label, Vehicle? }        llega a un lugar (Vehicle = manejando)
+--   Route  { Points = {{Pos, Label}}, Radius }     varios lugares en orden
+--   Job    { Job, Label }                          ten cierto trabajo
+--   Defeat { Group, Label }                        vence a los enemigos del grupo
+-- Path = "Honrado" / "Chueco": el paso solo cuenta en ese camino.
+
+local Story = {}
+
+local V = Vector3.new
+
+-- Personajes ---------------------------------------------------------------
+Story.Npcs = {
+	Lupe = { Name = "Doña Lupe", Pos = V(-90, 0, 152), Face = V(-60, 0, 152), Skin = Color3.fromRGB(170, 120, 85), Shirt = Color3.fromRGB(200, 40, 70), Pants = Color3.fromRGB(40, 40, 60) },
+	Profe = { Name = "El Profe", Pos = V(-56, 0, -46), Face = V(-56, 0, 0), Skin = Color3.fromRGB(150, 105, 75), Shirt = Color3.fromRGB(120, 100, 70), Pants = Color3.fromRGB(70, 60, 50) },
+	Chino = { Name = "El Chino", Pos = V(16, 0, 822), Face = V(0, 0, 800), Skin = Color3.fromRGB(190, 145, 105), Shirt = Color3.fromRGB(30, 30, 35), Pants = Color3.fromRGB(40, 70, 120) },
+	Ramirez = { Name = "Comandante Ramírez", Pos = V(395, 0, 145), Face = V(395, 0, 200), Skin = Color3.fromRGB(160, 115, 80), Shirt = Color3.fromRGB(20, 40, 110), Pants = Color3.fromRGB(20, 25, 40) },
+	Tuerto = { Name = "El Tuerto", Pos = V(445, 0, 548), Face = V(445, 0, 520), Skin = Color3.fromRGB(140, 100, 70), Shirt = Color3.fromRGB(100, 30, 30), Pants = Color3.fromRGB(30, 30, 30) },
+}
+
+-- Lugares clave ---------------------------------------------------------------
+Story.Places = {
+	Bodega = V(520, 0, 470),
+	Mansion = V(-960, 0, -440),
+}
+
+-- Enemigos por grupo. Health por defecto 100.
+Story.Groups = {
+	Bodega = {
+		{ Pos = V(505, 0, 455), Weapon = "Pistola" },
+		{ Pos = V(535, 0, 458), Weapon = "Pistola" },
+		{ Pos = V(512, 0, 485), Weapon = "Escopeta" },
+		{ Pos = V(530, 0, 490), Weapon = "Pistola" },
+	},
+	Mansion = {
+		{ Pos = V(-985, 0, -425), Weapon = "Subfusil" },
+		{ Pos = V(-935, 0, -425), Weapon = "Subfusil" },
+		{ Pos = V(-990, 0, -455), Weapon = "Pistola" },
+		{ Pos = V(-930, 0, -455), Weapon = "Pistola" },
+		{ Pos = V(-960, 0, -470), Weapon = "Escopeta" },
+		{ Pos = V(-960, 0, -455), Weapon = "Rifle", Boss = true, Name = "El Patrón", Health = 450 },
+	},
+}
+
+Story.Chapters = {
+	-- 1 ---------------------------------------------------------------------
+	{
+		Title = "Recién llegado",
+		Reward = 200,
+		Steps = {
+			{ Type = "Talk", Npc = "Lupe", Lines = {
+				"¡Ándale, mijo! ¿Recién bajadito del camión? Se te ve en la cara.",
+				"Aquí en la CDMX nadie regala nada, pero yo te echo la mano.",
+				"Mis repartidores no llegaron. Llévame estas tres órdenes de pastor, ¡y que no se enfríen!",
+			} },
+			{ Type = "Route", Radius = 14, Points = {
+				{ Pos = V(0, 0, -92), Label = "Entrega la orden en la Catedral (1/3)" },
+				{ Pos = V(-180, 0, -100), Label = "Entrega la orden en la Torre Latino (2/3)" },
+				{ Pos = V(-330, 0, -88), Label = "Entrega la orden en Bellas Artes (3/3)" },
+			} },
+			{ Type = "Talk", Npc = "Lupe", Lines = {
+				"¡Eres rapidísimo! Toma, tu primera lana honrada.",
+				"Oye, para moverte vas a necesitar conocer la ciudad. Búscate al Profe en el Metro Zócalo.",
+			} },
+		},
+	},
+	-- 2 ---------------------------------------------------------------------
+	{
+		Title = "Conociendo la ciudad",
+		Reward = 250,
+		Steps = {
+			{ Type = "Talk", Npc = "Profe", Lines = {
+				"Buenas, joven. Treinta años vendiendo chicles en el Metro: conozco esta ciudad como mi bolsillo.",
+				"El que no conoce la ciudad, se la come la ciudad. Haz un recorrido conmigo.",
+				"Ve al Ángel, sube al Castillo de Chapultepec y remata en Coyoacán. Usa el Metro: sale en cinco pesos.",
+			} },
+			{ Type = "GoTo", Pos = V(-880, 0, -200), Radius = 35, Label = "Visita el Ángel de la Independencia" },
+			{ Type = "GoTo", Pos = V(-1170, 0, -330), Radius = 45, Label = "Sube al Castillo de Chapultepec" },
+			{ Type = "GoTo", Pos = V(0, 0, 800), Radius = 30, Label = "Llega al Jardín Hidalgo, en Coyoacán" },
+			{ Type = "Talk", Npc = "Chino", Lines = {
+				"Quiubo. Tú has de ser el nuevo del que habla Doña Lupe.",
+				"Yo soy El Chino. Aquí en Coyoacán todos me conocen.",
+			} },
+		},
+	},
+	-- 3 ---------------------------------------------------------------------
+	{
+		Title = "La banda del barrio",
+		Reward = 300,
+		Steps = {
+			{ Type = "Talk", Npc = "Chino", Lines = {
+				"En esta ciudad sin carro no eres nadie, carnal.",
+				"Renta un Vochito junto al Palacio Nacional o cómprate algo en la Agencia Reforma.",
+				"Luego ven manejando a Coyoacán y nos damos la vuelta.",
+			} },
+			{ Type = "GoTo", Pos = V(0, 0, 640), Radius = 30, Vehicle = true, Label = "Consigue un carro y llega manejando a Coyoacán" },
+			{ Type = "Talk", Npc = "Chino", Lines = {
+				"¡Así me gusta! Ya andas sobre ruedas.",
+				"Oye... te tengo que contar algo. A Doña Lupe la andan extorsionando unos tipos: Los Tlacuaches.",
+				"Le cobran \"piso\" cada semana. Ve a verla, anda bien espantada.",
+			} },
+		},
+	},
+	-- 4 ---------------------------------------------------------------------
+	{
+		Title = "Cobro de piso",
+		Reward = 800,
+		Steps = {
+			{ Type = "Choice", Npc = "Lupe", Lines = {
+				"Ay, mijo... vinieron otra vez. Si no pago cinco mil pesos el viernes, me queman el local.",
+				"Treinta años con esta taquería. ¿Qué hago?",
+			}, Options = {
+				{ Text = "Vamos a la policía. Esto se arregla por la buena.", Path = "Honrado" },
+				{ Text = "Déjelo en mis manos. El Chino y yo nos encargamos.", Path = "Chueco" },
+			} },
+			-- Camino honrado
+			{ Path = "Honrado", Type = "Talk", Npc = "Ramirez", Lines = {
+				"¿Los Tlacuaches? Llevamos meses tras ellos y nadie se atreve a denunciar.",
+				"Si de verdad quieres ayudar, entra a la corporación. Date de alta como policía.",
+				"Tu equipo está en la armería de la SSC, aquí junto a la entrada.",
+			} },
+			{ Path = "Honrado", Type = "Job", Job = "Policia", Label = "Date de alta como policía en la bolsa de trabajo [J]" },
+			-- Camino chueco
+			{ Path = "Chueco", Type = "Talk", Npc = "Chino", Lines = {
+				"Así se habla. Pero sin fierro no hacemos nada.",
+				"Ve con El Tuerto, en el tianguis de la Doctores. Dile que vas de mi parte.",
+				"Y date de alta como ratero: esto no es chamba de oficina.",
+			} },
+			{ Path = "Chueco", Type = "Job", Job = "Ladron", Label = "Hazte ratero en la bolsa de trabajo [J]" },
+			{ Path = "Chueco", Type = "Talk", Npc = "Tuerto", Lines = {
+				"¿De parte del Chino? Pásale, pásale.",
+				"Aquí tengo de todo, nomás que no se te ocurra decir dónde lo conseguiste.",
+			} },
+			-- Ambos caminos
+			{ Type = "GoTo", Pos = V(520, 0, 470), Radius = 45, Label = "Llega a la bodega de Los Tlacuaches (Colonia Doctores)" },
+			{ Type = "Defeat", Group = "Bodega", Label = "Vence a Los Tlacuaches de la bodega" },
+			{ Path = "Honrado", Type = "Talk", Npc = "Ramirez", Lines = {
+				"Buen trabajo, oficial. Entre las cajas encontramos libretas con todos los cobros.",
+				"El que manda es un tal El Patrón. Vive en una mansión en Polanco.",
+			} },
+			{ Path = "Chueco", Type = "Talk", Npc = "Chino", Lines = {
+				"¡Te rifaste, carnal! Y mira lo que había: la lana de todas las taquerías del Centro.",
+				"Y una dirección en Polanco. Ahí vive el que manda: El Patrón.",
+			} },
+		},
+	},
+	-- 5 ---------------------------------------------------------------------
+	{
+		Title = "El Patrón",
+		Reward = 3000,
+		Steps = {
+			{ Type = "GoTo", Pos = V(-960, 0, -440), Radius = 60, Label = "Ve a la mansión de El Patrón, en Polanco" },
+			{ Type = "Defeat", Group = "Mansion", Label = "Derrota a El Patrón y a sus guardias" },
+			{ Path = "Honrado", Type = "Talk", Npc = "Lupe", Lines = {
+				"¡Saliste en las noticias, mijo! El Patrón ya está en el Reclusorio.",
+				"El barrio respira otra vez. Eres un héroe... y aquí siempre tendrás tacos gratis.",
+			}, Title = "Héroe del barrio" },
+			{ Path = "Chueco", Type = "Talk", Npc = "Lupe", Lines = {
+				"No sé qué hiciste... y no quiero saber.",
+				"Pero ya nadie nos cobra piso. Gracias, mijo. Cuídate mucho, ¿eh?",
+			}, Title = "Leyenda de la calle" },
+		},
+	},
+}
+
+-- Misiones repetibles de trabajo ---------------------------------------------
+Story.DeliveryAddresses = {
+	{ Name = "Depto. en la Roma", Pos = V(-560, 0, 420) },
+	{ Name = "Oficina en Reforma", Pos = V(-620, 0, -240) },
+	{ Name = "Casa en Coyoacán", Pos = V(120, 0, 700) },
+	{ Name = "Hospital General", Pos = V(200, 0, 360) },
+	{ Name = "Torre en Polanco", Pos = V(-850, 0, -480) },
+	{ Name = "Base de taxis", Pos = V(200, 0, 520) },
+	{ Name = "Condesa", Pos = V(-420, 0, 330) },
+	{ Name = "Colonia Doctores", Pos = V(400, 0, 520) },
+}
+
+Story.BusRoute = { -- Ruta 2: Zócalo – Chapultepec (ida y vuelta)
+	{ Name = "Zócalo", Pos = V(240, 0, -170) },
+	{ Name = "Eje Central", Pos = V(-215, 0, -188) },
+	{ Name = "Bellas Artes", Pos = V(-330, 0, -188) },
+	{ Name = "Insurgentes", Pos = V(-670, 0, -188) },
+	{ Name = "El Ángel", Pos = V(-830, 0, -188) },
+	{ Name = "Chapultepec", Pos = V(-1030, 0, -188) },
+	{ Name = "El Ángel (regreso)", Pos = V(-930, 0, -212) },
+	{ Name = "Insurgentes (regreso)", Pos = V(-730, 0, -212) },
+	{ Name = "Bellas Artes (regreso)", Pos = V(-360, 0, -212) },
+	{ Name = "Zócalo (regreso)", Pos = V(220, 0, -212) },
+}
+
+return Story
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000004"><Properties><string name="Name">Weapons</string><ProtectedString name="Source"><![CDATA[-- Weapons: armas genéricas (sin marcas reales) y dónde se consiguen.
+-- Estilo realista sin sangre: los golpes muestran chispas y números de daño.
+
+local Weapons = {}
+
+-- Type: "Gun" (balas), "Melee" (cuerpo a cuerpo), "Taser" (paraliza)
+-- Damage por bala; Pellets = balas por disparo (escopeta); Spread en grados.
+-- Cooldown = segundos entre disparos; Auto = se mantiene presionado; Mag = cargador.
+Weapons.List = {
+	Macana = { Name = "Macana", Type = "Melee", Damage = 15, Range = 8, Cooldown = 0.7, Color = Color3.fromRGB(25, 25, 25), Size = Vector3.new(0.3, 0.3, 3) },
+	Bat = { Name = "Bat de béisbol", Type = "Melee", Damage = 20, Range = 8, Cooldown = 0.9, Color = Color3.fromRGB(150, 105, 60), Size = Vector3.new(0.4, 0.4, 3.4) },
+	Taser = { Name = "Taser", Type = "Taser", Range = 35, Cooldown = 2.5, Mag = 2, Reload = 2, Stun = 4, Spread = 0.5, Color = Color3.fromRGB(240, 200, 30), Size = Vector3.new(0.3, 0.8, 1.2) },
+	Pistola = { Name = "Pistola 9 mm", Type = "Gun", Damage = 22, Range = 250, Cooldown = 0.25, Mag = 15, Reload = 1.6, Spread = 1.2, Color = Color3.fromRGB(35, 35, 38), Size = Vector3.new(0.3, 0.8, 1.4) },
+	Revolver = { Name = "Revólver .38", Type = "Gun", Damage = 40, Range = 250, Cooldown = 0.6, Mag = 6, Reload = 2.4, Spread = 0.8, Color = Color3.fromRGB(150, 150, 155), Size = Vector3.new(0.3, 0.8, 1.6) },
+	Escopeta = { Name = "Escopeta de bomba", Type = "Gun", Damage = 12, Pellets = 7, Range = 90, Cooldown = 0.95, Mag = 6, Reload = 3, Spread = 6, Color = Color3.fromRGB(90, 60, 35), Size = Vector3.new(0.35, 0.6, 3.6) },
+	Subfusil = { Name = "Subfusil", Type = "Gun", Damage = 14, Range = 200, Cooldown = 0.09, Auto = true, Mag = 30, Reload = 2, Spread = 2.5, Color = Color3.fromRGB(40, 40, 45), Size = Vector3.new(0.35, 0.8, 2.2) },
+	RifleSSC = { Name = "Rifle de asalto SSC", Type = "Gun", Damage = 24, Range = 350, Cooldown = 0.12, Auto = true, Mag = 30, Reload = 2.2, Spread = 1.5, Color = Color3.fromRGB(30, 35, 30), Size = Vector3.new(0.35, 0.8, 3.4) },
+	Rifle = { Name = "Rifle de asalto", Type = "Gun", Damage = 24, Range = 350, Cooldown = 0.12, Auto = true, Mag = 30, Reload = 2.4, Spread = 2, Color = Color3.fromRGB(70, 55, 40), Size = Vector3.new(0.35, 0.8, 3.4) },
+}
+
+-- Tiendas de armas. Jobs = quién puede comprar ahí (nil = cualquiera).
+Weapons.Shops = {
+	Armeria = {
+		Name = "Armería del Centro",
+		Items = { { Id = "Bat", Price = 150 }, { Id = "Pistola", Price = 800 }, { Id = "Revolver", Price = 1200 }, { Id = "Escopeta", Price = 2500 } },
+	},
+	Tianguis = {
+		Name = "El Tuerto · mercado negro",
+		Jobs = { "Ladron" },
+		Items = { { Id = "Pistola", Price = 600 }, { Id = "Subfusil", Price = 4500 }, { Id = "Rifle", Price = 9000 } },
+	},
+	SSC = {
+		Name = "Armería de la SSC",
+		Jobs = { "Policia" },
+		Items = { { Id = "Macana", Price = 0 }, { Id = "Taser", Price = 0 }, { Id = "Pistola", Price = 0 }, { Id = "RifleSSC", Price = 0 } },
+	},
+}
+
+function Weapons.Get(id)
+	return Weapons.List[id]
+end
+
+return Weapons
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX00000012"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Script" referent="RBX00000011"><Properties><string name="Name">Server</string><ProtectedString name="Source"><![CDATA[-- CDMX Roleplay - punto de entrada del servidor.
+-- Construye la ciudad y arranca todos los sistemas.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local MapBuilder = require(script.MapBuilder)
+local Economy = require(script.Economy)
+local Jobs = require(script.Jobs)
+local Crime = require(script.Crime)
+local Shops = require(script.Shops)
+local Metro = require(script.Metro)
+local Vehicles = require(script.Vehicles)
+local DayNight = require(script.DayNight)
+local Combat = require(script.Combat)
+local Missions = require(script.Missions)
+
+-- Remotes ----------------------------------------------------------------
+local remotesFolder = Instance.new("Folder")
+remotesFolder.Name = "Remotes"
+local Remotes = {}
+for _, name in ipairs({
+	"Notify", "ChangeJob", "OpenShop", "BuyItem", "OpenMetro", "MetroTravel", "Fade",
+	-- autos
+	"OpenDealership", "BuyCar", "SpawnOwnedCar", "GarageUpdate", "Waypoint",
+	-- armas
+	"Shoot", "Reload", "ShotFx", "OpenWeaponShop", "BuyWeapon",
+	-- historia y misiones
+	"Objective", "Dialog", "DialogDone", "Sync",
+}) do
+	local r = Instance.new("RemoteEvent")
+	r.Name = name
+	r.Parent = remotesFolder
+	Remotes[name] = r
+end
+remotesFolder.Parent = ReplicatedStorage
+
+local function Notify(player, text, kind)
+	Remotes.Notify:FireClient(player, text, kind or "info")
+end
+
+local function NotifyJob(jobId, text, kind)
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p:GetAttribute("Job") == jobId then
+			Notify(p, text, kind)
+		end
+	end
+end
+
+-- Mundo ------------------------------------------------------------------
+local t0 = os.clock()
+local map = MapBuilder.Build()
+print(string.format("[CDMX] Ciudad construida en %.2fs", os.clock() - t0))
+
+-- Sistemas -----------------------------------------------------------------
+local ctx = {
+	Remotes = Remotes,
+	Economy = Economy,
+	Notify = Notify,
+	NotifyJob = NotifyJob,
+	Map = map,
+}
+ctx.Crime = Crime
+ctx.Jobs = Jobs
+ctx.Combat = Combat
+ctx.Missions = Missions
+ctx.Vehicles = Vehicles
+
+Economy.Init()
+Jobs.Init(ctx)
+Crime.Init(ctx)
+Shops.Init(ctx)
+Metro.Init(ctx)
+Vehicles.Init(ctx)
+Combat.Init(ctx)
+Missions.Init(ctx)
+DayNight.Init()
+
+Players.PlayerAdded:Connect(function(player)
+	task.wait(3)
+	if player.Parent then
+		Notify(player, "¡Bienvenido a " .. Config.GAME_NAME .. "! Presiona [J] o el botón TRABAJOS para elegir chamba.", "good")
+	end
+end)
+
+print("[CDMX] Servidor listo. ¡Órale!")
+]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX00000007"><Properties><string name="Name">Combat</string><ProtectedString name="Source"><![CDATA[-- Combat: armas, disparos validados en el servidor, daño, taser, zonas seguras,
+-- reglas de rol y hospital al caer. Estilo realista sin sangre.
+--
+-- Reglas:
+--  * En las zonas seguras (Zócalo, Hospital, Reclusorio) nadie recibe daño.
+--  * Los policías solo pueden lastimar a jugadores buscados. Entre policías no hay daño.
+--  * Cualquier otro jugador que ataque a alguien queda "SE BUSCA".
+--  * Si un policía abate a un buscado, el buscado despierta en el Reclusorio.
+--  * Al caer, reapareces en el Hospital General y pagas la consulta.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local Weapons = require(ReplicatedStorage.Shared.Weapons)
+
+local Combat = {}
+
+local ctx
+local lastShot = {} -- [player] = os.clock()
+local reloading = {} -- [player] = true
+local downedBy = {} -- [player] = { Killer = player, Time = os.clock() }
+
+function Combat.IsSafe(pos)
+	for _, z in ipairs(Config.SAFE_ZONES) do
+		local d = Vector2.new(pos.X - z.Center.X, pos.Z - z.Center.Z).Magnitude
+		if d < z.Radius then
+			return true, z.Name
+		end
+	end
+	return false
+end
+
+-- Herramientas -----------------------------------------------------------------
+function Combat.MakeWeapon(id)
+	local def = Weapons.Get(id)
+	if not def then
+		return nil
+	end
+	local tool = Instance.new("Tool")
+	tool.Name = def.Name
+	tool.CanBeDropped = false
+	tool.ToolTip = def.Type == "Gun" and ("Daño " .. def.Damage .. (def.Pellets and (" ×" .. def.Pellets) or "") .. " · Cargador " .. def.Mag)
+		or (def.Type == "Taser" and "Paraliza " .. def.Stun .. " s") or ("Daño " .. def.Damage)
+	tool:SetAttribute("WeaponId", id)
+	if id == "Macana" or id == "Taser" or id == "RifleSSC" then
+		tool:SetAttribute("PoliceOnly", true) -- se retira al dejar la SSC
+	end
+	tool:SetAttribute("Type", def.Type)
+	tool:SetAttribute("Auto", def.Auto == true)
+	tool:SetAttribute("Cooldown", def.Cooldown)
+	if def.Mag then
+		tool:SetAttribute("Ammo", def.Mag)
+		tool:SetAttribute("Mag", def.Mag)
+	end
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = def.Size
+	handle.Color = def.Color
+	handle.Material = Enum.Material.Metal
+	handle.CanCollide = false
+	handle.Massless = true
+	handle.Parent = tool
+	local muzzle = Instance.new("Attachment")
+	muzzle.Name = "Muzzle"
+	muzzle.Position = Vector3.new(0, 0, -def.Size.Z / 2)
+	muzzle.Parent = handle
+	tool.Grip = CFrame.new(0, -def.Size.Y * 0.2, def.Size.Z * 0.2)
+	return tool
+end
+
+function Combat.Give(player, id)
+	local backpack = player:FindFirstChild("Backpack")
+	if not backpack then
+		return false
+	end
+	local def = Weapons.Get(id)
+	for _, c in ipairs({ backpack, player.Character }) do
+		if c then
+			for _, t in ipairs(c:GetChildren()) do
+				if t:IsA("Tool") and t:GetAttribute("WeaponId") == id then
+					if def.Mag then
+						t:SetAttribute("Ammo", def.Mag) -- recompra = recarga completa
+					end
+					return true
+				end
+			end
+		end
+	end
+	local tool = Combat.MakeWeapon(id)
+	tool.Parent = backpack
+	return true
+end
+
+-- Daño -------------------------------------------------------------------------
+local function playerFromModel(model)
+	return model and Players:GetPlayerFromCharacter(model)
+end
+
+-- ¿Puede `attacker` (jugador o nil si es NPC) lastimar al modelo `victimModel`?
+local function canDamage(attacker, victimModel)
+	if victimModel:GetAttribute("NpcId") then
+		return false -- los personajes de la historia no reciben daño
+	end
+	if not attacker and victimModel:GetAttribute("Enemy") then
+		return false -- los enemigos no se lastiman entre ellos
+	end
+	local root = victimModel:FindFirstChild("HumanoidRootPart")
+	if root and Combat.IsSafe(root.Position) then
+		return false, "Zona segura: aquí no se permiten peleas."
+	end
+	if attacker and attacker.Character then
+		local aroot = attacker.Character:FindFirstChild("HumanoidRootPart")
+		if aroot and Combat.IsSafe(aroot.Position) then
+			return false, "No puedes atacar desde una zona segura."
+		end
+	end
+	local victim = playerFromModel(victimModel)
+	if not victim then
+		return true -- NPC
+	end
+	if victim:GetAttribute("JailedUntil") then
+		return false
+	end
+	if attacker and attacker:GetAttribute("Job") == "Policia" then
+		if victim:GetAttribute("Job") == "Policia" then
+			return false, "No dispares a tus compañeros."
+		end
+		if not victim:GetAttribute("Wanted") then
+			return false, "Solo puedes usar la fuerza contra sospechosos buscados."
+		end
+	end
+	return true
+end
+
+local function popDamage(model, text, color)
+	local head = model:FindFirstChild("Head")
+	if not head then
+		return
+	end
+	local bb = Instance.new("BillboardGui")
+	bb.Size = UDim2.fromOffset(80, 30)
+	bb.StudsOffsetWorldSpace = Vector3.new(math.random(-10, 10) / 10, 2.5, 0)
+	bb.AlwaysOnTop = true
+	bb.MaxDistance = 120
+	local l = Instance.new("TextLabel")
+	l.Size = UDim2.fromScale(1, 1)
+	l.BackgroundTransparency = 1
+	l.Font = Enum.Font.GothamBlack
+	l.TextScaled = true
+	l.TextColor3 = color or Color3.fromRGB(255, 230, 90)
+	l.TextStrokeTransparency = 0.3
+	l.Text = text
+	l.Parent = bb
+	bb.Parent = head
+	Debris:AddItem(bb, 0.8)
+end
+
+-- Aplica daño. attacker puede ser nil (NPC). Devuelve true si se aplicó.
+function Combat.Damage(attacker, victimModel, amount)
+	local hum = victimModel:FindFirstChildOfClass("Humanoid")
+	if not hum or hum.Health <= 0 then
+		return false
+	end
+	local ok, reason = canDamage(attacker, victimModel)
+	if not ok then
+		if reason and attacker then
+			ctx.Notify(attacker, reason, "info")
+		end
+		return false
+	end
+	local victim = playerFromModel(victimModel)
+	-- Cualquier ataque de un no-policía a otro jugador es delito
+	if attacker and victim and attacker:GetAttribute("Job") ~= "Policia" then
+		if not attacker:GetAttribute("Wanted") then
+			ctx.Notify(attacker, "¡Atacaste a alguien! La policía te busca.", "bad")
+			ctx.NotifyJob("Policia", "🚨 Radio SSC: agresión reportada. Sospechoso: " .. attacker.DisplayName, "alert")
+		end
+		ctx.Crime.SetWanted(attacker, Config.ASSAULT_WANTED)
+	end
+	if victim and attacker then
+		downedBy[victim] = { Killer = attacker, Time = os.clock() }
+	end
+	if attacker then
+		victimModel:SetAttribute("LastAttacker", attacker.UserId)
+	end
+	hum:TakeDamage(amount)
+	popDamage(victimModel, "-" .. math.floor(amount))
+	return true
+end
+
+local function stun(victimModel, seconds)
+	local hum = victimModel:FindFirstChildOfClass("Humanoid")
+	if not hum or victimModel:GetAttribute("Stunned") then
+		return
+	end
+	victimModel:SetAttribute("Stunned", true)
+	local speed, jump = hum.WalkSpeed, hum.JumpPower
+	hum.WalkSpeed = 0
+	hum.JumpPower = 0
+	hum.PlatformStand = true
+	popDamage(victimModel, "⚡", Color3.fromRGB(120, 200, 255))
+	task.delay(seconds, function()
+		if hum.Parent then
+			hum.PlatformStand = false
+			hum.WalkSpeed = speed
+			hum.JumpPower = jump
+		end
+		victimModel:SetAttribute("Stunned", nil)
+	end)
+end
+
+-- Disparos -----------------------------------------------------------------
+local function findHumanoidModel(inst)
+	while inst and inst ~= workspace do
+		if inst:IsA("Model") and inst:FindFirstChildOfClass("Humanoid") then
+			return inst
+		end
+		inst = inst.Parent
+	end
+	return nil
+end
+
+local function spreadDir(dir, degrees)
+	local cf = CFrame.lookAt(Vector3.zero, dir)
+	local a = math.rad(degrees)
+	return (cf * CFrame.Angles((math.random() - 0.5) * a, (math.random() - 0.5) * a, 0)).LookVector
+end
+
+-- Disparo genérico usado por jugadores y NPCs. Devuelve el modelo golpeado (o nil).
+function Combat.Fire(shooterModel, attackerPlayer, def, origin, target, damageMult)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { shooterModel }
+	local hits = {}
+	local pellets = def.Pellets or 1
+	for _ = 1, pellets do
+		local dir = spreadDir((target - origin).Unit, def.Spread or 1)
+		local result = workspace:Raycast(origin, dir * def.Range, params)
+		local endPos = result and result.Position or (origin + dir * def.Range)
+		ctx.Remotes.ShotFx:FireAllClients(origin, endPos, def.Type)
+		if result then
+			local model = findHumanoidModel(result.Instance)
+			if model then
+				local dmg = (def.Damage or 0) * (damageMult or 1)
+				if result.Instance.Name == "Head" then
+					dmg = dmg * 1.5
+				end
+				hits[model] = (hits[model] or 0) + dmg
+			end
+		end
+	end
+	local any
+	for model, dmg in pairs(hits) do
+		if def.Type == "Taser" then
+			local ok, reason = canDamage(attackerPlayer, model)
+			if ok then
+				stun(model, def.Stun)
+				any = model
+			elseif reason and attackerPlayer then
+				ctx.Notify(attackerPlayer, reason, "info")
+			end
+		elseif Combat.Damage(attackerPlayer, model, dmg) then
+			any = model
+		end
+	end
+	return any
+end
+
+local function equippedWeapon(player)
+	local char = player.Character
+	local tool = char and char:FindFirstChildOfClass("Tool")
+	if not tool then
+		return nil
+	end
+	local id = tool:GetAttribute("WeaponId")
+	return tool, id and Weapons.Get(id)
+end
+
+local function onShoot(player, target)
+	if typeof(target) ~= "Vector3" then
+		return
+	end
+	local tool, def = equippedWeapon(player)
+	local char = player.Character
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	local head = char and char:FindFirstChild("Head")
+	if not def or not hum or hum.Health <= 0 or not head or char:GetAttribute("Stunned") then
+		return
+	end
+	if player:GetAttribute("JailedUntil") or reloading[player] then
+		return
+	end
+	local now = os.clock()
+	if lastShot[player] and now - lastShot[player] < def.Cooldown * 0.85 then
+		return
+	end
+	lastShot[player] = now
+
+	if def.Type == "Melee" then
+		local root = char:FindFirstChild("HumanoidRootPart")
+		local best, bestD = nil, def.Range
+		for _, model in ipairs(Combat.GetTargets()) do
+			if model ~= char then
+				local r = model:FindFirstChild("HumanoidRootPart")
+				local h = model:FindFirstChildOfClass("Humanoid")
+				if r and h and h.Health > 0 then
+					local d = (r.Position - root.Position).Magnitude
+					local facingDot = (r.Position - root.Position).Unit:Dot(root.CFrame.LookVector)
+					if d < bestD and facingDot > 0.3 then
+						best, bestD = model, d
+					end
+				end
+			end
+		end
+		if best then
+			Combat.Damage(player, best, def.Damage)
+		end
+		return
+	end
+
+	local ammo = tool:GetAttribute("Ammo") or 0
+	if ammo <= 0 then
+		return
+	end
+	tool:SetAttribute("Ammo", ammo - 1)
+	local muzzle = tool.Handle:FindFirstChild("Muzzle")
+	local origin = head.Position
+	if (target - origin).Magnitude < 1 then
+		return
+	end
+	Combat.Fire(char, player, def, origin, target)
+	if muzzle then
+		ctx.Remotes.ShotFx:FireAllClients(muzzle.WorldPosition, nil, "Flash")
+	end
+end
+
+local function onReload(player)
+	local tool, def = equippedWeapon(player)
+	if not def or not def.Mag or reloading[player] then
+		return
+	end
+	if tool:GetAttribute("Ammo") == def.Mag then
+		return
+	end
+	reloading[player] = true
+	tool:SetAttribute("Reloading", true)
+	task.delay(def.Reload, function()
+		reloading[player] = nil
+		if tool.Parent then
+			tool:SetAttribute("Ammo", def.Mag)
+			tool:SetAttribute("Reloading", nil)
+		end
+	end)
+end
+
+-- Todos los modelos con Humanoid que pueden recibir golpes
+function Combat.GetTargets()
+	local list = {}
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p.Character then
+			table.insert(list, p.Character)
+		end
+	end
+	if ctx.Missions then
+		for _, npc in ipairs(ctx.Missions.GetEnemies()) do
+			table.insert(list, npc)
+		end
+	end
+	return list
+end
+
+-- Tiendas de armas -------------------------------------------------------------
+local function canUseShop(player, shop)
+	if not shop.Jobs then
+		return true
+	end
+	for _, j in ipairs(shop.Jobs) do
+		if player:GetAttribute("Job") == j then
+			return true
+		end
+	end
+	return false
+end
+
+local function onBuyWeapon(player, shopIndex, weaponId)
+	if type(shopIndex) ~= "number" or type(weaponId) ~= "string" then
+		return
+	end
+	local entry = ctx.Map.WeaponShops[shopIndex]
+	local shop = entry and Weapons.Shops[entry.ShopId]
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	if not shop or not root or (root.Position - entry.Part.Position).Magnitude > 20 then
+		return
+	end
+	if not canUseShop(player, shop) then
+		ctx.Notify(player, "Aquí no te atienden con ese trabajo.", "bad")
+		return
+	end
+	for _, item in ipairs(shop.Items) do
+		if item.Id == weaponId then
+			if item.Price > 0 and not ctx.Economy.Charge(player, item.Price) then
+				ctx.Notify(player, "No te alcanza. Cuesta $" .. item.Price .. ".", "bad")
+				return
+			end
+			Combat.Give(player, weaponId)
+			local def = Weapons.Get(weaponId)
+			ctx.Notify(player, (item.Price > 0 and "Compraste " or "Recibiste ") .. def.Name .. ". Equípala con su número y haz clic para usarla. [R] recarga.", "good")
+			return
+		end
+	end
+end
+
+-- Muerte y hospital -------------------------------------------------------------
+local function onCharacter(player, char)
+	local hum = char:WaitForChild("Humanoid", 10)
+	if not hum then
+		return
+	end
+	hum.BreakJointsOnDeath = false -- sin desmembramiento
+	hum.Died:Connect(function()
+		local info = downedBy[player]
+		downedBy[player] = nil
+		local killer = info and (os.clock() - info.Time < 10) and info.Killer
+		if killer and killer.Parent and killer:GetAttribute("Job") == "Policia" and player:GetAttribute("Wanted") then
+			player:SetAttribute("PendingJail", true)
+			ctx.Economy.Add(killer, math.floor(Config.ARREST_REWARD / 2))
+			ctx.Notify(killer, "Sospechoso abatido. Será trasladado al Reclusorio. +$" .. math.floor(Config.ARREST_REWARD / 2), "money")
+		else
+			player:SetAttribute("PendingHospital", true)
+		end
+		if ctx.Missions then
+			ctx.Missions.OnPlayerDied(player)
+		end
+	end)
+	-- ¿Reaparece después de caer?
+	if player:GetAttribute("PendingJail") then
+		player:SetAttribute("PendingJail", nil)
+		task.wait(0.3)
+		ctx.Crime.Jail(player, nil)
+	elseif player:GetAttribute("PendingHospital") then
+		player:SetAttribute("PendingHospital", nil)
+		if not player:GetAttribute("JailedUntil") then
+			char:WaitForChild("HumanoidRootPart", 10)
+			task.wait(0.2)
+			char:PivotTo(ctx.Map.HospitalCFrame)
+			local fee = math.min(Config.HOSPITAL_FEE, ctx.Economy.Get(player))
+			ctx.Economy.Charge(player, fee)
+			ctx.Notify(player, "Te atendieron en el Hospital General. La consulta costó $" .. fee .. ".", "info")
+		end
+	end
+	-- Equipo policial básico al reaparecer
+	if player:GetAttribute("Job") == "Policia" then
+		player:WaitForChild("Backpack", 10)
+		Combat.Give(player, "Taser")
+	end
+end
+
+function Combat.Init(context)
+	ctx = context
+	ctx.Remotes.Shoot.OnServerEvent:Connect(onShoot)
+	ctx.Remotes.Reload.OnServerEvent:Connect(onReload)
+	ctx.Remotes.BuyWeapon.OnServerEvent:Connect(onBuyWeapon)
+	for index, entry in ipairs(ctx.Map.WeaponShops) do
+		entry.Prompt.Triggered:Connect(function(player)
+			local shop = Weapons.Shops[entry.ShopId]
+			if not canUseShop(player, shop) then
+				if entry.ShopId == "SSC" then
+					ctx.Notify(player, "Solo personal de la SSC.", "bad")
+				else
+					ctx.Notify(player, "El Tuerto te mira raro: \"Yo no vendo nada, joven\". (Solo rateros)", "info")
+				end
+				return
+			end
+			ctx.Remotes.OpenWeaponShop:FireClient(player, index, entry.ShopId)
+		end)
+	end
+	local function onPlayer(player)
+		player.CharacterAdded:Connect(function(char)
+			onCharacter(player, char)
+		end)
+		if player.Character then
+			task.spawn(onCharacter, player, player.Character)
+		end
+	end
+	Players.PlayerAdded:Connect(onPlayer)
+	for _, p in ipairs(Players:GetPlayers()) do
+		onPlayer(p)
+	end
+	Players.PlayerRemoving:Connect(function(p)
+		lastShot[p] = nil
+		reloading[p] = nil
+		downedBy[p] = nil
+	end)
+end
+
+return Combat
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000008"><Properties><string name="Name">Crime</string><ProtectedString name="Source"><![CDATA[-- Crime: asaltos a tienditas, nivel de búsqueda, arrestos y reclusorio.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Crime = {}
+
+local ctx -- { Remotes, Economy, Notify, Map }
+local storeCooldown = {} -- [prompt] = os.clock() del último asalto
+
+local function teleport(player, cf)
+	local char = player.Character
+	if char then
+		char:PivotTo(cf)
+	end
+end
+
+local function jailCFrame()
+	local c = ctx.Map.JailCenter
+	local r = ctx.Map.JailRadius
+	return CFrame.new(c + Vector3.new(math.random(-r, r), 0, math.random(-r, r) + 10))
+end
+
+local function notifyJob(jobId, text, kind)
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p:GetAttribute("Job") == jobId then
+			ctx.Notify(p, text, kind)
+		end
+	end
+end
+
+function Crime.SetWanted(player, seconds)
+	local untilTime = os.time() + (seconds or Config.WANTED_DURATION)
+	local current = player:GetAttribute("WantedUntil")
+	player:SetAttribute("Wanted", true)
+	player:SetAttribute("WantedUntil", math.max(current or 0, untilTime))
+end
+
+function Crime.ClearWanted(player)
+	player:SetAttribute("Wanted", nil)
+	player:SetAttribute("WantedUntil", nil)
+end
+
+function Crime.Jail(player, officer)
+	Crime.ClearWanted(player)
+	player:SetAttribute("JailedUntil", os.time() + Config.JAIL_TIME)
+	teleport(player, jailCFrame())
+	local by = officer and (" por " .. officer.DisplayName) or ""
+	ctx.Notify(player, "Fuiste arrestado" .. by .. ". " .. Config.JAIL_TIME .. "s en el Reclusorio.", "bad")
+end
+
+function Crime.TryArrest(officer)
+	if officer:GetAttribute("Job") ~= "Policia" then
+		return
+	end
+	local oChar = officer.Character
+	local oRoot = oChar and oChar:FindFirstChild("HumanoidRootPart")
+	if not oRoot then
+		return
+	end
+	local target, best = nil, Config.ARREST_RANGE
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= officer and p:GetAttribute("Wanted") and p.Character then
+			local root = p.Character:FindFirstChild("HumanoidRootPart")
+			if root then
+				local d = (root.Position - oRoot.Position).Magnitude
+				if d <= best then
+					target, best = p, d
+				end
+			end
+		end
+	end
+	if not target then
+		ctx.Notify(officer, "No hay ningún sospechoso buscado al alcance.", "info")
+		return
+	end
+	Crime.Jail(target, officer)
+	ctx.Economy.Add(officer, Config.ARREST_REWARD)
+	ctx.Notify(officer, "¡Arrestaste a " .. target.DisplayName .. "! +$" .. Config.ARREST_REWARD, "money")
+end
+
+local function onRob(player, robbable)
+	if player:GetAttribute("Job") ~= "Ladron" then
+		ctx.Notify(player, "Solo los rateros asaltan tienditas. ¡Aquí se trabaja honradamente!", "info")
+		return
+	end
+	if player:GetAttribute("JailedUntil") then
+		return
+	end
+	local last = storeCooldown[robbable.Prompt]
+	if last and os.clock() - last < Config.ROBBERY_COOLDOWN then
+		local left = math.ceil(Config.ROBBERY_COOLDOWN - (os.clock() - last))
+		ctx.Notify(player, "La caja está vacía. Vuelve en " .. left .. "s.", "info")
+		return
+	end
+	storeCooldown[robbable.Prompt] = os.clock()
+	local loot = math.random(Config.ROBBERY_MIN, Config.ROBBERY_MAX)
+	ctx.Economy.Add(player, loot)
+	Crime.SetWanted(player)
+	ctx.Notify(player, "¡Te llevaste $" .. loot .. "! La policía te busca por " .. Config.WANTED_DURATION .. "s.", "money")
+	notifyJob("Policia", "🚨 ¡Asalto en " .. robbable.Name .. "! Sospechoso: " .. player.DisplayName, "alert")
+end
+
+function Crime.Init(context)
+	ctx = context
+	for _, robbable in ipairs(ctx.Map.Robbables) do
+		robbable.Prompt.Triggered:Connect(function(player)
+			onRob(player, robbable)
+		end)
+	end
+
+	-- Si alguien reaparece mientras está preso, vuelve a la cárcel
+	local function onPlayer(player)
+		player.CharacterAdded:Connect(function(char)
+			if player:GetAttribute("JailedUntil") then
+				char:WaitForChild("HumanoidRootPart", 10)
+				task.wait(0.2)
+				teleport(player, jailCFrame())
+			end
+		end)
+	end
+	Players.PlayerAdded:Connect(onPlayer)
+	for _, p in ipairs(Players:GetPlayers()) do
+		onPlayer(p)
+	end
+
+	-- Reloj: expira búsqueda y libera presos
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			local now = os.time()
+			for _, p in ipairs(Players:GetPlayers()) do
+				local wantedUntil = p:GetAttribute("WantedUntil")
+				if wantedUntil and now >= wantedUntil then
+					Crime.ClearWanted(p)
+					ctx.Notify(p, "La policía dejó de buscarte... por ahora.", "info")
+				end
+				local jailedUntil = p:GetAttribute("JailedUntil")
+				if jailedUntil and now >= jailedUntil then
+					p:SetAttribute("JailedUntil", nil)
+					teleport(p, ctx.Map.ReleaseCFrame)
+					ctx.Notify(p, "Cumpliste tu condena. ¡Pórtate bien!", "good")
+				end
+			end
+		end
+	end)
+end
+
+return Crime
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000009"><Properties><string name="Name">DayNight</string><ProtectedString name="Source"><![CDATA[-- DayNight: ciclo de día y noche; enciende el alumbrado público al anochecer.
+
+local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local DayNight = {}
+
+local function setLights(on)
+	for _, lamp in ipairs(CollectionService:GetTagged("StreetLight")) do
+		local light = lamp:FindFirstChildOfClass("PointLight")
+		if light then
+			light.Enabled = on
+		end
+		lamp.Material = on and Enum.Material.Neon or Enum.Material.SmoothPlastic
+	end
+end
+
+function DayNight.Init()
+	Lighting.ClockTime = 9
+	-- Un toque de neblina/smog chilango
+	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere")
+	atmosphere.Density = 0.32
+	atmosphere.Haze = 1.6
+	atmosphere.Color = Color3.fromRGB(215, 200, 180)
+	atmosphere.Decay = Color3.fromRGB(150, 130, 110)
+	atmosphere.Parent = Lighting
+
+	local hoursPerSecond = 24 / (Config.DAY_LENGTH_MINUTES * 60)
+	local lightsOn = nil
+	RunService.Heartbeat:Connect(function(dt)
+		Lighting.ClockTime = (Lighting.ClockTime + dt * hoursPerSecond) % 24
+		local night = Lighting.ClockTime >= 18.3 or Lighting.ClockTime < 6.2
+		if night ~= lightsOn then
+			lightsOn = night
+			setLights(night)
+		end
+	end)
+end
+
+return DayNight
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000A"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[-- Economy: dinero en pesos con guardado en DataStore.
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Economy = {}
+
+local store
+do
+	local ok, result = pcall(function()
+		return DataStoreService:GetDataStore(Config.DATASTORE_NAME)
+	end)
+	if ok then
+		store = result
+	else
+		warn("[CDMX] DataStore no disponible (activa 'Enable Studio Access to API Services'):", result)
+	end
+end
+
+local loaded = {} -- [player] = true cuando sus datos cargaron bien (solo entonces se guardan)
+local dataByPlayer = {} -- [player] = { Cars = {}, Story = {}, Title = nil }
+
+local function defaultData()
+	return {
+		Cars = {}, -- { { Id = "Tsuro", Paint = 1 }, ... }
+		Story = { Chapter = 1, Step = 1, Path = nil, Done = false },
+		Title = nil,
+	}
+end
+
+-- Datos del jugador (autos, historia...). Siempre devuelve una tabla.
+function Economy.GetData(player)
+	local d = dataByPlayer[player]
+	if not d then
+		d = defaultData()
+		dataByPlayer[player] = d
+	end
+	return d
+end
+
+-- Espera a que terminen de cargar los datos del jugador (máx. 15 s)
+function Economy.WaitForData(player)
+	local t = 0
+	while player.Parent and not (player:FindFirstChild("leaderstats") and player:GetAttribute("DataReady")) and t < 15 do
+		t = t + task.wait(0.1)
+	end
+	return Economy.GetData(player)
+end
+
+local function key(player)
+	return "player_" .. player.UserId
+end
+
+local function getValue(player)
+	local ls = player:FindFirstChild("leaderstats")
+	return ls and ls:FindFirstChild("Pesos")
+end
+
+function Economy.Get(player)
+	local v = getValue(player)
+	return v and v.Value or 0
+end
+
+function Economy.Add(player, amount)
+	local v = getValue(player)
+	if v then
+		v.Value = v.Value + math.floor(amount)
+	end
+end
+
+-- Cobra si alcanza; devuelve true/false
+function Economy.Charge(player, amount)
+	local v = getValue(player)
+	if v and v.Value >= amount then
+		v.Value = v.Value - amount
+		return true
+	end
+	return false
+end
+
+-- Transfiere hasta `amount` (lo que alcance) y devuelve lo transferido
+function Economy.Transfer(from, to, amount)
+	local fv, tv = getValue(from), getValue(to)
+	if not fv or not tv then
+		return 0
+	end
+	local paid = math.min(fv.Value, amount)
+	fv.Value = fv.Value - paid
+	tv.Value = tv.Value + paid
+	return paid
+end
+
+local function save(player)
+	if not store or not loaded[player] then
+		return
+	end
+	local amount = Economy.Get(player)
+	local d = Economy.GetData(player)
+	local ok, err = pcall(function()
+		store:SetAsync(key(player), { Money = amount, Cars = d.Cars, Story = d.Story, Title = d.Title }, { player.UserId })
+	end)
+	if not ok then
+		warn("[CDMX] No se pudo guardar a", player.Name, err)
+	end
+end
+
+local function onPlayerAdded(player)
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+	local pesos = Instance.new("IntValue")
+	pesos.Name = "Pesos"
+	pesos.Value = Config.STARTING_MONEY
+	pesos.Parent = leaderstats
+	leaderstats.Parent = player
+
+	if store then
+		local ok, data = pcall(function()
+			return store:GetAsync(key(player))
+		end)
+		if ok then
+			local d = Economy.GetData(player)
+			if type(data) == "table" then
+				if type(data.Money) == "number" then
+					pesos.Value = data.Money
+				end
+				if type(data.Cars) == "table" then
+					d.Cars = data.Cars
+				end
+				if type(data.Story) == "table" and type(data.Story.Chapter) == "number" then
+					d.Story = data.Story
+				end
+				if type(data.Title) == "string" then
+					d.Title = data.Title
+					player:SetAttribute("Title", data.Title)
+				end
+			end
+			loaded[player] = true
+		else
+			-- Si falla la carga no guardamos, para no sobrescribir datos buenos
+			warn("[CDMX] No se pudieron cargar los datos de", player.Name, data)
+		end
+	end
+	Economy.GetData(player)
+	player:SetAttribute("DataReady", true)
+end
+
+function Economy.Init()
+	Players.PlayerAdded:Connect(onPlayerAdded)
+	for _, p in ipairs(Players:GetPlayers()) do
+		task.spawn(onPlayerAdded, p)
+	end
+	Players.PlayerRemoving:Connect(function(player)
+		save(player)
+		loaded[player] = nil
+		dataByPlayer[player] = nil
+	end)
+	game:BindToClose(function()
+		for _, p in ipairs(Players:GetPlayers()) do
+			save(p)
+		end
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(Config.AUTOSAVE_INTERVAL)
+			for _, p in ipairs(Players:GetPlayers()) do
+				task.spawn(save, p)
+			end
+		end
+	end)
+end
+
+return Economy
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000B"><Properties><string name="Name">Jobs</string><ProtectedString name="Source"><![CDATA[-- Jobs: trabajos, equipos, herramientas de trabajo, sueldo y etiqueta sobre la cabeza.
+
+local Players = game:GetService("Players")
+local Teams = game:GetService("Teams")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Jobs = {}
+
+local ctx -- { Remotes, Economy, Notify, Crime }
+local teams = {}
+local lastChange = {}
+local lastHeal = {}
+
+-- Herramientas -------------------------------------------------------------
+local function makeTool(name, color, size)
+	local tool = Instance.new("Tool")
+	tool.Name = name
+	tool.CanBeDropped = false
+	tool:SetAttribute("JobTool", true)
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = size or Vector3.new(1, 1, 1)
+	handle.Color = color
+	handle.Material = Enum.Material.SmoothPlastic
+	handle.CanCollide = false
+	handle.Massless = true
+	handle.Parent = tool
+	return tool
+end
+
+local function nearestPlayer(from, range, filter)
+	local fromChar = from.Character
+	local fromRoot = fromChar and fromChar:FindFirstChild("HumanoidRootPart")
+	if not fromRoot then
+		return nil
+	end
+	local best, bestDist = nil, range
+	for _, other in ipairs(Players:GetPlayers()) do
+		if other ~= from and other.Character then
+			local root = other.Character:FindFirstChild("HumanoidRootPart")
+			local hum = other.Character:FindFirstChildOfClass("Humanoid")
+			if root and hum and hum.Health > 0 and (not filter or filter(other, hum)) then
+				local d = (root.Position - fromRoot.Position).Magnitude
+				if d <= bestDist then
+					best, bestDist = other, d
+				end
+			end
+		end
+	end
+	return best
+end
+
+local function giveHandcuffs(player)
+	local tool = makeTool("Esposas", Color3.fromRGB(160, 160, 170), Vector3.new(1.2, 0.3, 0.6))
+	tool.ToolTip = "Arresta a un ratero buscado cercano"
+	tool.Activated:Connect(function()
+		ctx.Crime.TryArrest(player)
+	end)
+	tool.Parent = player.Backpack
+	if ctx.Combat then
+		ctx.Combat.Give(player, "Taser")
+	end
+end
+
+local function giveMedkit(player)
+	local tool = makeTool("Botiquín", Color3.fromRGB(220, 30, 30), Vector3.new(1.4, 1, 0.8))
+	tool.ToolTip = "Cura al jugador herido más cercano"
+	tool.Activated:Connect(function()
+		local now = os.clock()
+		if lastHeal[player] and now - lastHeal[player] < Config.HEAL_COOLDOWN then
+			return
+		end
+		local target = nearestPlayer(player, Config.HEAL_RANGE, function(_, hum)
+			return hum.Health < hum.MaxHealth
+		end)
+		if not target then
+			ctx.Notify(player, "No hay nadie herido cerca.", "info")
+			return
+		end
+		lastHeal[player] = now
+		local hum = target.Character:FindFirstChildOfClass("Humanoid")
+		hum.Health = math.min(hum.MaxHealth, hum.Health + Config.HEAL_AMOUNT)
+		ctx.Economy.Add(player, Config.HEAL_REWARD)
+		ctx.Notify(player, "Curaste a " .. target.DisplayName .. " (+$" .. Config.HEAL_REWARD .. ")", "good")
+		ctx.Notify(target, "Un paramédico te atendió. ¡Que te mejores!", "good")
+	end)
+	tool.Parent = player.Backpack
+end
+
+local JOB_TOOLS = {
+	Policia = giveHandcuffs,
+	Paramedico = giveMedkit,
+}
+
+local function clearJobTools(player)
+	local containers = { player:FindFirstChild("Backpack"), player.Character }
+	for _, c in ipairs(containers) do
+		if c then
+			for _, t in ipairs(c:GetChildren()) do
+				local policeGear = t:GetAttribute("PoliceOnly") and player:GetAttribute("Job") ~= "Policia"
+				if t:IsA("Tool") and (t:GetAttribute("JobTool") or policeGear) then
+					t:Destroy()
+				end
+			end
+		end
+	end
+end
+
+local function giveJobTools(player)
+	clearJobTools(player)
+	local giver = JOB_TOOLS[player:GetAttribute("Job")]
+	if giver and player:FindFirstChild("Backpack") then
+		giver(player)
+	end
+end
+
+-- Etiqueta sobre la cabeza ---------------------------------------------------
+local function updateTag(player)
+	local char = player.Character
+	local head = char and char:FindFirstChild("Head")
+	if not head then
+		return
+	end
+	local tag = head:FindFirstChild("RPTag")
+	if not tag then
+		tag = Instance.new("BillboardGui")
+		tag.Name = "RPTag"
+		tag.Size = UDim2.fromOffset(200, 60)
+		tag.StudsOffset = Vector3.new(0, 2.6, 0)
+		tag.MaxDistance = 80
+		local list = Instance.new("UIListLayout")
+		list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		list.Parent = tag
+		for i, name in ipairs({ "Nombre", "Trabajo", "Estado" }) do
+			local l = Instance.new("TextLabel")
+			l.Name = name
+			l.LayoutOrder = i
+			l.Size = UDim2.new(1, 0, 0, i == 1 and 22 or 18)
+			l.BackgroundTransparency = 1
+			l.Font = Enum.Font.GothamBold
+			l.TextScaled = true
+			l.TextStrokeTransparency = 0.3
+			l.TextColor3 = Color3.new(1, 1, 1)
+			l.Parent = tag
+		end
+		tag.Parent = head
+		local hum = char:FindFirstChildOfClass("Humanoid")
+		if hum then
+			hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		end
+	end
+	local job = Config.GetJob(player:GetAttribute("Job")) or Config.Jobs[1]
+	tag.Nombre.Text = player.DisplayName
+	tag.Trabajo.Text = job.Name
+	tag.Trabajo.TextColor3 = BrickColor.new(job.Color).Color:Lerp(Color3.new(1, 1, 1), 0.35)
+	local status = tag.Estado
+	if player:GetAttribute("JailedUntil") then
+		status.Text = "EN EL RECLUSORIO"
+		status.TextColor3 = Color3.fromRGB(255, 160, 60)
+		status.Visible = true
+	elseif player:GetAttribute("Wanted") then
+		status.Text = "¡SE BUSCA!"
+		status.TextColor3 = Color3.fromRGB(255, 60, 60)
+		status.Visible = true
+	else
+		status.Visible = false
+	end
+end
+Jobs.UpdateTag = updateTag
+
+-- API ----------------------------------------------------------------------
+function Jobs.Set(player, jobId)
+	local job = Config.GetJob(jobId)
+	if not job then
+		return false
+	end
+	player:SetAttribute("Job", job.Id)
+	player.Team = teams[job.Id]
+	giveJobTools(player)
+	updateTag(player)
+	return true
+end
+
+local function onChangeJob(player, jobId)
+	if type(jobId) ~= "string" or not Config.GetJob(jobId) then
+		return
+	end
+	if player:GetAttribute("Job") == jobId then
+		return
+	end
+	if player:GetAttribute("JailedUntil") then
+		ctx.Notify(player, "No puedes cambiar de trabajo desde el reclusorio.", "bad")
+		return
+	end
+	if player:GetAttribute("Wanted") then
+		ctx.Notify(player, "Estás buscado por la policía. ¡No puedes cambiar de trabajo!", "bad")
+		return
+	end
+	local now = os.clock()
+	if lastChange[player] and now - lastChange[player] < Config.JOB_CHANGE_COOLDOWN then
+		ctx.Notify(player, "Espera unos segundos antes de cambiar otra vez.", "info")
+		return
+	end
+	lastChange[player] = now
+	Jobs.Set(player, jobId)
+	local job = Config.GetJob(jobId)
+	ctx.Notify(player, "Ahora eres " .. job.Name .. ". Sueldo: $" .. job.Salary .. " cada " .. Config.PAYCHECK_INTERVAL .. "s", "good")
+end
+
+function Jobs.Init(context)
+	ctx = context
+	for _, job in ipairs(Config.Jobs) do
+		local team = Teams:FindFirstChild(job.Name) or Instance.new("Team")
+		team.Name = job.Name
+		team.TeamColor = BrickColor.new(job.Color)
+		team.AutoAssignable = false
+		team.Parent = Teams
+		teams[job.Id] = team
+	end
+
+	ctx.Remotes.ChangeJob.OnServerEvent:Connect(onChangeJob)
+
+	local function onPlayer(player)
+		player:SetAttribute("Job", "Ciudadano")
+		player.Team = teams.Ciudadano
+		local function onCharacter(char)
+			char:WaitForChild("Head", 10)
+			player:WaitForChild("Backpack", 10)
+			giveJobTools(player)
+			updateTag(player)
+		end
+		player.CharacterAdded:Connect(onCharacter)
+		if player.Character then
+			task.spawn(onCharacter, player.Character)
+		end
+		player:GetAttributeChangedSignal("Wanted"):Connect(function()
+			updateTag(player)
+		end)
+		player:GetAttributeChangedSignal("JailedUntil"):Connect(function()
+			updateTag(player)
+		end)
+	end
+	Players.PlayerAdded:Connect(onPlayer)
+	for _, p in ipairs(Players:GetPlayers()) do
+		onPlayer(p)
+	end
+	Players.PlayerRemoving:Connect(function(p)
+		lastChange[p] = nil
+		lastHeal[p] = nil
+	end)
+
+	-- Sueldo
+	task.spawn(function()
+		while true do
+			task.wait(Config.PAYCHECK_INTERVAL)
+			for _, p in ipairs(Players:GetPlayers()) do
+				local job = Config.GetJob(p:GetAttribute("Job"))
+				if job and job.Salary > 0 and not p:GetAttribute("JailedUntil") then
+					ctx.Economy.Add(p, job.Salary)
+					ctx.Notify(p, "¡Día de pago! +$" .. job.Salary .. " (" .. job.Name .. ")", "money")
+				end
+			end
+		end
+	end)
+end
+
+return Jobs
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000C"><Properties><string name="Name">MapBuilder</string><ProtectedString name="Source"><![CDATA[-- MapBuilder: genera por código un mapa estilizado de la Ciudad de México.
+-- No usa assets externos, así que funciona en cualquier lugar nuevo de Roblox.
+-- Devuelve una tabla con los puntos de interés (tiendas, metro, garajes, cárcel).
+
+local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local Story = require(ReplicatedStorage.Shared.Story)
+
+local MapBuilder = {}
+
+local rng = Random.new(2026)
+local root -- carpeta Workspace.CDMX
+local reserved = {} -- rectángulos ocupados {x1, z1, x2, z2}
+
+-- Paleta -------------------------------------------------------------------
+local C = {
+	Ground = Color3.fromRGB(160, 156, 148),
+	Road = Color3.fromRGB(45, 45, 50),
+	Line = Color3.fromRGB(240, 200, 40),
+	Plaza = Color3.fromRGB(190, 180, 165),
+	Grass = Color3.fromRGB(85, 140, 70),
+	Stone = Color3.fromRGB(175, 155, 130),
+	Tezontle = Color3.fromRGB(150, 60, 50),
+	Marble = Color3.fromRGB(235, 230, 220),
+	Gold = Color3.fromRGB(220, 180, 60),
+	Glass = Color3.fromRGB(60, 95, 120),
+	FlagGreen = Color3.fromRGB(0, 104, 71),
+	FlagWhite = Color3.fromRGB(255, 255, 255),
+	FlagRed = Color3.fromRGB(206, 17, 38),
+	MetroOrange = Color3.fromRGB(240, 120, 20),
+	Pink = Color3.fromRGB(235, 80, 150),
+	Wood = Color3.fromRGB(110, 75, 45),
+}
+
+local PASTELS = {
+	Color3.fromRGB(240, 170, 160), Color3.fromRGB(250, 210, 120), Color3.fromRGB(160, 210, 190),
+	Color3.fromRGB(190, 170, 220), Color3.fromRGB(245, 140, 90), Color3.fromRGB(120, 180, 220),
+	Color3.fromRGB(230, 110, 130), Color3.fromRGB(240, 230, 200), Color3.fromRGB(110, 170, 120),
+}
+local CENTRO = {
+	Color3.fromRGB(175, 155, 130), Color3.fromRGB(150, 60, 50), Color3.fromRGB(200, 185, 160),
+	Color3.fromRGB(190, 120, 80), Color3.fromRGB(220, 200, 170),
+}
+local GENERIC = {
+	Color3.fromRGB(200, 200, 195), Color3.fromRGB(170, 165, 160), Color3.fromRGB(210, 190, 160),
+	Color3.fromRGB(140, 150, 160), Color3.fromRGB(190, 175, 150), Color3.fromRGB(220, 215, 205),
+}
+
+-- Utilidades ---------------------------------------------------------------
+local function folder(name, parent)
+	local f = Instance.new("Folder")
+	f.Name = name
+	f.Parent = parent or root
+	return f
+end
+
+local function part(name, size, cf, color, material, parent, shape)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Anchored = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	if shape then
+		p.Shape = shape
+	end
+	p.Size = size
+	p.CFrame = cf
+	p.Color = color
+	p.Material = material or Enum.Material.SmoothPlastic
+	p.Parent = parent or root
+	return p
+end
+
+-- Cilindro vertical (los cilindros de Roblox tienen el eje en X)
+local function vcyl(name, height, diameter, pos, color, material, parent)
+	return part(name, Vector3.new(height, diameter, diameter),
+		CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90)), color, material, parent, Enum.PartType.Cylinder)
+end
+
+local function ball(name, diameter, pos, color, material, parent)
+	return part(name, Vector3.new(diameter, diameter, diameter), CFrame.new(pos), color, material, parent, Enum.PartType.Ball)
+end
+
+local function reserve(cx, cz, sx, sz)
+	table.insert(reserved, { cx - sx / 2, cz - sz / 2, cx + sx / 2, cz + sz / 2 })
+end
+
+local function isFree(cx, cz, sx, sz, margin)
+	local x1, z1, x2, z2 = cx - sx / 2 - margin, cz - sz / 2 - margin, cx + sx / 2 + margin, cz + sz / 2 + margin
+	for _, r in ipairs(reserved) do
+		if x1 < r[3] and x2 > r[1] and z1 < r[4] and z2 > r[2] then
+			return false
+		end
+	end
+	return true
+end
+
+local function surfaceText(target, text, bg, fg, faces)
+	for _, face in ipairs(faces or { Enum.NormalId.Front }) do
+		local sg = Instance.new("SurfaceGui")
+		sg.Face = face
+		sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		sg.PixelsPerStud = 25
+		sg.LightInfluence = 0.3
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.fromScale(1, 1)
+		label.BackgroundColor3 = bg or Color3.new(0, 0, 0)
+		label.BackgroundTransparency = bg and 0 or 1
+		label.TextColor3 = fg or Color3.new(1, 1, 1)
+		label.TextScaled = true
+		label.Font = Enum.Font.GothamBlack
+		label.Text = text
+		label.Parent = sg
+		sg.Parent = target
+	end
+end
+
+local function billboard(target, text, color, offsetY, maxDistance)
+	local bb = Instance.new("BillboardGui")
+	bb.Size = UDim2.fromOffset(260, 50)
+	bb.StudsOffsetWorldSpace = Vector3.new(0, offsetY or 0, 0)
+	bb.MaxDistance = maxDistance or 250
+	bb.AlwaysOnTop = false
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = color or Color3.new(1, 1, 1)
+	label.TextStrokeTransparency = 0.2
+	label.TextScaled = true
+	label.Font = Enum.Font.GothamBlack
+	label.Text = text
+	label.Parent = bb
+	bb.Parent = target
+	return bb
+end
+
+local function prompt(parent, action, object, hold, distance)
+	local p = Instance.new("ProximityPrompt")
+	p.ActionText = action
+	p.ObjectText = object or ""
+	p.HoldDuration = hold or 0
+	p.MaxActivationDistance = distance or 12
+	p.RequiresLineOfSight = false
+	p.Parent = parent
+	return p
+end
+
+local function tree(pos, parent)
+	local h = rng:NextNumber(10, 16)
+	vcyl("Tronco", h, 1.6, pos + Vector3.new(0, h / 2, 0), C.Wood, Enum.Material.Wood, parent)
+	ball("Copa", rng:NextNumber(9, 13), pos + Vector3.new(0, h + 2, 0),
+		Color3.fromRGB(60 + rng:NextInteger(0, 30), 120 + rng:NextInteger(0, 40), 50), Enum.Material.Grass, parent)
+end
+
+local function streetLight(pos, parent)
+	local pole = vcyl("Poste", 16, 0.8, pos + Vector3.new(0, 8, 0), Color3.fromRGB(40, 40, 40), Enum.Material.Metal, parent)
+	local lamp = part("Lampara", Vector3.new(2.4, 1, 2.4), CFrame.new(pos + Vector3.new(0, 16.4, 0)),
+		Color3.fromRGB(255, 230, 170), Enum.Material.SmoothPlastic, parent)
+	local light = Instance.new("PointLight")
+	light.Range = 40
+	light.Brightness = 1.5
+	light.Color = Color3.fromRGB(255, 210, 150)
+	light.Enabled = false
+	light.Parent = lamp
+	CollectionService:AddTag(lamp, "StreetLight")
+	return pole
+end
+
+-- Terreno y calles -------------------------------------------------------
+local ROADS_H = { -- z, x1, x2, ancho, nombre
+	{ -200, -1050, 880, 40, "Paseo de la Reforma" },
+	{ -540, -1250, 880, 30, "Av. Ejército Nacional" },
+	{ 260, -1250, 880, 32, "Eje 2 Sur" },
+	{ 620, -1250, 880, 32, "Av. Río Churubusco" },
+}
+local ROADS_V = { -- x, z1, z2, ancho, nombre
+	{ -240, -780, 980, 36, "Eje Central" },
+	{ 260, -780, 980, 36, "Av. Circunvalación" },
+	{ -700, -780, 980, 34, "Av. Insurgentes" },
+	{ 0, 90, 620, 30, "Av. 20 de Noviembre" },
+}
+
+local function buildGround()
+	local f = folder("Suelo")
+	for x = -1400, 1000, 600 do
+		for z = -900, 1100, 600 do
+			part("Banqueta", Vector3.new(600, 2, 600), CFrame.new(x + 300, -1, z + 300), C.Ground, Enum.Material.Pavement, f)
+		end
+	end
+end
+
+local function buildRoads()
+	local f = folder("Calles")
+	local lights = folder("Alumbrado")
+	local function road(cx, cz, sx, sz, name, horizontal)
+		local r = part(name, Vector3.new(sx, 0.4, sz), CFrame.new(cx, 0.2, cz), C.Road, Enum.Material.Asphalt, f)
+		if horizontal then
+			part("Linea", Vector3.new(sx, 0.05, 0.8), CFrame.new(cx, 0.425, cz), C.Line, Enum.Material.SmoothPlastic, f)
+			for x = cx - sx / 2 + 20, cx + sx / 2 - 20, 90 do
+				streetLight(Vector3.new(x, 0, cz - sz / 2 - 3), lights)
+			end
+		else
+			part("Linea", Vector3.new(0.8, 0.05, sz), CFrame.new(cx, 0.425, cz), C.Line, Enum.Material.SmoothPlastic, f)
+			for z = cz - sz / 2 + 20, cz + sz / 2 - 20, 90 do
+				streetLight(Vector3.new(cx - sx / 2 - 3, 0, z), lights)
+			end
+		end
+		reserve(cx, cz, sx, sz)
+		return r
+	end
+	for _, h in ipairs(ROADS_H) do
+		local len = h[3] - h[2]
+		road((h[2] + h[3]) / 2, h[1], len, h[4], h[5], true)
+	end
+	for _, v in ipairs(ROADS_V) do
+		local len = v[3] - v[2]
+		road(v[1], (v[2] + v[3]) / 2, v[4], len, v[5], false)
+	end
+	-- Letreros de calles en algunos cruces
+	for _, h in ipairs(ROADS_H) do
+		for _, v in ipairs(ROADS_V) do
+			if v[2] <= h[1] and v[3] >= h[1] and h[2] <= v[1] and h[3] >= v[1] then
+				local pos = Vector3.new(v[1] + v[4] / 2 + 4, 0, h[1] + h[4] / 2 + 4)
+				vcyl("PosteLetrero", 10, 0.5, pos + Vector3.new(0, 5, 0), Color3.fromRGB(40, 40, 40), Enum.Material.Metal, f)
+				local s = part("Letrero", Vector3.new(14, 2.4, 0.3), CFrame.new(pos + Vector3.new(0, 10, 0)),
+					Color3.fromRGB(20, 90, 50), Enum.Material.SmoothPlastic, f)
+				surfaceText(s, h[5], Color3.fromRGB(20, 90, 50), Color3.new(1, 1, 1), { Enum.NormalId.Front, Enum.NormalId.Back })
+			end
+		end
+	end
+end
+
+-- Monumentos -------------------------------------------------------------
+local function buildZocalo()
+	local f = folder("Zocalo")
+	part("Plancha", Vector3.new(180, 0.3, 180), CFrame.new(0, 0.15, 0), C.Plaza, Enum.Material.Slate, f)
+	reserve(0, 0, 180, 180)
+	-- Asta bandera monumental
+	vcyl("Base", 3, 14, Vector3.new(0, 1.5, 0), C.Stone, Enum.Material.Concrete, f)
+	vcyl("Asta", 90, 1.4, Vector3.new(0, 45, 0), Color3.fromRGB(200, 200, 205), Enum.Material.Metal, f)
+	local flagFolder = folder("Bandera", f)
+	local w, h = 14, 24
+	local baseCf = CFrame.new(0, 76, 0) * CFrame.Angles(0, math.rad(90), 0)
+	part("Verde", Vector3.new(w, h, 0.4), baseCf * CFrame.new(-(0.7 + w * 0.5), 0, 0), C.FlagGreen, Enum.Material.Fabric, flagFolder)
+	part("Blanco", Vector3.new(w, h, 0.4), baseCf * CFrame.new(-(0.7 + w * 1.5), 0, 0), C.FlagWhite, Enum.Material.Fabric, flagFolder)
+	part("Rojo", Vector3.new(w, h, 0.4), baseCf * CFrame.new(-(0.7 + w * 2.5), 0, 0), C.FlagRed, Enum.Material.Fabric, flagFolder)
+	part("Escudo", Vector3.new(5, 5, 0.6), baseCf * CFrame.new(-(0.7 + w * 1.5), 0, 0), Color3.fromRGB(130, 90, 40), Enum.Material.SmoothPlastic, flagFolder)
+	billboard(f.Asta, "Zócalo - Plaza de la Constitución", Color3.fromRGB(255, 240, 200), 50, 400)
+
+	-- Catedral Metropolitana (mira al sur, hacia el Zócalo)
+	local cat = folder("Catedral", f)
+	part("Nave", Vector3.new(90, 40, 60), CFrame.new(0, 20, -130), C.Stone, Enum.Material.Limestone, cat)
+	part("Fachada", Vector3.new(40, 52, 4), CFrame.new(0, 26, -98), Color3.fromRGB(185, 165, 140), Enum.Material.Limestone, cat)
+	part("Puerta", Vector3.new(10, 16, 1), CFrame.new(0, 8, -95.6), Color3.fromRGB(70, 45, 30), Enum.Material.Wood, cat)
+	for _, x in ipairs({ -36, 36 }) do
+		part("Torre", Vector3.new(18, 70, 18), CFrame.new(x, 35, -110), C.Stone, Enum.Material.Limestone, cat)
+		part("Campanario", Vector3.new(14, 14, 14), CFrame.new(x, 77, -110), Color3.fromRGB(165, 145, 120), Enum.Material.Limestone, cat)
+		ball("Cupula", 12, Vector3.new(x, 86, -110), Color3.fromRGB(150, 140, 125), Enum.Material.Limestone, cat)
+		ball("Cruz", 2, Vector3.new(x, 93, -110), C.Gold, Enum.Material.Metal, cat)
+	end
+	ball("CupulaCentral", 28, Vector3.new(0, 42, -140), Color3.fromRGB(200, 190, 170), Enum.Material.Limestone, cat)
+	reserve(0, -130, 90, 60)
+	billboard(cat.Nave, "Catedral Metropolitana", Color3.fromRGB(255, 240, 200), 40, 300)
+
+	-- Palacio Nacional (lado este)
+	local pal = folder("PalacioNacional", f)
+	part("Edificio", Vector3.new(70, 26, 180), CFrame.new(135, 13, 0), C.Tezontle, Enum.Material.Brick, pal)
+	part("Cornisa", Vector3.new(72, 2, 182), CFrame.new(135, 26.5, 0), C.Stone, Enum.Material.Limestone, pal)
+	part("Balcon", Vector3.new(3, 1, 120), CFrame.new(98.5, 14, 0), C.Stone, Enum.Material.Limestone, pal)
+	for z = -80, 80, 16 do
+		part("Ventana", Vector3.new(0.4, 7, 4), CFrame.new(99.8, 17, z), Color3.fromRGB(40, 35, 30), Enum.Material.SmoothPlastic, pal)
+	end
+	part("Campana", Vector3.new(8, 10, 8), CFrame.new(110, 31, 0), C.Stone, Enum.Material.Limestone, pal)
+	reserve(135, 0, 70, 180)
+	billboard(pal.Edificio, "Palacio Nacional", Color3.fromRGB(255, 240, 200), 20, 300)
+end
+
+local function buildCentroLandmarks()
+	local f = folder("CentroHistorico")
+	-- Torre Latinoamericana
+	local torre = part("TorreLatinoamericana", Vector3.new(30, 180, 30), CFrame.new(-180, 90, -120), C.Glass, Enum.Material.Glass, f)
+	for y = 10, 175, 12 do
+		part("Franja", Vector3.new(30.4, 1.2, 30.4), CFrame.new(-180, y, -120), Color3.fromRGB(150, 155, 160), Enum.Material.Metal, f)
+	end
+	vcyl("Antena", 40, 1.5, Vector3.new(-180, 200, -120), Color3.fromRGB(200, 200, 200), Enum.Material.Metal, f)
+	reserve(-180, -120, 30, 30)
+	billboard(torre, "Torre Latinoamericana", Color3.new(1, 1, 1), 100, 600)
+
+	-- Palacio de Bellas Artes
+	local ba = folder("BellasArtes", f)
+	part("Cuerpo", Vector3.new(70, 30, 50), CFrame.new(-330, 15, -120), C.Marble, Enum.Material.Marble, ba)
+	part("Escalinata", Vector3.new(40, 2, 8), CFrame.new(-330, 1, -91), C.Marble, Enum.Material.Marble, ba)
+	ball("CupulaCentral", 32, Vector3.new(-330, 36, -120), Color3.fromRGB(225, 130, 40), Enum.Material.Metal, ba)
+	ball("Remate", 5, Vector3.new(-330, 54, -120), C.Gold, Enum.Material.Metal, ba)
+	for _, x in ipairs({ -356, -304 }) do
+		ball("CupulaLateral", 14, Vector3.new(x, 32, -120), Color3.fromRGB(225, 130, 40), Enum.Material.Metal, ba)
+	end
+	reserve(-330, -120, 70, 58)
+	billboard(ba.Cuerpo, "Palacio de Bellas Artes", Color3.fromRGB(255, 240, 200), 40, 300)
+
+	-- Alameda Central
+	local al = folder("Alameda", f)
+	part("Pasto", Vector3.new(150, 0.4, 100), CFrame.new(-490, 0.2, -110), C.Grass, Enum.Material.Grass, al)
+	vcyl("Fuente", 2, 20, Vector3.new(-490, 1.2, -110), Color3.fromRGB(80, 160, 220), Enum.Material.Glass, al)
+	vcyl("Hemiciclo", 12, 6, Vector3.new(-490, 6, -150), C.Marble, Enum.Material.Marble, al)
+	for i = 1, 18 do
+		tree(Vector3.new(rng:NextNumber(-560, -420), 0, rng:NextNumber(-155, -65)), al)
+	end
+	reserve(-490, -110, 150, 100)
+end
+
+local function buildReforma()
+	local f = folder("Reforma")
+	-- Ángel de la Independencia en una glorieta sobre Reforma
+	local x, z = -880, -200
+	vcyl("Glorieta", 0.6, 44, Vector3.new(x, 0.5, z), C.Grass, Enum.Material.Grass, f)
+	vcyl("Pedestal", 8, 18, Vector3.new(x, 4, z), C.Stone, Enum.Material.Limestone, f)
+	vcyl("Columna", 90, 6, Vector3.new(x, 53, z), Color3.fromRGB(215, 205, 185), Enum.Material.Marble, f)
+	vcyl("Capitel", 4, 9, Vector3.new(x, 100, z), C.Gold, Enum.Material.Metal, f)
+	local angel = ball("Angel", 5, Vector3.new(x, 105, z), C.Gold, Enum.Material.Metal, f)
+	part("AlaIzq", Vector3.new(6, 4, 0.5), CFrame.new(x - 3, 107, z) * CFrame.Angles(0, 0, math.rad(25)), C.Gold, Enum.Material.Metal, f)
+	part("AlaDer", Vector3.new(6, 4, 0.5), CFrame.new(x + 3, 107, z) * CFrame.Angles(0, 0, math.rad(-25)), C.Gold, Enum.Material.Metal, f)
+	billboard(angel, "El Ángel de la Independencia", C.Gold, 8, 500)
+	-- Camellón arbolado
+	for tx = -1030, -280, 60 do
+		if math.abs(tx - x) > 40 then
+			tree(Vector3.new(tx, 0, -200 - 24), f)
+		end
+	end
+end
+
+local function buildChapultepec()
+	local f = folder("Chapultepec")
+	local cx, cz, sx, sz = -1155, -205, 190, 610
+	part("Bosque", Vector3.new(sx, 0.4, sz), CFrame.new(cx, 0.2, cz), C.Grass, Enum.Material.Grass, f)
+	reserve(cx, cz, sx, sz)
+	-- Cerro y castillo
+	ball("Cerro", 150, Vector3.new(-1170, -38, -330), Color3.fromRGB(95, 125, 70), Enum.Material.Grass, f)
+	local castle = part("Castillo", Vector3.new(60, 18, 36), CFrame.new(-1170, 45, -330), Color3.fromRGB(225, 215, 195), Enum.Material.Limestone, f)
+	part("Torre", Vector3.new(14, 30, 14), CFrame.new(-1150, 51, -330), Color3.fromRGB(225, 215, 195), Enum.Material.Limestone, f)
+	part("Bandera", Vector3.new(0.3, 4, 6), CFrame.new(-1150, 70, -327), C.FlagGreen, Enum.Material.Fabric, f)
+	billboard(castle, "Castillo de Chapultepec", Color3.fromRGB(255, 240, 200), 30, 500)
+	-- Lago
+	part("Lago", Vector3.new(70, 0.6, 110), CFrame.new(-1170, 0.3, -20), Color3.fromRGB(70, 140, 190), Enum.Material.Glass, f)
+	for i = 1, 60 do
+		local px, pz = rng:NextNumber(cx - sx / 2 + 6, cx + sx / 2 - 6), rng:NextNumber(cz - sz / 2 + 6, cz + sz / 2 - 6)
+		local nearHill = (Vector2.new(px, pz) - Vector2.new(-1170, -330)).Magnitude < 80
+		local inLake = math.abs(px + 1170) < 40 and math.abs(pz + 20) < 60
+		if not nearHill and not inLake then
+			tree(Vector3.new(px, 0, pz), f)
+		end
+	end
+end
+
+local function buildRoma()
+	local f = folder("RomaCondesa")
+	-- Parque México
+	local px, pz = -470, 440
+	vcyl("Parque", 0.4, 120, Vector3.new(px, 0.2, pz), C.Grass, Enum.Material.Grass, f)
+	vcyl("Foro", 1.5, 26, Vector3.new(px, 0.75, pz), C.Plaza, Enum.Material.Concrete, f)
+	for i = 1, 16 do -- árboles del parque
+		local a = rng:NextNumber(0, math.pi * 2)
+		local r = rng:NextNumber(20, 55)
+		tree(Vector3.new(px + math.cos(a) * r, 0, pz + math.sin(a) * r), f)
+	end
+	reserve(px, pz, 130, 130)
+	billboard(f.Foro, "Parque México (Condesa)", Color3.new(1, 1, 1), 12, 200)
+end
+
+local function buildCoyoacan()
+	local f = folder("Coyoacan")
+	part("Jardin", Vector3.new(160, 0.3, 120), CFrame.new(0, 0.15, 800), C.Plaza, Enum.Material.Cobblestone, f)
+	reserve(0, 800, 160, 120)
+	-- Kiosko
+	vcyl("Base", 2, 22, Vector3.new(0, 1, 800), C.Stone, Enum.Material.Concrete, f)
+	for i = 0, 5 do
+		local a = math.rad(i * 60)
+		vcyl("Columna", 12, 1, Vector3.new(math.cos(a) * 9, 8, 800 + math.sin(a) * 9), Color3.fromRGB(40, 120, 70), Enum.Material.Metal, f)
+	end
+	local roof = vcyl("Techo", 2, 24, Vector3.new(0, 15, 800), Color3.fromRGB(40, 120, 70), Enum.Material.Metal, f)
+	ball("Remate", 6, Vector3.new(0, 17, 800), Color3.fromRGB(40, 120, 70), Enum.Material.Metal, f)
+	billboard(roof, "Jardín Hidalgo - Coyoacán", Color3.fromRGB(255, 240, 200), 10, 250)
+	-- Parroquia
+	part("Parroquia", Vector3.new(40, 26, 50), CFrame.new(0, 13, 905), Color3.fromRGB(225, 190, 120), Enum.Material.Limestone, f)
+	part("Torre", Vector3.new(12, 44, 12), CFrame.new(-22, 22, 885), Color3.fromRGB(225, 190, 120), Enum.Material.Limestone, f)
+	reserve(0, 905, 52, 50)
+	-- La Casa Azul
+	local casa = part("CasaAzul", Vector3.new(40, 16, 30), CFrame.new(180, 8, 900), Color3.fromRGB(30, 80, 200), Enum.Material.Plaster, f)
+	part("Puerta", Vector3.new(6, 10, 0.5), CFrame.new(180, 5, 884.8), Color3.fromRGB(200, 40, 60), Enum.Material.Wood, f)
+	billboard(casa, "La Casa Azul", Color3.fromRGB(120, 180, 255), 12, 200)
+	reserve(180, 900, 40, 30)
+	for i = 1, 20 do
+		local tx, tz = rng:NextNumber(-75, 75), rng:NextNumber(745, 855)
+		if Vector2.new(tx, tz - 800).Magnitude > 20 and Vector2.new(tx - 60, tz - 780).Magnitude > 10 then
+			tree(Vector3.new(tx, 0, tz), f)
+		end
+	end
+end
+
+-- Edificios de servicio ----------------------------------------------------
+-- Cada uno se orienta con un CFrame; el frente (-Z local) mira a la calle.
+local function serviceBuilding(name, cf, size, color, signText, signBg, parent)
+	local f = folder(name, parent)
+	local body = part("Edificio", size, cf * CFrame.new(0, size.Y / 2, 0), color, Enum.Material.Concrete, f)
+	local sign = part("Letrero", Vector3.new(size.X * 0.8, 5, 0.6),
+		cf * CFrame.new(0, size.Y - 4, -size.Z / 2 - 0.4), signBg, Enum.Material.SmoothPlastic, f)
+	surfaceText(sign, signText, signBg, Color3.new(1, 1, 1))
+	part("Entrada", Vector3.new(8, 10, 0.4), cf * CFrame.new(0, 5, -size.Z / 2 - 0.2), Color3.fromRGB(60, 80, 100), Enum.Material.Glass, f)
+	local p = cf.Position
+	reserve(p.X, p.Z, math.max(size.X, size.Z), math.max(size.X, size.Z))
+	return f, body
+end
+
+local function facing(x, z, dirX, dirZ)
+	local pos = Vector3.new(x, 0, z)
+	return CFrame.lookAt(pos, pos + Vector3.new(dirX, 0, dirZ))
+end
+
+local function garage(map, kind, label, color, promptPos, spawnCf, parent)
+	local pad = part("Garaje_" .. kind, Vector3.new(16, 0.2, 24), spawnCf * CFrame.new(0, 0.5, 0) - Vector3.new(0, spawnCf.Position.Y, 0),
+		color, Enum.Material.SmoothPlastic, parent)
+	pad.CanCollide = false
+	pad.Transparency = 0.4
+	local post = part("Kiosco_" .. kind, Vector3.new(2, 6, 2), CFrame.new(promptPos + Vector3.new(0, 3, 0)), color, Enum.Material.SmoothPlastic, parent)
+	billboard(post, label, Color3.new(1, 1, 1), 5, 80)
+	local pr = prompt(post, "Sacar vehículo", label, 0.5)
+	table.insert(map.Garages, { Kind = kind, Prompt = pr, SpawnCFrame = spawnCf })
+end
+
+local function buildServices(map)
+	local f = folder("Servicios")
+	-- SSC (Policía)
+	serviceBuilding("SSC", facing(380, 100, 0, 1), Vector3.new(80, 24, 60), Color3.fromRGB(230, 230, 235),
+		"SSC - POLICÍA CDMX", Color3.fromRGB(20, 40, 110), f)
+	garage(map, "Patrulla", "Patrullas", Color3.fromRGB(20, 40, 110), Vector3.new(350, 0, 160),
+		CFrame.new(380, 3, 175) * CFrame.Angles(0, math.rad(90), 0), f)
+	-- Hospital
+	local _, hosp = serviceBuilding("Hospital", facing(130, 400, 1, 0), Vector3.new(80, 30, 60), Color3.fromRGB(245, 245, 245),
+		"HOSPITAL GENERAL", Color3.fromRGB(200, 30, 30), f)
+	part("Cruz1", Vector3.new(4, 14, 0.6), hosp.CFrame * CFrame.new(-20, 6, -30.4), Color3.fromRGB(200, 30, 30), Enum.Material.Neon, f)
+	part("Cruz2", Vector3.new(14, 4, 0.6), hosp.CFrame * CFrame.new(-20, 6, -30.4), Color3.fromRGB(200, 30, 30), Enum.Material.Neon, f)
+	garage(map, "Ambulancia", "Ambulancias", Color3.fromRGB(200, 30, 30), Vector3.new(190, 0, 360),
+		CFrame.new(215, 3, 400), f)
+	-- Base de taxis
+	serviceBuilding("BaseTaxis", facing(130, 540, 1, 0), Vector3.new(50, 14, 40), C.Pink,
+		"BASE DE TAXIS", Color3.fromRGB(240, 240, 240), f)
+	garage(map, "Taxi", "Taxis CDMX", C.Pink, Vector3.new(190, 0, 510), CFrame.new(215, 3, 545), f)
+	-- Renta de vochos junto al Zócalo
+	garage(map, "Vocho", "Renta de Vochos $100", Color3.fromRGB(80, 160, 90), Vector3.new(200, 0, -60),
+		CFrame.new(215, 3, -20), f)
+	reserve(215, -40, 50, 60)
+	reserve(205, 400, 40, 40)
+	reserve(205, 530, 40, 50)
+	reserve(370, 170, 50, 30)
+end
+
+local function buildJail(map)
+	local f = folder("Reclusorio")
+	local cx, cz, size, wallH = 620, -690, 150, 30
+	part("Patio", Vector3.new(size, 0.4, size), CFrame.new(cx, 0.2, cz), Color3.fromRGB(120, 120, 120), Enum.Material.Concrete, f)
+	local wallColor = Color3.fromRGB(110, 110, 115)
+	part("MuroN", Vector3.new(size, wallH, 4), CFrame.new(cx, wallH / 2, cz - size / 2), wallColor, Enum.Material.Concrete, f)
+	part("MuroS", Vector3.new(size, wallH, 4), CFrame.new(cx, wallH / 2, cz + size / 2), wallColor, Enum.Material.Concrete, f)
+	part("MuroE", Vector3.new(4, wallH, size), CFrame.new(cx + size / 2, wallH / 2, cz), wallColor, Enum.Material.Concrete, f)
+	part("MuroO", Vector3.new(4, wallH, size), CFrame.new(cx - size / 2, wallH / 2, cz), wallColor, Enum.Material.Concrete, f)
+	-- Techo invisible para que nadie escape saltando
+	local roof = part("TechoInvisible", Vector3.new(size, 2, size), CFrame.new(cx, wallH + 1, cz), wallColor, Enum.Material.Concrete, f)
+	roof.Transparency = 1
+	local sign = part("Letrero", Vector3.new(60, 8, 1), CFrame.new(cx, wallH - 6, cz + size / 2 + 2.6), Color3.fromRGB(30, 30, 30), Enum.Material.SmoothPlastic, f)
+	surfaceText(sign, "RECLUSORIO", Color3.fromRGB(30, 30, 30), Color3.fromRGB(255, 80, 80), { Enum.NormalId.Back })
+	for i = -2, 2 do
+		part("Celda", Vector3.new(1, 12, 20), CFrame.new(cx + i * 22 + 11, 6, cz - 50), Color3.fromRGB(70, 70, 70), Enum.Material.Metal, f)
+	end
+	reserve(cx, cz, size + 10, size + 10)
+	map.JailCenter = Vector3.new(cx, 4, cz)
+	map.JailRadius = 40
+end
+
+-- Comercios --------------------------------------------------------------
+local function taqueria(map, name, cf, parent)
+	local f = folder("Taqueria_" .. name, parent)
+	part("Local", Vector3.new(30, 14, 22), cf * CFrame.new(0, 7, 0), Color3.fromRGB(245, 150, 60), Enum.Material.Plaster, f)
+	local sign = part("Letrero", Vector3.new(26, 4, 0.6), cf * CFrame.new(0, 12, -11.4), Color3.fromRGB(200, 30, 60), Enum.Material.SmoothPlastic, f)
+	surfaceText(sign, "TAQUERÍA " .. string.upper(name), Color3.fromRGB(200, 30, 60), Color3.fromRGB(255, 240, 120))
+	local counter = part("Barra", Vector3.new(18, 4, 3), cf * CFrame.new(0, 2, -13), Color3.fromRGB(240, 240, 240), Enum.Material.Tile, f)
+	-- El trompo del pastor
+	vcyl("Trompo", 6, 3, (cf * CFrame.new(6, 7, -13)).Position, Color3.fromRGB(170, 70, 30), Enum.Material.SmoothPlastic, f)
+	ball("Pina", 2, (cf * CFrame.new(6, 10.6, -13)).Position, Color3.fromRGB(240, 200, 40), Enum.Material.SmoothPlastic, f)
+	local pr = prompt(counter, "Pedir comida", "Taquería " .. name)
+	table.insert(map.Shops, { ShopId = "Taqueria", Prompt = pr, Part = counter })
+	local p = cf.Position
+	reserve(p.X, p.Z, 34, 34)
+end
+
+local function tiendita(map, name, cf, parent)
+	local f = folder("Tiendita_" .. name, parent)
+	part("Local", Vector3.new(24, 12, 20), cf * CFrame.new(0, 6, 0), Color3.fromRGB(250, 220, 90), Enum.Material.Plaster, f)
+	local sign = part("Letrero", Vector3.new(22, 3.5, 0.6), cf * CFrame.new(0, 10, -10.4), Color3.fromRGB(200, 30, 30), Enum.Material.SmoothPlastic, f)
+	surfaceText(sign, string.upper(name), Color3.fromRGB(200, 30, 30), Color3.new(1, 1, 1))
+	local counter = part("Mostrador", Vector3.new(10, 4, 3), cf * CFrame.new(-4, 2, -12), Color3.fromRGB(150, 110, 70), Enum.Material.Wood, f)
+	local register = part("Caja", Vector3.new(2, 1.5, 1.5), cf * CFrame.new(4, 4.75, -12), Color3.fromRGB(60, 60, 60), Enum.Material.Metal, f)
+	part("BaseCaja", Vector3.new(4, 4, 3), cf * CFrame.new(4, 2, -12), Color3.fromRGB(150, 110, 70), Enum.Material.Wood, f)
+	local buy = prompt(counter, "Comprar", name)
+	table.insert(map.Shops, { ShopId = "Tiendita", Prompt = buy, Part = counter })
+	local rob = prompt(register, "Asaltar", "Caja registradora", 4, 8)
+	rob.KeyboardKeyCode = Enum.KeyCode.F
+	rob.UIOffset = Vector2.new(0, 60)
+	table.insert(map.Robbables, { Name = name, Prompt = rob, Part = register })
+	local p = cf.Position
+	reserve(p.X, p.Z, 28, 30)
+end
+
+local function puesto(map, name, pos, parent)
+	local f = folder("Puesto_" .. name, parent)
+	local cart = part("Carrito", Vector3.new(8, 4, 4), CFrame.new(pos + Vector3.new(0, 2, 0)), Color3.fromRGB(240, 240, 240), Enum.Material.Metal, f)
+	vcyl("Poste", 8, 0.4, pos + Vector3.new(0, 7, 0), Color3.fromRGB(60, 60, 60), Enum.Material.Metal, f)
+	vcyl("Sombrilla", 0.6, 12, pos + Vector3.new(0, 11, 0), rng:NextInteger(0, 1) == 0 and C.Pink or Color3.fromRGB(240, 120, 20), Enum.Material.Fabric, f)
+	local pr = prompt(cart, "Comprar", "Puesto " .. name)
+	table.insert(map.Shops, { ShopId = "Puesto", Prompt = pr, Part = cart })
+	reserve(pos.X, pos.Z, 14, 14)
+end
+
+local function metroStation(map, name, cf, parent)
+	local f = folder("Metro_" .. name, parent)
+	part("Acceso", Vector3.new(16, 9, 12), cf * CFrame.new(0, 4.5, 0), Color3.fromRGB(60, 60, 65), Enum.Material.Concrete, f)
+	part("Franja", Vector3.new(16.4, 1.5, 12.4), cf * CFrame.new(0, 8.25, 0), C.MetroOrange, Enum.Material.SmoothPlastic, f)
+	local door = part("Escaleras", Vector3.new(8, 7, 0.4), cf * CFrame.new(0, 3.5, -6.1), Color3.fromRGB(20, 20, 20), Enum.Material.SmoothPlastic, f)
+	vcyl("PosteM", 14, 0.6, (cf * CFrame.new(10, 7, -4)).Position, Color3.fromRGB(60, 60, 60), Enum.Material.Metal, f)
+	local logo = part("LogoM", Vector3.new(5, 5, 0.6), cf * CFrame.new(10, 15, -4), C.MetroOrange, Enum.Material.SmoothPlastic, f)
+	surfaceText(logo, "M", C.MetroOrange, Color3.new(1, 1, 1), { Enum.NormalId.Front, Enum.NormalId.Back })
+	billboard(f.Acceso, "Metro " .. name, Color3.fromRGB(255, 170, 60), 9, 150)
+	local pr = prompt(door, "Tomar el Metro ($" .. Config.METRO_FARE .. ")", "Metro " .. name)
+	table.insert(map.Stations, { Name = name, Prompt = pr, Part = door, Arrival = cf * CFrame.new(0, 4, -12) })
+	local p = cf.Position
+	reserve(p.X, p.Z, 22, 22)
+end
+
+local function buildCommerce(map)
+	local f = folder("Comercios")
+	-- Taquerías
+	taqueria(map, "El Güero", facing(-110, 170, 1, 0), f)
+	taqueria(map, "La Roma", facing(-600, 330, 0, -1), f)
+	taqueria(map, "Coyoacán", facing(-140, 720, 1, 0), f)
+	-- Tienditas (se pueden asaltar)
+	tiendita(map, "Miscelánea Don Pepe", facing(380, 380, -1, 0), f)
+	tiendita(map, "Abarrotes La Güera", facing(-600, 560, 0, -1), f)
+	tiendita(map, "Miscelánea La Esperanza", facing(500, -300, 0, 1), f)
+	tiendita(map, "Tiendita Polanco", facing(-900, -380, 0, 1), f)
+	-- Puestos callejeros
+	puesto(map, "del Zócalo", Vector3.new(-70, 0.3, 60), f)
+	puesto(map, "de la Catedral", Vector3.new(70, 0.3, 60), f)
+	puesto(map, "de la Alameda", Vector3.new(-490, 0, -45), f)
+	puesto(map, "de Coyoacán", Vector3.new(60, 0.3, 780), f)
+	puesto(map, "del Parque México", Vector3.new(-470, 0, 525), f)
+	-- Metro
+	metroStation(map, "Zócalo", facing(-70, -60, 0, 1), f)
+	metroStation(map, "Bellas Artes", facing(-330, -75, 0, 1), f)
+	metroStation(map, "Insurgentes", facing(-660, 300, 1, 0), f)
+	metroStation(map, "Chapultepec", facing(-1030, -150, 1, 0), f)
+	metroStation(map, "Polanco", facing(-860, -300, 0, 1), f)
+	metroStation(map, "Coyoacán", facing(110, 760, -1, 0), f)
+end
+
+-- Relleno de edificios por colonia ------------------------------------------
+local function districtStyle(x, z)
+	if x < -720 and z < -225 then
+		return "Polanco"
+	elseif x > -690 and x < -255 and z > 278 and z < 605 then
+		return "Roma"
+	elseif z > 636 then
+		return "Coyoacan"
+	elseif x > -690 and x < 700 and z < 278 then
+		return "Centro"
+	end
+	return "Generico"
+end
+
+local function genericBuilding(x, z, w, d, style, parent)
+	local h, color, material, bandColor
+	if style == "Polanco" then
+		h = rng:NextNumber(60, 150)
+		color = Color3.fromRGB(70 + rng:NextInteger(0, 40), 100 + rng:NextInteger(0, 40), 120 + rng:NextInteger(0, 40))
+		material = Enum.Material.Glass
+		bandColor = Color3.fromRGB(190, 195, 200)
+	elseif style == "Roma" then
+		h = rng:NextNumber(16, 36)
+		color = PASTELS[rng:NextInteger(1, #PASTELS)]
+		material = Enum.Material.Plaster
+		bandColor = Color3.fromRGB(50, 60, 70)
+	elseif style == "Coyoacan" then
+		h = rng:NextNumber(12, 20)
+		color = PASTELS[rng:NextInteger(1, #PASTELS)]
+		material = Enum.Material.Plaster
+		bandColor = Color3.fromRGB(60, 45, 35)
+	elseif style == "Centro" then
+		h = rng:NextNumber(22, 45)
+		color = CENTRO[rng:NextInteger(1, #CENTRO)]
+		material = Enum.Material.Limestone
+		bandColor = Color3.fromRGB(45, 40, 35)
+	else
+		h = rng:NextNumber(24, 70)
+		color = GENERIC[rng:NextInteger(1, #GENERIC)]
+		material = Enum.Material.Concrete
+		bandColor = Color3.fromRGB(55, 75, 95)
+	end
+	local m = Instance.new("Model")
+	m.Name = "Edificio"
+	part("Cuerpo", Vector3.new(w, h, d), CFrame.new(x, h / 2, z), color, material, m)
+	local bands = 0
+	for y = 7, h - 4, 10 do
+		part("Ventanas", Vector3.new(w + 0.3, 3, d + 0.3), CFrame.new(x, y, z), bandColor, Enum.Material.Glass, m)
+		bands = bands + 1
+		if bands >= 12 then
+			break
+		end
+	end
+	if style ~= "Polanco" and rng:NextNumber() < 0.4 then
+		-- Tinaco en la azotea, infaltable en la CDMX
+		vcyl("Tinaco", 4, 3.5, Vector3.new(x + w / 4, h + 2, z + d / 4), Color3.fromRGB(30, 30, 30), Enum.Material.Plastic, m)
+	end
+	m.Parent = parent
+end
+
+local function fillBuildings()
+	local f = folder("Edificios")
+	local step = 85
+	for x = -1240, 860, step do
+		for z = -770, 970, step do
+			if rng:NextNumber() < 0.8 then
+				local w, d = rng:NextNumber(30, 55), rng:NextNumber(30, 55)
+				local ox, oz = rng:NextNumber(-8, 8), rng:NextNumber(-8, 8)
+				local cx, cz = x + ox, z + oz
+				if isFree(cx, cz, w, d, 8) then
+					genericBuilding(cx, cz, w, d, districtStyle(cx, cz), f)
+					reserve(cx, cz, w, d)
+				end
+			end
+		end
+	end
+end
+
+-- Expansión: agencia, armerías, historia, bases y estacionamientos ---------------
+local function crate(pos, size, parent)
+	part("Caja", size, CFrame.new(pos + Vector3.new(0, size.Y / 2, 0)), Color3.fromRGB(150, 110, 65), Enum.Material.WoodPlanks, parent)
+end
+
+local function buildExpansion(map)
+	local f = folder("Expansion")
+
+	-- Agencia Reforma (autos) — frente hacia Reforma
+	local ag = folder("AgenciaReforma", f)
+	part("Showroom", Vector3.new(80, 20, 40), CFrame.new(-560, 10, -290), Color3.fromRGB(235, 235, 240), Enum.Material.SmoothPlastic, ag)
+	part("Vitrina", Vector3.new(70, 14, 0.4), CFrame.new(-560, 8, -269.7), C.Glass, Enum.Material.Glass, ag)
+	local sign = part("Letrero", Vector3.new(50, 5, 0.6), CFrame.new(-560, 17.5, -269.5), Color3.fromRGB(20, 20, 25), Enum.Material.SmoothPlastic, ag)
+	surfaceText(sign, "AGENCIA REFORMA · AUTOS", Color3.fromRGB(20, 20, 25), Color3.fromRGB(240, 200, 60), { Enum.NormalId.Back })
+	local counter = part("Mostrador", Vector3.new(10, 4, 3), CFrame.new(-560, 2, -264), Color3.fromRGB(240, 200, 60), Enum.Material.SmoothPlastic, ag)
+	billboard(counter, "Agencia Reforma", Color3.fromRGB(240, 200, 60), 6, 120)
+	map.Dealership = counter
+	map.DealershipPrompt = prompt(counter, "Ver autos", "Agencia Reforma")
+	map.DealershipSpawn = CFrame.new(-560, 3, -210) * CFrame.Angles(0, math.rad(90), 0)
+	map.ShowroomSpots = {}
+	for i, x in ipairs({ -590, -570, -550, -530 }) do
+		map.ShowroomSpots[i] = CFrame.new(x, 1.2, -245) * CFrame.Angles(0, math.rad(90), 0)
+	end
+	part("Piso", Vector3.new(90, 0.2, 45), CFrame.new(-560, 0.5, -247), Color3.fromRGB(60, 60, 66), Enum.Material.Granite, ag)
+	reserve(-560, -268, 92, 90)
+
+	-- Armerías
+	map.WeaponShops = {}
+	local arm = folder("ArmeriaCentro", f)
+	part("Local", Vector3.new(30, 14, 24), CFrame.new(-120, 7, -300), Color3.fromRGB(70, 75, 70), Enum.Material.Concrete, arm)
+	local armSign = part("Letrero", Vector3.new(26, 4, 0.6), CFrame.new(-120, 12, -287.6), Color3.fromRGB(30, 30, 30), Enum.Material.SmoothPlastic, arm)
+	surfaceText(armSign, "ARMERÍA DEL CENTRO", Color3.fromRGB(30, 30, 30), Color3.fromRGB(230, 60, 50), { Enum.NormalId.Back })
+	local armCounter = part("Mostrador", Vector3.new(14, 4, 3), CFrame.new(-120, 2, -286), Color3.fromRGB(110, 80, 50), Enum.Material.Wood, arm)
+	table.insert(map.WeaponShops, { ShopId = "Armeria", Part = armCounter, Prompt = prompt(armCounter, "Comprar armas", "Armería del Centro") })
+	reserve(-120, -295, 36, 36)
+
+	local sscKiosk = part("ArmeriaSSC", Vector3.new(4, 6, 3), CFrame.new(410, 3, 142), Color3.fromRGB(20, 40, 110), Enum.Material.SmoothPlastic, f)
+	billboard(sscKiosk, "Armería SSC", Color3.fromRGB(150, 180, 255), 5, 80)
+	table.insert(map.WeaponShops, { ShopId = "SSC", Part = sscKiosk, Prompt = prompt(sscKiosk, "Equiparse", "Armería de la SSC") })
+
+	-- Tianguis de la Doctores (mercado negro con El Tuerto)
+	local tg = folder("Tianguis", f)
+	local tarps = { C.Pink, Color3.fromRGB(240, 120, 20), Color3.fromRGB(40, 120, 200), Color3.fromRGB(220, 200, 40), Color3.fromRGB(120, 60, 160), Color3.fromRGB(40, 150, 90) }
+	for i = 0, 5 do
+		local x = 420 + (i % 3) * 25
+		local z = 565 + math.floor(i / 3) * 18
+		part("Mesa", Vector3.new(10, 3, 5), CFrame.new(x, 1.5, z), Color3.fromRGB(120, 90, 60), Enum.Material.Wood, tg)
+		part("Lona", Vector3.new(14, 0.3, 10), CFrame.new(x, 9, z), tarps[i + 1], Enum.Material.Fabric, tg)
+		for _, dx in ipairs({ -6, 6 }) do
+			vcyl("Poste", 9, 0.4, Vector3.new(x + dx, 4.5, z), Color3.fromRGB(60, 60, 60), Enum.Material.Metal, tg)
+		end
+	end
+	local blackStall = part("PuestoTuerto", Vector3.new(8, 3, 4), CFrame.new(445, 1.5, 540), Color3.fromRGB(50, 40, 35), Enum.Material.Wood, tg)
+	part("LonaNegra", Vector3.new(12, 0.3, 8), CFrame.new(445, 9, 540), Color3.fromRGB(25, 25, 25), Enum.Material.Fabric, tg)
+	billboard(blackStall, "Tianguis de la Doctores", Color3.fromRGB(255, 220, 120), 12, 150)
+	table.insert(map.WeaponShops, { ShopId = "Tianguis", Part = blackStall, Prompt = prompt(blackStall, "Ver mercancía", "El Tuerto") })
+	reserve(445, 565, 80, 65)
+
+	-- Bodega de Los Tlacuaches (Colonia Doctores)
+	local bd = folder("BodegaTlacuaches", f)
+	local wallC = Color3.fromRGB(120, 115, 105)
+	part("Piso", Vector3.new(60, 0.3, 50), CFrame.new(520, 0.15, 470), Color3.fromRGB(90, 90, 92), Enum.Material.Concrete, bd)
+	part("MuroN", Vector3.new(60, 18, 2), CFrame.new(520, 9, 445), wallC, Enum.Material.Concrete, bd)
+	part("MuroS", Vector3.new(60, 18, 2), CFrame.new(520, 9, 495), wallC, Enum.Material.Concrete, bd)
+	part("MuroE", Vector3.new(2, 18, 50), CFrame.new(550, 9, 470), wallC, Enum.Material.Concrete, bd)
+	part("MuroO1", Vector3.new(2, 18, 15), CFrame.new(490, 9, 452.5), wallC, Enum.Material.Concrete, bd)
+	part("MuroO2", Vector3.new(2, 18, 15), CFrame.new(490, 9, 487.5), wallC, Enum.Material.Concrete, bd)
+	local bsign = part("Letrero", Vector3.new(24, 4, 0.6), CFrame.new(520, 14, 444), Color3.fromRGB(40, 40, 40), Enum.Material.SmoothPlastic, bd)
+	surfaceText(bsign, "BODEGA 13", Color3.fromRGB(40, 40, 40), Color3.fromRGB(240, 240, 240), { Enum.NormalId.Front, Enum.NormalId.Back })
+	for _, pos in ipairs({ Vector3.new(515, 0, 465), Vector3.new(528, 0, 476), Vector3.new(542, 0, 468), Vector3.new(503, 0, 474) }) do
+		crate(pos, Vector3.new(5, 5, 5), bd)
+	end
+	reserve(520, 470, 70, 60)
+
+	-- Mansión de El Patrón (Polanco)
+	local mn = folder("MansionPatron", f)
+	part("Jardin", Vector3.new(80, 0.3, 70), CFrame.new(-960, 0.15, -440), C.Grass, Enum.Material.Grass, mn)
+	local wc = Color3.fromRGB(230, 225, 210)
+	part("MuroO", Vector3.new(2, 10, 70), CFrame.new(-1000, 5, -440), wc, Enum.Material.Plaster, mn)
+	part("MuroE", Vector3.new(2, 10, 70), CFrame.new(-920, 5, -440), wc, Enum.Material.Plaster, mn)
+	part("MuroS1", Vector3.new(32, 10, 2), CFrame.new(-984, 5, -405), wc, Enum.Material.Plaster, mn)
+	part("MuroS2", Vector3.new(32, 10, 2), CFrame.new(-936, 5, -405), wc, Enum.Material.Plaster, mn)
+	part("Casa", Vector3.new(60, 26, 22), CFrame.new(-960, 13, -490), C.Marble, Enum.Material.Marble, mn)
+	part("Ventanal", Vector3.new(50, 12, 0.4), CFrame.new(-960, 14, -478.8), C.Glass, Enum.Material.Glass, mn)
+	vcyl("Fuente", 2, 12, Vector3.new(-960, 1, -432), Color3.fromRGB(80, 160, 220), Enum.Material.Glass, mn)
+	for _, pos in ipairs({ Vector3.new(-975, 0, -440), Vector3.new(-945, 0, -440), Vector3.new(-960, 0, -415) }) do
+		part("Jardinera", Vector3.new(8, 3, 3), CFrame.new(pos + Vector3.new(0, 1.5, 0)), Color3.fromRGB(150, 130, 110), Enum.Material.Brick, mn)
+	end
+	billboard(mn.Casa, "Mansión de El Patrón", Color3.fromRGB(255, 120, 120), 18, 200)
+	reserve(-960, -455, 90, 105)
+
+	-- Nuevas bases de trabajo
+	garage(map, "Reparto", "Motos de reparto", Color3.fromRGB(235, 110, 30), Vector3.new(-60, 0, 205), CFrame.new(-60, 3, 222), f)
+	garage(map, "Micro", "Base de micros · Ruta 2", Color3.fromRGB(70, 150, 90), Vector3.new(300, 0, -100), CFrame.new(305, 3, -130), f)
+	reserve(-60, 214, 26, 34)
+	reserve(305, -120, 26, 50)
+
+	-- Estacionamientos públicos (aquí aparecen tus autos)
+	local r90 = CFrame.Angles(0, math.rad(90), 0)
+	map.ParkingSpots = {
+		CFrame.new(215, 3, -20),
+		CFrame.new(-560, 3, -210) * r90,
+		CFrame.new(-692, 3, 380),
+		CFrame.new(40, 3, 620) * r90,
+		CFrame.new(-860, 3, -540) * r90,
+		CFrame.new(-1020, 3, -200) * r90,
+		CFrame.new(268, 3, 450),
+		CFrame.new(-232, 3, 100),
+	}
+
+	-- Reservamos los puntos de la historia para que no les caiga un edificio encima
+	for _, npc in pairs(Story.Npcs) do
+		reserve(npc.Pos.X, npc.Pos.Z, 16, 16)
+	end
+	for _, addr in ipairs(Story.DeliveryAddresses) do
+		reserve(addr.Pos.X, addr.Pos.Z, 18, 18)
+	end
+	map.HospitalCFrame = CFrame.new(185, 4, 430)
+end
+
+-- Spawn ------------------------------------------------------------------
+local function buildSpawn(map)
+	local spawn = Instance.new("SpawnLocation")
+	spawn.Name = "SpawnZocalo"
+	spawn.Anchored = true
+	spawn.Neutral = true
+	spawn.Size = Vector3.new(14, 1, 14)
+	spawn.CFrame = CFrame.new(0, 0.5, 45)
+	spawn.Color = C.FlagGreen
+	spawn.Material = Enum.Material.SmoothPlastic
+	spawn.Duration = 3
+	spawn.Parent = root
+	map.Spawn = spawn
+	map.ReleaseCFrame = CFrame.new(0, 4, 45)
+end
+
+function MapBuilder.Build()
+	local existing = workspace:FindFirstChild("CDMX")
+	if existing then
+		existing:Destroy()
+	end
+	-- Quitamos el Baseplate y los spawns de la plantilla por defecto
+	for _, child in ipairs(workspace:GetChildren()) do
+		if child.Name == "Baseplate" or child:IsA("SpawnLocation") then
+			child:Destroy()
+		end
+	end
+	root = Instance.new("Folder")
+	root.Name = "CDMX"
+
+	local map = { Shops = {}, Robbables = {}, Stations = {}, Garages = {} }
+
+	buildGround()
+	buildRoads()
+	buildZocalo()
+	buildCentroLandmarks()
+	buildReforma()
+	buildChapultepec()
+	buildRoma()
+	buildCoyoacan()
+	buildServices(map)
+	buildJail(map)
+	buildCommerce(map)
+	buildExpansion(map)
+	buildSpawn(map)
+	fillBuildings()
+
+	root.Parent = workspace
+	map.Root = root
+	return map
+end
+
+return MapBuilder
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000D"><Properties><string name="Name">Metro</string><ProtectedString name="Source"><![CDATA[-- Metro: viaja entre estaciones pagando el boleto.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Metro = {}
+
+local ctx
+local traveling = {}
+
+local function nearStation(player)
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return nil
+	end
+	for i, st in ipairs(ctx.Map.Stations) do
+		if (root.Position - st.Part.Position).Magnitude < 25 then
+			return i
+		end
+	end
+	return nil
+end
+
+local function onTravel(player, toIndex)
+	if traveling[player] or type(toIndex) ~= "number" then
+		return
+	end
+	local from = nearStation(player)
+	local dest = ctx.Map.Stations[toIndex]
+	if not from or not dest or from == toIndex then
+		return
+	end
+	if player:GetAttribute("JailedUntil") then
+		return
+	end
+	if not ctx.Economy.Charge(player, Config.METRO_FARE) then
+		ctx.Notify(player, "Te falta para el boleto ($" .. Config.METRO_FARE .. ").", "bad")
+		return
+	end
+	traveling[player] = true
+	ctx.Remotes.Fade:FireClient(player, "Próxima estación: " .. dest.Name)
+	task.wait(1.2)
+	local char = player.Character
+	if char then
+		char:PivotTo(dest.Arrival)
+	end
+	traveling[player] = nil
+end
+
+function Metro.Init(context)
+	ctx = context
+	local names = {}
+	for i, st in ipairs(ctx.Map.Stations) do
+		names[i] = st.Name
+		st.Prompt.Triggered:Connect(function(player)
+			ctx.Remotes.OpenMetro:FireClient(player, i, names)
+		end)
+	end
+	ctx.Remotes.MetroTravel.OnServerEvent:Connect(onTravel)
+end
+
+return Metro
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000E"><Properties><string name="Name">Missions</string><ProtectedString name="Source"><![CDATA[-- Missions: la historia "Llegada a la ciudad", personajes con diálogo, enemigos
+-- con IA y misiones repetibles de Repartidor y Microbusero.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local Story = require(ReplicatedStorage.Shared.Story)
+local Weapons = require(ReplicatedStorage.Shared.Weapons)
+
+local Missions = {}
+
+local ctx
+local npcFolder, enemyFolder
+local state = {} -- [player] = { Dialog = step, Group = { Name, Models }, Side = {...} }
+local enemies = {} -- [model] = { Owner, Def, Weapon, LastShot, Home }
+
+local IDLE_LINES = {
+	Lupe = { "¿Unos taquitos, mijo? El pastor está recién salido del trompo.", "Con hambre nadie trabaja bien." },
+	Profe = { "Lleve sus chicles, sus chicles de a cinco...", "En el Metro se aprende más que en la escuela, joven." },
+	Chino = { "¿Qué onda, carnal? Aquí andamos.", "Coyoacán es otro rollo, ¿no?" },
+	Ramirez = { "Circule, ciudadano.", "Si ve algo raro, repórtelo." },
+	Tuerto = { "Yo no vi nada, yo no sé nada.", "Vuelve cuando traigas lana." },
+}
+
+local function st(player)
+	local s = state[player]
+	if not s then
+		s = {}
+		state[player] = s
+	end
+	return s
+end
+
+local function rootOf(player)
+	local char = player.Character
+	return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+local function flatDist(a, b)
+	return Vector2.new(a.X - b.X, a.Z - b.Z).Magnitude
+end
+
+-- Personajes -----------------------------------------------------------------
+local function makeRig(name, skin, shirt, pants, health)
+	local model
+	local ok = pcall(function()
+		local desc = Instance.new("HumanoidDescription")
+		desc.HeadColor = skin
+		desc.LeftArmColor = skin
+		desc.RightArmColor = skin
+		desc.TorsoColor = shirt
+		desc.LeftLegColor = pants
+		desc.RightLegColor = pants
+		model = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
+	end)
+	if not ok or not model then
+		-- Respaldo sencillo si no se pudo crear el rig
+		model = Instance.new("Model")
+		local rootPart = Instance.new("Part")
+		rootPart.Name = "HumanoidRootPart"
+		rootPart.Size = Vector3.new(2, 2, 1)
+		rootPart.Color = shirt
+		rootPart.Parent = model
+		local head = Instance.new("Part")
+		head.Name = "Head"
+		head.Size = Vector3.new(1.2, 1.2, 1.2)
+		head.Color = skin
+		head.CFrame = rootPart.CFrame * CFrame.new(0, 1.6, 0)
+		local w = Instance.new("WeldConstraint")
+		w.Part0 = rootPart
+		w.Part1 = head
+		w.Parent = head
+		head.Parent = model
+		local hum = Instance.new("Humanoid")
+		hum.RigType = Enum.HumanoidRigType.R15
+		hum.HipHeight = 2
+		hum.Parent = model
+		model.PrimaryPart = rootPart
+	end
+	model.Name = name
+	local hum = model:FindFirstChildOfClass("Humanoid")
+	hum.DisplayName = name
+	hum.MaxHealth = health or 100
+	hum.Health = health or 100
+	hum.BreakJointsOnDeath = false
+	return model
+end
+
+local function spawnNpcs()
+	for id, def in pairs(Story.Npcs) do
+		local model = makeRig(def.Name, def.Skin, def.Shirt, def.Pants)
+		model:PivotTo(CFrame.lookAt(def.Pos + Vector3.new(0, 3, 0), def.Face + Vector3.new(0, 3, 0)))
+		for _, p in ipairs(model:GetDescendants()) do
+			if p:IsA("BasePart") then
+				p.Anchored = true
+			end
+		end
+		local hum = model:FindFirstChildOfClass("Humanoid")
+		hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
+		hum.NameDisplayDistance = 60
+		model:SetAttribute("NpcId", id)
+		local pr = Instance.new("ProximityPrompt")
+		pr.ActionText = "Hablar"
+		pr.ObjectText = def.Name
+		pr.KeyboardKeyCode = Enum.KeyCode.E
+		pr.MaxActivationDistance = 10
+		pr.RequiresLineOfSight = false
+		pr.Parent = model:FindFirstChild("HumanoidRootPart")
+		pr.Triggered:Connect(function(player)
+			Missions.OnTalk(player, id)
+		end)
+		model.Parent = npcFolder
+	end
+end
+
+-- Progreso de la historia ----------------------------------------------------
+local function storyData(player)
+	return ctx.Economy.GetData(player).Story
+end
+
+-- Devuelve el paso actual (saltando los de otro camino). Entrega premios al cerrar capítulos.
+local function currentStep(player)
+	local s = storyData(player)
+	while not s.Done do
+		local ch = Story.Chapters[s.Chapter]
+		if not ch then
+			s.Done = true
+			break
+		end
+		local step = ch.Steps[s.Step]
+		if not step then
+			ctx.Economy.Add(player, ch.Reward)
+			ctx.Notify(player, "✔ Capítulo " .. s.Chapter .. " completado: " .. ch.Title .. ". +$" .. ch.Reward, "money")
+			s.Chapter = s.Chapter + 1
+			s.Step = 1
+			s.Sub = nil
+			local nextCh = Story.Chapters[s.Chapter]
+			if nextCh then
+				ctx.Notify(player, "Capítulo " .. s.Chapter .. ": " .. nextCh.Title, "good")
+			end
+		elseif step.Path and step.Path ~= s.Path then
+			s.Step = s.Step + 1
+		else
+			return step, ch
+		end
+	end
+	return nil
+end
+
+local function groupCenter(name)
+	local sum, n = Vector3.zero, 0
+	for _, e in ipairs(Story.Groups[name]) do
+		sum = sum + e.Pos
+		n = n + 1
+	end
+	return sum / math.max(n, 1)
+end
+
+local function sendStoryObjective(player)
+	local s = storyData(player)
+	local step, ch = currentStep(player)
+	local info = { Chapter = s.Chapter, Total = #Story.Chapters, Path = s.Path, Title = ctx.Economy.GetData(player).Title }
+	if not step then
+		info.ChapterTitle = "Historia completada"
+		info.Label = "Título: " .. (info.Title or "—") .. ". ¡Gracias por jugar!"
+		ctx.Remotes.Objective:FireClient(player, "Story", info)
+		return
+	end
+	info.ChapterTitle = "Capítulo " .. s.Chapter .. " · " .. ch.Title
+	if step.Type == "Talk" or step.Type == "Choice" then
+		local npc = Story.Npcs[step.Npc]
+		info.Label = "Habla con " .. npc.Name
+		info.Target = npc.Pos
+		info.NpcId = step.Npc
+	elseif step.Type == "GoTo" then
+		info.Label = step.Label
+		info.Target = step.Pos
+	elseif step.Type == "Route" then
+		local p = step.Points[s.Sub or 1]
+		info.Label = p.Label
+		info.Target = p.Pos
+	elseif step.Type == "Job" then
+		info.Label = step.Label
+	elseif step.Type == "Defeat" then
+		local g = st(player).Group
+		local left = 0
+		if g and g.Name == step.Group then
+			for _, m in ipairs(g.Models) do
+				local h = m:FindFirstChildOfClass("Humanoid")
+				if m.Parent and h and h.Health > 0 then
+					left = left + 1
+				end
+			end
+		else
+			left = #Story.Groups[step.Group]
+		end
+		info.Label = step.Label .. " (quedan " .. left .. ")"
+		info.Target = groupCenter(step.Group)
+	end
+	ctx.Remotes.Objective:FireClient(player, "Story", info)
+end
+Missions.SendStoryObjective = sendStoryObjective
+
+local function advance(player)
+	local s = storyData(player)
+	s.Step = s.Step + 1
+	s.Sub = nil
+	st(player).Dialog = nil
+	sendStoryObjective(player)
+end
+
+-- Diálogos -----------------------------------------------------------------
+function Missions.OnTalk(player, npcId)
+	local step = currentStep(player)
+	local npc = Story.Npcs[npcId]
+	if step and (step.Type == "Talk" or step.Type == "Choice") and step.Npc == npcId then
+		st(player).Dialog = step
+		local options
+		if step.Type == "Choice" then
+			options = {}
+			for i, o in ipairs(step.Options) do
+				options[i] = o.Text
+			end
+		end
+		ctx.Remotes.Dialog:FireClient(player, { Name = npc.Name, Lines = step.Lines, Options = options })
+	else
+		local lines = IDLE_LINES[npcId] or { "..." }
+		ctx.Remotes.Dialog:FireClient(player, { Name = npc.Name, Lines = { lines[math.random(1, #lines)] } })
+	end
+end
+
+local function onDialogDone(player, choice)
+	local s = st(player)
+	local step = currentStep(player)
+	if not step or s.Dialog ~= step then
+		return
+	end
+	if step.Type == "Choice" then
+		local option = type(choice) == "number" and step.Options[math.floor(choice)]
+		if not option then
+			return
+		end
+		storyData(player).Path = option.Path
+		ctx.Notify(player, option.Path == "Honrado" and "Elegiste el camino honrado." or "Elegiste el camino chueco.", "info")
+	end
+	if step.Title then
+		local data = ctx.Economy.GetData(player)
+		data.Title = step.Title
+		player:SetAttribute("Title", step.Title)
+		ctx.Notify(player, "🏆 Nuevo título: " .. step.Title, "money")
+	end
+	advance(player)
+end
+
+-- Enemigos -------------------------------------------------------------------
+local function despawnGroup(player)
+	local s = st(player)
+	if s.Group then
+		for _, m in ipairs(s.Group.Models) do
+			enemies[m] = nil
+			if m.Parent then
+				m:Destroy()
+			end
+		end
+		s.Group = nil
+	end
+end
+
+local function spawnGroup(player, name)
+	despawnGroup(player)
+	local models = {}
+	for _, e in ipairs(Story.Groups[name]) do
+		local isBoss = e.Boss
+		local model = makeRig(e.Name or "Tlacuache", Color3.fromRGB(150 + math.random(0, 40), 105 + math.random(0, 30), 70),
+			isBoss and Color3.fromRGB(240, 240, 235) or Color3.fromRGB(60, 20, 25), isBoss and Color3.fromRGB(240, 240, 235) or Color3.fromRGB(25, 25, 30), e.Health or 100)
+		model:PivotTo(CFrame.new(e.Pos + Vector3.new(0, 3.5, 0)))
+		model:SetAttribute("Enemy", true)
+		local def = Weapons.Get(e.Weapon) or Weapons.Get("Pistola")
+		-- Arma visible en la mano
+		local hand = model:FindFirstChild("RightHand") or model:FindFirstChild("HumanoidRootPart")
+		local gun = Instance.new("Part")
+		gun.Name = "Arma"
+		gun.Size = def.Size
+		gun.Color = def.Color
+		gun.CanCollide = false
+		gun.Massless = true
+		gun.CFrame = hand.CFrame * CFrame.new(0, -0.4, -def.Size.Z / 2)
+		local w = Instance.new("WeldConstraint")
+		w.Part0 = hand
+		w.Part1 = gun
+		w.Parent = gun
+		gun.Parent = model
+		local hum = model:FindFirstChildOfClass("Humanoid")
+		hum.WalkSpeed = 12
+		hum.Died:Connect(function()
+			enemies[model] = nil
+			Debris:AddItem(model, 3)
+			if player.Parent then
+				if isBoss then
+					ctx.Notify(player, "¡Venciste a " .. model.Name .. "!", "money")
+				end
+				sendStoryObjective(player)
+			end
+		end)
+		model.Parent = enemyFolder
+		enemies[model] = { Owner = player, Def = def, LastShot = os.clock() + math.random() * 1.5, Home = e.Pos, Boss = isBoss }
+		table.insert(models, model)
+	end
+	st(player).Group = { Name = name, Models = models }
+	ctx.Notify(player, "⚠ ¡Te descubrieron! Cúbrete y pelea.", "alert")
+	sendStoryObjective(player)
+end
+
+function Missions.GetEnemies()
+	local list = {}
+	for m in pairs(enemies) do
+		if m.Parent then
+			table.insert(list, m)
+		end
+	end
+	return list
+end
+
+local function enemyThink(model, e)
+	local hum = model:FindFirstChildOfClass("Humanoid")
+	local root = model:FindFirstChild("HumanoidRootPart")
+	local head = model:FindFirstChild("Head")
+	if not hum or hum.Health <= 0 or not root or not head then
+		return
+	end
+	local target = rootOf(e.Owner)
+	local thum = e.Owner.Character and e.Owner.Character:FindFirstChildOfClass("Humanoid")
+	if not target or not thum or thum.Health <= 0 then
+		hum:MoveTo(e.Home)
+		return
+	end
+	local dist = (target.Position - root.Position).Magnitude
+	if dist > 220 then
+		hum:MoveTo(e.Home)
+		return
+	end
+	-- Línea de vista
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { model }
+	local ray = workspace:Raycast(head.Position, target.Position - head.Position, params)
+	local sees = ray and ray.Instance:IsDescendantOf(e.Owner.Character)
+	if dist > 35 or not sees then
+		hum:MoveTo(target.Position + (root.Position - target.Position).Unit * 25)
+	else
+		hum:MoveTo(root.Position)
+		root.CFrame = CFrame.lookAt(root.Position, Vector3.new(target.Position.X, root.Position.Y, target.Position.Z))
+	end
+	if sees and dist < 110 then
+		local now = os.clock()
+		local cooldown = math.max(0.7, e.Def.Cooldown * 6)
+		if now - e.LastShot >= cooldown then
+			e.LastShot = now
+			-- Los NPC fallan a propósito un poco y pegan menos que los jugadores
+			local aim = target.Position + Vector3.new(math.random(-20, 20) / 10, math.random(-10, 15) / 10, math.random(-20, 20) / 10)
+			ctx.Combat.Fire(model, nil, e.Def, head.Position, aim, e.Boss and 0.45 or 0.3)
+		end
+	end
+end
+
+function Missions.OnPlayerDied(player)
+	if st(player).Group then
+		despawnGroup(player)
+		ctx.Notify(player, "Los enemigos se reagruparon. Regresa cuando estés listo.", "info")
+	end
+end
+
+-- Misiones de trabajo ---------------------------------------------------------
+local function taquerias()
+	local list = {}
+	for _, shop in ipairs(ctx.Map.Shops) do
+		if shop.ShopId == "Taqueria" then
+			table.insert(list, shop.Part.Position)
+		end
+	end
+	return list
+end
+
+local function sendJobObjective(player)
+	local side = st(player).Side
+	if not side then
+		ctx.Remotes.Objective:FireClient(player, "Job", nil)
+		return
+	end
+	local info = { ChapterTitle = side.Title, Label = side.Label, Target = side.Target }
+	ctx.Remotes.Objective:FireClient(player, "Job", info)
+end
+
+local function newDelivery(player)
+	local shops = taquerias()
+	local pickup = shops[math.random(1, #shops)]
+	st(player).Side = { Kind = "Delivery", Phase = "Pickup", Target = pickup, Title = "Reparto",
+		Label = "Recoge el pedido en la taquería" }
+	sendJobObjective(player)
+end
+
+local function newBusStop(player, index)
+	local stop = Story.BusRoute[index]
+	st(player).Side = { Kind = "Bus", Index = index, Target = stop.Pos, Title = "Ruta 2 · Zócalo – Chapultepec",
+		Label = "Siguiente parada: " .. stop.Name .. " (maneja el micro)" }
+	sendJobObjective(player)
+end
+
+local function updateSide(player, root)
+	local s = st(player)
+	local job = player:GetAttribute("Job")
+	if job == "Repartidor" then
+		if not s.Side or s.Side.Kind ~= "Delivery" then
+			newDelivery(player)
+			return
+		end
+	elseif job == "Microbusero" then
+		if not s.Side or s.Side.Kind ~= "Bus" then
+			newBusStop(player, 1)
+			return
+		end
+	else
+		if s.Side then
+			s.Side = nil
+			sendJobObjective(player)
+		end
+		return
+	end
+	local side = s.Side
+	if side.Kind == "Delivery" then
+		if flatDist(root.Position, side.Target) < 16 then
+			if side.Phase == "Pickup" then
+				local addr = Story.DeliveryAddresses[math.random(1, #Story.DeliveryAddresses)]
+				side.Phase = "Drop"
+				side.From = side.Target
+				side.Target = addr.Pos
+				side.Label = "Entrega el pedido en: " .. addr.Name
+				ctx.Notify(player, "Pedido listo. Llévalo a " .. addr.Name .. ".", "info")
+				sendJobObjective(player)
+			else
+				local dist = flatDist(side.From, side.Target)
+				local pay = Config.DELIVERY_PAY + math.floor(dist / 100) * Config.DELIVERY_BONUS_PER_100
+				ctx.Economy.Add(player, pay)
+				ctx.Notify(player, "¡Entregado! +$" .. pay .. ". Buscando el siguiente pedido...", "money")
+				s.Side = { Kind = "Delivery", Phase = "Wait", Target = nil, Title = "Reparto", Label = "Esperando pedido..." }
+				sendJobObjective(player)
+				task.delay(3, function()
+					if player.Parent and player:GetAttribute("Job") == "Repartidor" then
+						newDelivery(player)
+					end
+				end)
+			end
+		end
+	elseif side.Kind == "Bus" then
+		if flatDist(root.Position, side.Target) < 20 then
+			if not ctx.Vehicles.IsDriving(player, "Micro") then
+				return
+			end
+			ctx.Economy.Add(player, Config.BUS_STOP_PAY)
+			ctx.Notify(player, "Parada " .. Story.BusRoute[side.Index].Name .. ": ¡súbale, súbale! +$" .. Config.BUS_STOP_PAY, "money")
+			newBusStop(player, side.Index % #Story.BusRoute + 1)
+		end
+	end
+end
+
+-- Revisión periódica ------------------------------------------------------------
+local function updateStory(player, root)
+	local step = currentStep(player)
+	if not step then
+		return
+	end
+	local s = storyData(player)
+	if step.Type == "GoTo" then
+		if flatDist(root.Position, step.Pos) < step.Radius then
+			if step.Vehicle and not ctx.Vehicles.IsDriving(player) then
+				return
+			end
+			advance(player)
+		end
+	elseif step.Type == "Route" then
+		local i = s.Sub or 1
+		local p = step.Points[i]
+		if flatDist(root.Position, p.Pos) < (step.Radius or 15) then
+			if i >= #step.Points then
+				advance(player)
+			else
+				s.Sub = i + 1
+				ctx.Notify(player, "¡Entregado!", "good")
+				sendStoryObjective(player)
+			end
+		end
+	elseif step.Type == "Job" then
+		if player:GetAttribute("Job") == step.Job then
+			advance(player)
+		end
+	elseif step.Type == "Defeat" then
+		local g = st(player).Group
+		if not g or g.Name ~= step.Group then
+			if flatDist(root.Position, groupCenter(step.Group)) < 150 then
+				spawnGroup(player, step.Group)
+			end
+		else
+			local alive = 0
+			for _, m in ipairs(g.Models) do
+				local h = m:FindFirstChildOfClass("Humanoid")
+				if m.Parent and h and h.Health > 0 then
+					alive = alive + 1
+				end
+			end
+			if alive == 0 then
+				despawnGroup(player)
+				ctx.Notify(player, "¡Zona despejada!", "good")
+				advance(player)
+			end
+		end
+	end
+end
+
+local function sync(player)
+	ctx.Economy.WaitForData(player)
+	if not player.Parent then
+		return
+	end
+	sendStoryObjective(player)
+	sendJobObjective(player)
+	ctx.Remotes.GarageUpdate:FireClient(player, ctx.Economy.GetData(player).Cars)
+end
+
+function Missions.Init(context)
+	ctx = context
+	npcFolder = Instance.new("Folder")
+	npcFolder.Name = "NPCs"
+	npcFolder.Parent = ctx.Map.Root
+	enemyFolder = Instance.new("Folder")
+	enemyFolder.Name = "Enemigos"
+	enemyFolder.Parent = workspace
+	spawnNpcs()
+
+	ctx.Remotes.DialogDone.OnServerEvent:Connect(onDialogDone)
+	ctx.Remotes.Sync.OnServerEvent:Connect(function(player)
+		task.spawn(sync, player)
+	end)
+	Players.PlayerRemoving:Connect(function(player)
+		despawnGroup(player)
+		state[player] = nil
+	end)
+
+	-- Lógica de misiones (2 veces por segundo)
+	task.spawn(function()
+		while true do
+			task.wait(0.5)
+			for _, player in ipairs(Players:GetPlayers()) do
+				local root = rootOf(player)
+				if root and player:GetAttribute("DataReady") and not player:GetAttribute("JailedUntil") then
+					local ok, err = pcall(updateStory, player, root)
+					if not ok then
+						warn("[CDMX] Error en historia:", err)
+					end
+					ok, err = pcall(updateSide, player, root)
+					if not ok then
+						warn("[CDMX] Error en misión de trabajo:", err)
+					end
+				end
+			end
+		end
+	end)
+
+	-- IA de enemigos (4 veces por segundo)
+	task.spawn(function()
+		while true do
+			task.wait(0.25)
+			for model, e in pairs(enemies) do
+				if model.Parent then
+					local ok, err = pcall(enemyThink, model, e)
+					if not ok then
+						warn("[CDMX] Error en IA:", err)
+					end
+				end
+			end
+		end
+	end)
+end
+
+return Missions
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000F"><Properties><string name="Name">Shops</string><ProtectedString name="Source"><![CDATA[-- Shops: taquerías, puestos y tienditas. La comida se come y cura vida.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Shops = {}
+
+local ctx -- { Remotes, Economy, Notify, Map }
+local MAX_DISTANCE = 20
+local COMMISSION_RANGE = 80
+
+local function makeFood(item)
+	local tool = Instance.new("Tool")
+	tool.Name = item.Name
+	tool.ToolTip = "Haz clic para comer (+" .. item.Heal .. " vida)"
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = Vector3.new(1, 0.6, 1)
+	handle.Color = BrickColor.new(item.Color).Color
+	handle.Material = Enum.Material.SmoothPlastic
+	handle.CanCollide = false
+	handle.Massless = true
+	handle.Parent = tool
+	local eaten = false
+	tool.Activated:Connect(function()
+		if eaten then
+			return
+		end
+		local hum = tool.Parent and tool.Parent:FindFirstChildOfClass("Humanoid")
+		if hum and hum.Health > 0 then
+			eaten = true
+			hum.Health = math.min(hum.MaxHealth, hum.Health + item.Heal)
+			tool:Destroy()
+		end
+	end)
+	return tool
+end
+
+-- Paga comisión al trabajador de ese giro más cercano al local
+local function payCommission(shop, buyer, shopPart)
+	local jobId = Config.Shops[shop.ShopId].CommissionJob
+	if not jobId then
+		return
+	end
+	local best, bestDist = nil, COMMISSION_RANGE
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= buyer and p:GetAttribute("Job") == jobId and p.Character then
+			local root = p.Character:FindFirstChild("HumanoidRootPart")
+			if root then
+				local d = (root.Position - shopPart.Position).Magnitude
+				if d < bestDist then
+					best, bestDist = p, d
+				end
+			end
+		end
+	end
+	if best then
+		ctx.Economy.Add(best, Config.SALE_COMMISSION)
+		ctx.Notify(best, "Vendiste a " .. buyer.DisplayName .. " (+$" .. Config.SALE_COMMISSION .. " de comisión)", "money")
+	end
+end
+
+local function onBuy(player, shopIndex, itemId)
+	if type(shopIndex) ~= "number" or type(itemId) ~= "string" then
+		return
+	end
+	local shop = ctx.Map.Shops[shopIndex]
+	if not shop then
+		return
+	end
+	local item = Config.GetItem(shop.ShopId, itemId)
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not item or not root then
+		return
+	end
+	if (root.Position - shop.Part.Position).Magnitude > MAX_DISTANCE then
+		ctx.Notify(player, "Acércate al mostrador para comprar.", "info")
+		return
+	end
+	if not ctx.Economy.Charge(player, item.Price) then
+		ctx.Notify(player, "No te alcanza, joven. Cuesta $" .. item.Price, "bad")
+		return
+	end
+	makeFood(item).Parent = player.Backpack
+	ctx.Notify(player, "Compraste " .. item.Name .. " (-$" .. item.Price .. ")", "good")
+	payCommission(shop, player, shop.Part)
+end
+
+function Shops.Init(context)
+	ctx = context
+	for index, shop in ipairs(ctx.Map.Shops) do
+		shop.Prompt.Triggered:Connect(function(player)
+			ctx.Remotes.OpenShop:FireClient(player, index, shop.ShopId)
+		end)
+	end
+	ctx.Remotes.BuyItem.OnServerEvent:Connect(onBuy)
+end
+
+return Shops
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000010"><Properties><string name="Name">Vehicles</string><ProtectedString name="Source"><![CDATA[-- Vehicles: autos de trabajo, renta, agencia de autos y garage personal.
+-- El conductor maneja desde el cliente (ver client/Driving.luau); aquí se
+-- construyen los autos, se controla quién maneja y se cobra el taxi.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local Cars = require(ReplicatedStorage.Shared.Cars)
+
+local Vehicles = {}
+
+local ctx
+local owned = {} -- [player] = Model (solo un vehículo activo por jugador)
+local carsFolder
+
+-- Construcción -----------------------------------------------------------------
+local function weld(base, p)
+	local w = Instance.new("WeldConstraint")
+	w.Part0 = base
+	w.Part1 = p
+	w.Parent = p
+end
+
+local function addPart(model, base, name, size, offset, color, material, collide)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.CFrame = base.CFrame * offset
+	p.Color = color
+	p.Material = material or Enum.Material.SmoothPlastic
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.CanCollide = collide or false
+	p.Massless = true
+	weld(base, p)
+	p.Parent = model
+	return p
+end
+
+local function sideText(part, text, color)
+	for _, face in ipairs({ Enum.NormalId.Left, Enum.NormalId.Right }) do
+		local sg = Instance.new("SurfaceGui")
+		sg.Face = face
+		sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		sg.PixelsPerStud = 30
+		local l = Instance.new("TextLabel")
+		l.Size = UDim2.fromScale(1, 1)
+		l.BackgroundTransparency = 1
+		l.TextScaled = true
+		l.Font = Enum.Font.GothamBlack
+		l.TextColor3 = color
+		l.Text = text
+		l.Parent = sg
+		sg.Parent = part
+	end
+end
+
+local function addSeat(model, base, className, name, offset)
+	local s = Instance.new(className)
+	s.Name = name
+	s.Size = Vector3.new(2, 1, 2)
+	s.CFrame = base.CFrame * offset
+	s.Color = Color3.fromRGB(40, 40, 40)
+	s.Massless = true
+	weld(base, s)
+	s.Parent = model
+	return s
+end
+
+-- spec: { Name, Style, Color, Accent, MaxSpeed, Seats, Sign?, Siren?, SideText? }
+-- Devuelve model, base, driverSeat, passengerSeats
+function Vehicles.Build(spec, cf, owner, anchoredDisplay)
+	local st = Cars.Styles[spec.Style] or Cars.Styles.Sedan
+	local L, W, H = st.L, st.W, st.BodyH
+	local model = Instance.new("Model")
+	model.Name = owner and (spec.Name .. " de " .. owner.DisplayName) or spec.Name
+
+	local base = Instance.new("Part")
+	base.Name = "Base"
+	base.Size = st.Moto and Vector3.new(1.4, 1, L - 1) or Vector3.new(W - 1, 1.2, L - 1)
+	base.CFrame = cf
+	base.Color = Color3.fromRGB(35, 35, 35)
+	base.Material = Enum.Material.Metal
+	base.Anchored = true
+	base.RootPriority = 127
+	-- Fricción casi nula: la velocidad la controla el script de manejo
+	base.CustomPhysicalProperties = PhysicalProperties.new(1, 0, 0, 100, 1)
+	base.Parent = model
+	model.PrimaryPart = base
+
+	local accent = spec.Accent or Color3.fromRGB(230, 230, 230)
+	local bodyTop = 0.6 + H
+	local body = addPart(model, base, "Carroceria", Vector3.new(W, H, L), CFrame.new(0, 0.6 + H / 2, 0), spec.Color, Enum.Material.SmoothPlastic, true)
+
+	-- Llantas
+	local wd = st.Wheel
+	local wheelZ = st.Moto and (L / 2 - 0.8) or (L / 2 - 2.8)
+	local xs = st.Moto and { 0 } or { -(W / 2 - 0.4), W / 2 - 0.4 }
+	local zs = { -wheelZ, wheelZ }
+	if spec.Style == "Bus" then
+		zs = { -wheelZ, -wheelZ + 4, wheelZ }
+	end
+	for _, x in ipairs(xs) do
+		for _, z in ipairs(zs) do
+			local wheel = addPart(model, base, "Llanta", Vector3.new(st.Moto and 0.6 or 1.2, wd, wd), CFrame.new(x, wd / 2 - 0.6, z), Color3.fromRGB(20, 20, 20), Enum.Material.Rubber)
+			wheel.Shape = Enum.PartType.Cylinder
+		end
+	end
+
+	-- Luces
+	local lx = st.Moto and { 0 } or { -(W / 2 - 1.2), W / 2 - 1.2 }
+	for _, x in ipairs(lx) do
+		addPart(model, base, "Faro", Vector3.new(1.4, 0.8, 0.3), CFrame.new(x, 0.6 + H * 0.7, -L / 2 - 0.05), Color3.fromRGB(255, 250, 220), Enum.Material.Neon)
+		addPart(model, base, "Calavera", Vector3.new(1.4, 0.8, 0.3), CFrame.new(x, 0.6 + H * 0.7, L / 2 + 0.05), Color3.fromRGB(200, 20, 20), Enum.Material.Neon)
+	end
+
+	local driverSeat, seatSpots
+	if st.Moto then
+		addPart(model, base, "Manubrio", Vector3.new(2.4, 0.3, 0.3), CFrame.new(0, bodyTop + 1.2, -L / 2 + 1), Color3.fromRGB(30, 30, 30), Enum.Material.Metal)
+		driverSeat = CFrame.new(0, bodyTop + 0.2, 0.4)
+		seatSpots = {}
+	else
+		local r = st.Roof
+		local roofY = bodyTop + r.H
+		addPart(model, base, "Techo", Vector3.new(W - 0.4, 0.4, r.L), CFrame.new(0, roofY + 0.2, r.Z), accent, Enum.Material.SmoothPlastic, true)
+		local front, back = r.Z - r.L / 2 + 0.3, r.Z + r.L / 2 - 0.3
+		for _, x in ipairs({ -(W / 2 - 0.4), W / 2 - 0.4 }) do
+			for _, z in ipairs({ front, back }) do
+				addPart(model, base, "Pilar", Vector3.new(0.4, r.H, 0.4), CFrame.new(x, bodyTop + r.H / 2, z), accent)
+			end
+		end
+		local glass = addPart(model, base, "Parabrisas", Vector3.new(W - 1.2, r.H * 0.85, 0.2), CFrame.new(0, bodyTop + r.H / 2, front), Color3.fromRGB(150, 200, 230), Enum.Material.Glass)
+		glass.Transparency = 0.6
+		if st.Bed then
+			addPart(model, base, "BateaIzq", Vector3.new(0.4, 1.4, L / 2 - 1), CFrame.new(-(W / 2 - 0.2), bodyTop + 0.7, L / 4 + 0.5), spec.Color, Enum.Material.SmoothPlastic, true)
+			addPart(model, base, "BateaDer", Vector3.new(0.4, 1.4, L / 2 - 1), CFrame.new(W / 2 - 0.2, bodyTop + 0.7, L / 4 + 0.5), spec.Color, Enum.Material.SmoothPlastic, true)
+			addPart(model, base, "BateaAtras", Vector3.new(W, 1.4, 0.4), CFrame.new(0, bodyTop + 0.7, L / 2 - 0.2), spec.Color, Enum.Material.SmoothPlastic, true)
+		end
+		if spec.Sign then
+			local sign = addPart(model, base, "Letrero", Vector3.new(3, 1, 1.4), CFrame.new(0, roofY + 0.9, r.Z), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+			sideText(sign, spec.Sign, Color3.fromRGB(200, 30, 120))
+		end
+		if spec.Siren then
+			local a = addPart(model, base, "TorretaA", Vector3.new(2.4, 0.6, 1.2), CFrame.new(-1.3, roofY + 0.7, r.Z - 0.6), spec.Siren[1], Enum.Material.Neon)
+			local b = addPart(model, base, "TorretaB", Vector3.new(2.4, 0.6, 1.2), CFrame.new(1.3, roofY + 0.7, r.Z - 0.6), spec.Siren[2], Enum.Material.Neon)
+			a:SetAttribute("Siren", true)
+			b:SetAttribute("Siren", true)
+		end
+		local dz = front + 2.2
+		driverSeat = CFrame.new(-(W / 2 - 2.4), bodyTop + 0.4, dz)
+		seatSpots = {}
+		if spec.Style == "Bus" then
+			for z = dz + 4, back - 1, 3.4 do
+				table.insert(seatSpots, CFrame.new(-(W / 2 - 2), bodyTop + 0.4, z))
+				table.insert(seatSpots, CFrame.new(W / 2 - 2, bodyTop + 0.4, z))
+			end
+		else
+			seatSpots = { CFrame.new(W / 2 - 2.4, bodyTop + 0.4, dz), CFrame.new(-(W / 2 - 2.4), bodyTop + 0.4, dz + 3.8), CFrame.new(W / 2 - 2.4, bodyTop + 0.4, dz + 3.8) }
+		end
+	end
+	if spec.SideText then
+		sideText(body, spec.SideText, accent)
+	end
+
+	local seat = addSeat(model, base, "VehicleSeat", "Conductor", driverSeat)
+	seat.HeadsUpDisplay = false
+	seat.MaxSpeed = spec.MaxSpeed
+	seat:SetAttribute("CDMXCar", true)
+	seat:SetAttribute("CarMaxSpeed", spec.MaxSpeed)
+	if anchoredDisplay then
+		seat.Disabled = true
+	end
+
+	local passengerSeats = {}
+	for i = 1, math.min((spec.Seats or 1) - 1, #seatSpots) do
+		local ps = addSeat(model, base, "Seat", "Pasajero" .. i, seatSpots[i])
+		if anchoredDisplay then
+			ps.Disabled = true
+		end
+		table.insert(passengerSeats, ps)
+	end
+
+	if owner then
+		model:SetAttribute("Owner", owner.UserId)
+	end
+	model.Parent = anchoredDisplay and workspace or carsFolder
+	return model, base, seat, passengerSeats
+end
+
+-- Control de asientos -----------------------------------------------------------
+local function setupDriverSeat(base, seat, owner)
+	seat:GetPropertyChangedSignal("Occupant"):Connect(function()
+		local hum = seat.Occupant
+		if hum then
+			local player = Players:GetPlayerFromCharacter(hum.Parent)
+			if player ~= owner then
+				task.defer(function()
+					local w = seat:FindFirstChild("SeatWeld")
+					if w then
+						w:Destroy()
+					end
+				end)
+				if player then
+					ctx.Notify(player, "Este vehículo es de " .. owner.DisplayName .. ".", "info")
+				end
+				return
+			end
+			base.Anchored = false
+			pcall(function()
+				base:SetNetworkOwner(player)
+			end)
+		else
+			base.AssemblyLinearVelocity = Vector3.zero
+			base.AssemblyAngularVelocity = Vector3.zero
+			base.Anchored = true
+		end
+	end)
+end
+
+-- Cobro de taxi por distancia recorrida
+local function setupTaxiFares(base, seats, owner)
+	for _, s in ipairs(seats) do
+		local rider, startPos
+		s:GetPropertyChangedSignal("Occupant"):Connect(function()
+			local hum = s.Occupant
+			if hum then
+				rider = Players:GetPlayerFromCharacter(hum.Parent)
+				startPos = base.Position
+				if rider and rider ~= owner then
+					ctx.Notify(rider, "Subiste al taxi de " .. owner.DisplayName .. ". Tarifa mínima $" .. Config.TAXI_MIN_FARE, "info")
+				end
+			elseif rider then
+				local passenger = rider
+				rider = nil
+				if passenger == owner or not passenger.Parent or not owner.Parent then
+					return
+				end
+				local dist = (base.Position - startPos).Magnitude
+				if dist < 30 then
+					return
+				end
+				local fare = math.max(Config.TAXI_MIN_FARE, math.floor(dist / 100 * Config.TAXI_FARE_PER_100_STUDS))
+				local paid = ctx.Economy.Transfer(passenger, owner, fare)
+				ctx.Notify(passenger, "Pagaste $" .. paid .. " de taxi. ¡Gracias por viajar!", "info")
+				ctx.Notify(owner, "Tu pasajero pagó $" .. paid .. ".", "money")
+			end
+		end)
+	end
+end
+
+-- Saca un vehículo para el jugador en `cf` (reemplaza el anterior)
+local function spawnFor(player, spec, cf, kind)
+	if owned[player] then
+		owned[player]:Destroy()
+	end
+	local model, base, seat, seats = Vehicles.Build(spec, cf, player)
+	model:SetAttribute("Kind", kind)
+	owned[player] = model
+	setupDriverSeat(base, seat, player)
+	if kind == "Taxi" or kind == "Micro" then
+		setupTaxiFares(base, seats, player)
+	end
+	return model
+end
+
+function Vehicles.GetActive(player)
+	local m = owned[player]
+	return (m and m.Parent) and m or nil
+end
+
+-- ¿El jugador va manejando su vehículo?
+function Vehicles.IsDriving(player, kind)
+	local char = player.Character
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	local seat = hum and hum.SeatPart
+	if not (seat and seat:IsA("VehicleSeat") and seat:GetAttribute("CDMXCar")) then
+		return false
+	end
+	if kind then
+		local model = seat:FindFirstAncestorOfClass("Model")
+		return model ~= nil and model:GetAttribute("Kind") == kind
+	end
+	return true
+end
+
+-- Garajes de trabajo y renta ---------------------------------------------------
+local function onGarage(player, garage)
+	local spec = Cars.JobVehicles[garage.Kind]
+	if not spec or player:GetAttribute("JailedUntil") then
+		return
+	end
+	if spec.Job and player:GetAttribute("Job") ~= spec.Job then
+		local job = Config.GetJob(spec.Job)
+		ctx.Notify(player, "Necesitas el trabajo de " .. job.Name .. " para usar este vehículo.", "bad")
+		return
+	end
+	if spec.Price and spec.Price > 0 and not ctx.Economy.Charge(player, spec.Price) then
+		ctx.Notify(player, "La renta cuesta $" .. spec.Price .. ".", "bad")
+		return
+	end
+	spawnFor(player, spec, garage.SpawnCFrame, garage.Kind)
+	ctx.Notify(player, "Tu " .. spec.Name .. " está listo. Súbete al asiento del conductor (W/A/S/D).", "good")
+end
+
+-- Agencia de autos -------------------------------------------------------------
+local function nearestParking(player)
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	local best, bestD = ctx.Map.ParkingSpots[1], math.huge
+	if root then
+		for _, cf in ipairs(ctx.Map.ParkingSpots) do
+			local d = (cf.Position - root.Position).Magnitude
+			if d < bestD then
+				best, bestD = cf, d
+			end
+		end
+	end
+	return best
+end
+
+local function ownedSpec(entry)
+	local car = Cars.Get(entry.Id)
+	if not car then
+		return nil
+	end
+	local paintName = Cars.PaintOrder[entry.Paint] or "Blanco"
+	return {
+		Name = car.Name, Style = car.Style, MaxSpeed = car.MaxSpeed, Seats = car.Seats,
+		Color = Cars.Paint[paintName], Accent = Cars.Paint[paintName]:Lerp(Color3.new(1, 1, 1), 0.15),
+	}
+end
+
+local function onBuyCar(player, carId, paintIndex)
+	if type(carId) ~= "string" or type(paintIndex) ~= "number" then
+		return
+	end
+	local car = Cars.Get(carId)
+	paintIndex = math.clamp(math.floor(paintIndex), 1, #Cars.PaintOrder)
+	if not car then
+		return
+	end
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	if not root or (root.Position - ctx.Map.Dealership.Position).Magnitude > 40 then
+		ctx.Notify(player, "Acércate al mostrador de la agencia.", "info")
+		return
+	end
+	local data = ctx.Economy.GetData(player)
+	if #data.Cars >= 10 then
+		ctx.Notify(player, "Tu garage está lleno (máximo 10 autos).", "bad")
+		return
+	end
+	if not ctx.Economy.Charge(player, car.Price) then
+		ctx.Notify(player, "No te alcanza. El " .. car.Name .. " cuesta $" .. car.Price .. ".", "bad")
+		return
+	end
+	table.insert(data.Cars, { Id = car.Id, Paint = paintIndex })
+	ctx.Remotes.GarageUpdate:FireClient(player, data.Cars)
+	local entry = data.Cars[#data.Cars]
+	spawnFor(player, ownedSpec(entry), ctx.Map.DealershipSpawn, "Propio")
+	ctx.Notify(player, "¡Felicidades por tu " .. car.Name .. "! Te espera afuera de la agencia.", "money")
+end
+
+local function onSpawnOwned(player, index)
+	if type(index) ~= "number" then
+		return
+	end
+	local data = ctx.Economy.GetData(player)
+	local entry = data.Cars[math.floor(index)]
+	if not entry or player:GetAttribute("JailedUntil") then
+		return
+	end
+	local spec = ownedSpec(entry)
+	if not spec then
+		return
+	end
+	spawnFor(player, spec, nearestParking(player), "Propio")
+	ctx.Notify(player, "Tu " .. spec.Name .. " te espera en el estacionamiento más cercano (mira el GPS).", "good")
+	ctx.Remotes.Waypoint:FireClient(player, nearestParking(player).Position, "Tu auto")
+end
+
+function Vehicles.Init(context)
+	ctx = context
+	carsFolder = Instance.new("Folder")
+	carsFolder.Name = "Vehiculos"
+	carsFolder.Parent = workspace
+	for _, garage in ipairs(ctx.Map.Garages) do
+		garage.Prompt.Triggered:Connect(function(player)
+			onGarage(player, garage)
+		end)
+	end
+	ctx.Map.DealershipPrompt.Triggered:Connect(function(player)
+		ctx.Remotes.OpenDealership:FireClient(player, ctx.Economy.GetData(player).Cars)
+	end)
+	-- Autos de exhibición
+	local showroom = { { "Tsuro", 4 }, { "Jeta", 3 }, { "Lobo", 5 }, { "Uracan", 9 } }
+	for i, entry in ipairs(showroom) do
+		local cf = ctx.Map.ShowroomSpots[i]
+		if cf then
+			local spec = ownedSpec({ Id = entry[1], Paint = entry[2] })
+			local model = Vehicles.Build(spec, cf, nil, true)
+			model.Parent = ctx.Map.Root
+		end
+	end
+	ctx.Remotes.BuyCar.OnServerEvent:Connect(onBuyCar)
+	ctx.Remotes.SpawnOwnedCar.OnServerEvent:Connect(onSpawnOwned)
+	Players.PlayerAdded:Connect(function(player)
+		local data = ctx.Economy.WaitForData(player)
+		if data and player.Parent then
+			ctx.Remotes.GarageUpdate:FireClient(player, data.Cars)
+		end
+	end)
+	Players.PlayerRemoving:Connect(function(player)
+		if owned[player] then
+			owned[player]:Destroy()
+			owned[player] = nil
+		end
+	end)
+	-- Torretas parpadeantes
+	task.spawn(function()
+		local on = false
+		while true do
+			task.wait(0.35)
+			on = not on
+			for _, model in ipairs(carsFolder:GetChildren()) do
+				for _, p in ipairs(model:GetChildren()) do
+					if p:GetAttribute("Siren") then
+						p.Transparency = ((p.Name == "TorretaA") == on) and 0 or 0.7
+					end
+				end
+			end
+		end
+	end)
+end
+
+return Vehicles
+]]></ProtectedString></Properties></Item></Item></Item><Item class="StarterPlayer" referent="RBX00000019"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX00000018"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX00000017"><Properties><string name="Name">Client</string><ProtectedString name="Source"><![CDATA[-- CDMX Roleplay - punto de entrada del cliente.
+
+local UI = require(script.UI)
+local Driving = require(script.Driving)
+local Gameplay = require(script.Gameplay)
+local WeaponsClient = require(script.WeaponsClient)
+
+UI.Init()
+Driving.Init()
+Gameplay.Init(UI)
+WeaponsClient.Init(UI)
+]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX00000013"><Properties><string name="Name">Driving</string><ProtectedString name="Source"><![CDATA[-- Driving: manejo arcade de los autos de la CDMX.
+-- El servidor da la propiedad de red al conductor, así que aquí movemos el auto.
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+local Driving = {}
+
+local ACCEL = 28
+local BRAKE = 45
+local TURN_RATE = math.rad(95) -- grados por segundo a velocidad completa
+
+local function approach(current, target, delta)
+	if current < target then
+		return math.min(current + delta, target)
+	end
+	return math.max(current - delta, target)
+end
+
+local function drive(humanoid, seat)
+	local speed = 0
+	local conn
+	conn = RunService.Heartbeat:Connect(function(dt)
+		if humanoid.SeatPart ~= seat or not seat.Parent then
+			conn:Disconnect()
+			return
+		end
+		local base = seat.Parent and seat.Parent.PrimaryPart
+		if not base or base.Anchored then
+			return
+		end
+		local maxSpeed = seat:GetAttribute("CarMaxSpeed") or 60
+		local throttle = seat.ThrottleFloat
+		local steer = seat.SteerFloat
+
+		local target = throttle * maxSpeed
+		if throttle < 0 then
+			target = throttle * maxSpeed * 0.4 -- reversa más lenta
+		end
+		local rate = (throttle == 0 or (target * speed) < 0) and BRAKE or ACCEL
+		speed = approach(speed, target, rate * dt)
+
+		local cf = base.CFrame
+		local look = Vector3.new(cf.LookVector.X, 0, cf.LookVector.Z)
+		if look.Magnitude < 0.1 then
+			return
+		end
+		look = look.Unit
+
+		-- Si se volteó, lo enderezamos
+		if cf.UpVector.Y < 0.6 then
+			base.CFrame = CFrame.lookAt(cf.Position + Vector3.new(0, 3, 0), cf.Position + Vector3.new(0, 3, 0) + look)
+			speed = 0
+		end
+
+		local vel = base.AssemblyLinearVelocity
+		base.AssemblyLinearVelocity = Vector3.new(look.X * speed, math.min(vel.Y, 20), look.Z * speed)
+
+		local grip = math.clamp(math.abs(speed) / 15, 0, 1)
+		local dir = speed >= 0 and 1 or -1
+		base.AssemblyAngularVelocity = Vector3.new(0, -steer * TURN_RATE * grip * dir, 0)
+	end)
+end
+
+local function onCharacter(char)
+	local humanoid = char:WaitForChild("Humanoid")
+	humanoid.Seated:Connect(function(active, seat)
+		if active and seat and seat:IsA("VehicleSeat") and seat:GetAttribute("CDMXCar") then
+			drive(humanoid, seat)
+		end
+	end)
+end
+
+function Driving.Init()
+	if player.Character then
+		task.spawn(onCharacter, player.Character)
+	end
+	player.CharacterAdded:Connect(onCharacter)
+end
+
+return Driving
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000014"><Properties><string name="Name">Gameplay</string><ProtectedString name="Source"><![CDATA[-- Gameplay: teléfono, diálogos, rastreador de misiones con GPS, agencia de autos
+-- y armerías. Usa los paneles de UI.luau.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Cars = require(Shared:WaitForChild("Cars"))
+local Weapons = require(Shared:WaitForChild("Weapons"))
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+local player = Players.LocalPlayer
+
+local Gameplay = {}
+local UI -- se asigna en Init
+local new
+
+local garage = {} -- autos del jugador
+local objectives = {} -- [slot] = info
+local markers = {} -- [slot] = { Part, Label }
+local storyInfo
+
+local SLOT_COLORS = {
+	Story = Color3.fromRGB(240, 200, 60),
+	Job = Color3.fromRGB(240, 120, 20),
+	Extra = Color3.fromRGB(120, 200, 255),
+}
+
+-- Rastreador de misiones -------------------------------------------------------
+local tracker, trackerRows = nil, {}
+
+local function buildTracker()
+	tracker = new("Frame", {
+		Name = "Misiones",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, 12, 0.42, 0),
+		Size = UDim2.fromOffset(280, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		Parent = UI.Gui,
+	}, { new("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }) })
+	for i, slot in ipairs({ "Story", "Job" }) do
+		local row = new("Frame", {
+			LayoutOrder = i,
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundColor3 = UI.Theme.Bg,
+			BackgroundTransparency = 0.15,
+			Visible = false,
+			Parent = tracker,
+		}, { UI.Corner(8), UI.Padding(8), new("UIListLayout", { Padding = UDim.new(0, 2) }) })
+		new("Frame", { Size = UDim2.new(0, 4, 1, 16), Position = UDim2.fromOffset(-8, -8), BackgroundColor3 = SLOT_COLORS[slot], BorderSizePixel = 0, Parent = row })
+		local title = new("TextLabel", {
+			Size = UDim2.new(1, 0, 0, 16), BackgroundTransparency = 1, Font = Enum.Font.GothamBold, TextSize = 13,
+			TextColor3 = SLOT_COLORS[slot], TextXAlignment = Enum.TextXAlignment.Left, Text = "", Parent = row,
+		})
+		local label = new("TextLabel", {
+			Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1,
+			Font = Enum.Font.GothamMedium, TextSize = 15, TextWrapped = true, TextColor3 = UI.Theme.Text,
+			TextXAlignment = Enum.TextXAlignment.Left, Text = "", Parent = row,
+		})
+		local dist = new("TextLabel", {
+			Size = UDim2.new(1, 0, 0, 14), BackgroundTransparency = 1, Font = Enum.Font.Gotham, TextSize = 12,
+			TextColor3 = UI.Theme.Muted, TextXAlignment = Enum.TextXAlignment.Left, Text = "", Parent = row,
+		})
+		trackerRows[slot] = { Frame = row, Title = title, Label = label, Dist = dist }
+	end
+end
+
+local function clearMarker(slot)
+	local m = markers[slot]
+	if m then
+		m.Part:Destroy()
+		markers[slot] = nil
+	end
+end
+
+local function setMarker(slot, pos, text)
+	clearMarker(slot)
+	if not pos then
+		return
+	end
+	local p = Instance.new("Part")
+	p.Name = "Marcador_" .. slot
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.CastShadow = false
+	p.Material = Enum.Material.Neon
+	p.Color = SLOT_COLORS[slot]
+	p.Transparency = 0.65
+	p.Size = Vector3.new(1.5, 300, 1.5)
+	p.CFrame = CFrame.new(pos.X, 150, pos.Z)
+	local att = Instance.new("Attachment")
+	att.Position = Vector3.new(0, -140, 0)
+	att.Parent = p
+	local bb = new("BillboardGui", {
+		Size = UDim2.fromOffset(180, 44), AlwaysOnTop = true, LightInfluence = 0, Adornee = p,
+		StudsOffsetWorldSpace = Vector3.new(0, -142, 0),
+	})
+	local l = new("TextLabel", {
+		Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Font = Enum.Font.GothamBlack, TextScaled = true,
+		TextColor3 = SLOT_COLORS[slot], TextStrokeTransparency = 0.2, Text = "▼ " .. (text or ""), Parent = bb,
+	})
+	bb.Parent = p
+	p.Parent = workspace
+	markers[slot] = { Part = p, Label = l, Text = text }
+end
+
+local function showObjective(slot, info)
+	objectives[slot] = info
+	if slot == "Story" then
+		storyInfo = info
+	end
+	local row = trackerRows[slot]
+	if row then
+		row.Frame.Visible = info ~= nil
+		if info then
+			row.Title.Text = info.ChapterTitle or ""
+			row.Label.Text = info.Label or ""
+		end
+	end
+	setMarker(slot, info and info.Target, info and (slot == "Story" and "Historia" or "Trabajo"))
+end
+
+local function updateDistances()
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return
+	end
+	for slot, m in pairs(markers) do
+		local d = Vector2.new(m.Part.Position.X - root.Position.X, m.Part.Position.Z - root.Position.Z).Magnitude
+		local text = math.floor(d) .. " m"
+		m.Label.Text = "▼ " .. (m.Text or "") .. " · " .. text
+		local row = trackerRows[slot]
+		if row then
+			row.Dist.Text = "A " .. text
+		end
+	end
+end
+
+-- Diálogos -------------------------------------------------------------------
+local dialogFrame, dialogName, dialogText, dialogNext, dialogOptions
+local dialogQueue, dialogIndex, dialogData
+
+local function buildDialog()
+	dialogFrame = new("Frame", {
+		Name = "Dialogo",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -70),
+		Size = UDim2.new(0.92, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundColor3 = UI.Theme.Bg,
+		BackgroundTransparency = 0.05,
+		Visible = false,
+		ZIndex = 20,
+		Parent = UI.Gui,
+	}, { UI.Corner(12), UI.Padding(14), new("UISizeConstraint", { MaxSize = Vector2.new(640, 400) }),
+		new("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }) })
+	dialogName = new("TextLabel", {
+		LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 22), BackgroundTransparency = 1, Font = Enum.Font.GothamBlack,
+		TextSize = 18, TextColor3 = UI.Theme.Gold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 21, Parent = dialogFrame,
+	})
+	dialogText = new("TextLabel", {
+		LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1,
+		Font = Enum.Font.GothamMedium, TextSize = 17, TextWrapped = true, TextColor3 = UI.Theme.Text,
+		TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 21, Parent = dialogFrame,
+	})
+	dialogOptions = new("Frame", {
+		LayoutOrder = 3, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1,
+		ZIndex = 21, Parent = dialogFrame,
+	}, { new("UIListLayout", { Padding = UDim.new(0, 6) }) })
+	dialogNext = UI.Button("Siguiente ▶  [E]", UI.Theme.Pink, UDim2.fromOffset(170, 36))
+	dialogNext.LayoutOrder = 4
+	dialogNext.ZIndex = 21
+	dialogNext.Parent = dialogFrame
+end
+
+local function closeDialog(choice)
+	dialogFrame.Visible = false
+	dialogData = nil
+	ProximityPromptService.Enabled = true
+	Remotes.DialogDone:FireServer(choice or 0)
+end
+
+local function showLine()
+	for _, c in ipairs(dialogOptions:GetChildren()) do
+		if c:IsA("TextButton") then
+			c:Destroy()
+		end
+	end
+	dialogText.Text = dialogQueue[dialogIndex]
+	local last = dialogIndex >= #dialogQueue
+	if last and dialogData.Options then
+		dialogNext.Visible = false
+		for i, text in ipairs(dialogData.Options) do
+			local b = UI.Button(text, i == 1 and UI.Theme.Green or UI.Theme.Red, UDim2.new(1, 0, 0, 42))
+			b.TextWrapped = true
+			b.ZIndex = 22
+			b.Parent = dialogOptions
+			b.MouseButton1Click:Connect(function()
+				closeDialog(i)
+			end)
+		end
+	else
+		dialogNext.Visible = true
+		dialogNext.Text = last and "Cerrar  [E]" or "Siguiente ▶  [E]"
+	end
+end
+
+local function nextLine()
+	if not dialogData then
+		return
+	end
+	if dialogIndex >= #dialogQueue then
+		if not dialogData.Options then
+			closeDialog(0)
+		end
+		return
+	end
+	dialogIndex = dialogIndex + 1
+	showLine()
+end
+
+local function openDialog(data)
+	UI.ClosePanel()
+	dialogData = data
+	dialogQueue = data.Lines
+	dialogIndex = 1
+	dialogName.Text = data.Name
+	dialogFrame.Visible = true
+	-- Mientras habla, la tecla E avanza el diálogo en vez de activar avisos
+	ProximityPromptService.Enabled = false
+	showLine()
+end
+
+-- Agencia de autos -------------------------------------------------------------
+local function paintSwatch(name)
+	return Cars.Paint[name]
+end
+
+local function openPaints(car)
+	UI.OpenPanel(car.Name .. " · elige color")
+	for i, paintName in ipairs(Cars.PaintOrder) do
+		UI.AddRow(i, paintName, "Precio: " .. UI.FormatMoney(car.Price), paintSwatch(paintName), "Comprar", UI.Theme.Green, function()
+			Remotes.BuyCar:FireServer(car.Id, i)
+			UI.ClosePanel()
+		end)
+	end
+end
+
+local STYLE_NAMES = { Sedan = "Sedán", Hatch = "Compacto", Pickup = "Pickup", SUV = "Camioneta", Sport = "Deportivo", Moto = "Moto", Van = "Van", Bus = "Micro" }
+
+local function openDealership(cars)
+	garage = cars or garage
+	UI.OpenPanel("Agencia Reforma · Autos")
+	for i, car in ipairs(Cars.List) do
+		local sub = STYLE_NAMES[car.Style] .. " · " .. car.MaxSpeed .. " km/h · " .. car.Seats .. " plazas. " .. car.Desc
+		UI.AddRow(i, car.Name, sub, UI.Theme.Gold, UI.FormatMoney(car.Price), UI.Theme.Green, function()
+			openPaints(car)
+		end)
+	end
+end
+
+-- Armerías ---------------------------------------------------------------------
+local function openWeaponShop(index, shopId)
+	local shop = Weapons.Shops[shopId]
+	if not shop then
+		return
+	end
+	UI.OpenPanel(shop.Name)
+	for i, item in ipairs(shop.Items) do
+		local def = Weapons.Get(item.Id)
+		local sub
+		if def.Type == "Gun" then
+			sub = "Daño " .. def.Damage .. (def.Pellets and (" × " .. def.Pellets) or "") .. " · cargador " .. def.Mag .. (def.Auto and " · automática" or "")
+		elseif def.Type == "Taser" then
+			sub = "Paraliza " .. def.Stun .. " s a sospechosos buscados"
+		else
+			sub = "Cuerpo a cuerpo · daño " .. def.Damage
+		end
+		UI.AddRow(i, def.Name, sub, def.Color, item.Price > 0 and UI.FormatMoney(item.Price) or "Gratis", UI.Theme.Green, function()
+			Remotes.BuyWeapon:FireServer(index, item.Id)
+		end)
+	end
+end
+
+-- Teléfono ---------------------------------------------------------------------
+local function openPhone()
+	UI.OpenPanel("Teléfono")
+	local order = 1
+	if storyInfo then
+		local sub = storyInfo.Label or ""
+		if storyInfo.Path then
+			sub = sub .. " · Camino " .. (storyInfo.Path == "Honrado" and "honrado" or "chueco")
+		end
+		UI.AddRow(order, "Historia · " .. math.min(storyInfo.Chapter or 1, storyInfo.Total or 5) .. "/" .. (storyInfo.Total or 5) .. "  " .. (storyInfo.ChapterTitle or ""), sub,
+			UI.Theme.Gold, "GPS", UI.Theme.Orange, function()
+				if storyInfo.Target then
+					setMarker("Story", storyInfo.Target, "Historia")
+				end
+				UI.ClosePanel()
+			end)
+		order = order + 1
+	end
+	if #garage == 0 then
+		UI.AddRow(order, "Mis autos", "Todavía no tienes autos. Compra uno en la Agencia Reforma.", UI.Theme.Pink, "Ruta", UI.Theme.Pink, function()
+			setMarker("Extra", Vector3.new(-560, 0, -264), "Agencia Reforma")
+			UI.ClosePanel()
+		end)
+	else
+		for i, entry in ipairs(garage) do
+			local car = Cars.Get(entry.Id)
+			if car then
+				local paintName = Cars.PaintOrder[entry.Paint] or "Blanco"
+				UI.AddRow(order, car.Name, "Color " .. paintName .. " · " .. car.MaxSpeed .. " km/h", Cars.Paint[paintName], "Pedir", UI.Theme.Green, function()
+					Remotes.SpawnOwnedCar:FireServer(i)
+					UI.ClosePanel()
+				end)
+				order = order + 1
+			end
+		end
+	end
+	UI.AddRow(order + 1, "Ayuda", "[J] trabajos · [P] teléfono · [E] interactuar · clic dispara · [R] recarga", UI.Theme.Muted, "OK", UI.Theme.Row, function()
+		UI.ClosePanel()
+	end)
+end
+
+function Gameplay.Init(uiModule)
+	UI = uiModule
+	new = UI.New
+	buildTracker()
+	buildDialog()
+
+	local phoneBtn = UI.Button("TELÉFONO [P]", UI.Theme.Orange, UDim2.fromOffset(150, 44))
+	phoneBtn.AnchorPoint = Vector2.new(0, 1)
+	phoneBtn.Position = UDim2.new(0, 170, 1, -12)
+	phoneBtn.Parent = UI.Gui
+	phoneBtn.MouseButton1Click:Connect(function()
+		if UI.IsPanelOpen() then
+			UI.ClosePanel()
+		else
+			openPhone()
+		end
+	end)
+	dialogNext.MouseButton1Click:Connect(nextLine)
+
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.P then
+			if UI.IsPanelOpen() then
+				UI.ClosePanel()
+			else
+				openPhone()
+			end
+		elseif input.KeyCode == Enum.KeyCode.E and dialogData then
+			nextLine()
+		end
+	end)
+
+	Remotes.Objective.OnClientEvent:Connect(showObjective)
+	Remotes.Dialog.OnClientEvent:Connect(openDialog)
+	Remotes.GarageUpdate.OnClientEvent:Connect(function(cars)
+		garage = cars or {}
+	end)
+	Remotes.OpenDealership.OnClientEvent:Connect(openDealership)
+	Remotes.OpenWeaponShop.OnClientEvent:Connect(openWeaponShop)
+	Remotes.Waypoint.OnClientEvent:Connect(function(pos, text)
+		setMarker("Extra", pos, text)
+		task.delay(60, function()
+			if markers.Extra and markers.Extra.Text == text then
+				clearMarker("Extra")
+			end
+		end)
+	end)
+
+	local acc = 0
+	RunService.Heartbeat:Connect(function(dt)
+		acc = acc + dt
+		if acc >= 0.3 then
+			acc = 0
+			updateDistances()
+			-- El marcador "Extra" desaparece al llegar
+			local m = markers.Extra
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			if m and root and Vector2.new(m.Part.Position.X - root.Position.X, m.Part.Position.Z - root.Position.Z).Magnitude < 15 then
+				clearMarker("Extra")
+			end
+		end
+	end)
+
+	-- Pedimos al servidor el estado actual (misiones, autos)
+	Remotes.Sync:FireServer()
+end
+
+return Gameplay
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000015"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[-- UI: interfaz del jugador construida por código.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+local player = Players.LocalPlayer
+
+local UI = {}
+
+local THEME = {
+	Bg = Color3.fromRGB(25, 25, 30),
+	Panel = Color3.fromRGB(35, 35, 42),
+	Row = Color3.fromRGB(48, 48, 58),
+	Text = Color3.fromRGB(245, 245, 245),
+	Muted = Color3.fromRGB(180, 180, 190),
+	Pink = Color3.fromRGB(235, 80, 150),
+	Green = Color3.fromRGB(0, 140, 90),
+	Red = Color3.fromRGB(206, 17, 38),
+	Orange = Color3.fromRGB(240, 120, 20),
+	Gold = Color3.fromRGB(240, 200, 60),
+}
+
+local KIND_COLORS = {
+	good = THEME.Green,
+	bad = THEME.Red,
+	money = Color3.fromRGB(30, 150, 60),
+	alert = Color3.fromRGB(180, 20, 40),
+	info = Color3.fromRGB(60, 70, 90),
+}
+
+local function new(className, props, children)
+	local obj = Instance.new(className)
+	for k, v in pairs(props or {}) do
+		obj[k] = v
+	end
+	for _, child in ipairs(children or {}) do
+		child.Parent = obj
+	end
+	return obj
+end
+
+local function corner(r)
+	return new("UICorner", { CornerRadius = UDim.new(0, r or 8) })
+end
+
+local function padding(p)
+	return new("UIPadding", {
+		PaddingTop = UDim.new(0, p), PaddingBottom = UDim.new(0, p),
+		PaddingLeft = UDim.new(0, p), PaddingRight = UDim.new(0, p),
+	})
+end
+
+local function formatMoney(n)
+	local s = tostring(math.floor(n))
+	local formatted = s:reverse():gsub("(%d%d%d)", "%1,"):reverse()
+	if formatted:sub(1, 1) == "," then
+		formatted = formatted:sub(2)
+	end
+	return "$" .. formatted
+end
+
+local function button(text, color, size)
+	return new("TextButton", {
+		Text = text,
+		Size = size or UDim2.fromOffset(110, 36),
+		BackgroundColor3 = color or THEME.Pink,
+		TextColor3 = THEME.Text,
+		Font = Enum.Font.GothamBold,
+		TextSize = 16,
+		AutoButtonColor = true,
+	}, { corner(8) })
+end
+
+-- Raíz -------------------------------------------------------------------
+local gui = new("ScreenGui", {
+	Name = "CDMX_HUD",
+	ResetOnSpawn = false,
+	IgnoreGuiInset = false,
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+})
+
+-- Barra superior: dinero y hora
+local topBar = new("Frame", {
+	Name = "TopBar",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -12, 0, 12),
+	Size = UDim2.fromOffset(220, 74),
+	BackgroundColor3 = THEME.Bg,
+	BackgroundTransparency = 0.15,
+	Parent = gui,
+}, { corner(10), padding(8) })
+local moneyLabel = new("TextLabel", {
+	Size = UDim2.new(1, 0, 0, 32),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.GothamBlack,
+	TextColor3 = Color3.fromRGB(120, 230, 140),
+	TextScaled = true,
+	TextXAlignment = Enum.TextXAlignment.Right,
+	Text = "$0",
+	Parent = topBar,
+})
+local infoLabel = new("TextLabel", {
+	Position = UDim2.fromOffset(0, 36),
+	Size = UDim2.new(1, 0, 0, 22),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.GothamMedium,
+	TextColor3 = THEME.Muted,
+	TextScaled = true,
+	TextXAlignment = Enum.TextXAlignment.Right,
+	Text = "",
+	Parent = topBar,
+})
+-- Franja tricolor
+local stripe = new("Frame", {
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, -8, 1, 8),
+	Size = UDim2.new(1, 16, 0, 4),
+	BackgroundTransparency = 1,
+	Parent = topBar,
+}, { new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal }) })
+for _, c in ipairs({ THEME.Green, Color3.new(1, 1, 1), THEME.Red }) do
+	new("Frame", { Size = UDim2.new(1 / 3, 0, 1, 0), BackgroundColor3 = c, BorderSizePixel = 0, Parent = stripe })
+end
+
+-- Estado (se busca / reclusorio)
+local statusLabel = new("TextLabel", {
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -12, 0, 96),
+	Size = UDim2.fromOffset(220, 34),
+	BackgroundColor3 = THEME.Red,
+	Font = Enum.Font.GothamBlack,
+	TextColor3 = THEME.Text,
+	TextSize = 18,
+	Visible = false,
+	Parent = gui,
+}, { corner(8) })
+
+-- Botón de trabajos
+local jobsButton = button("TRABAJOS [J]", THEME.Pink, UDim2.fromOffset(150, 44))
+jobsButton.AnchorPoint = Vector2.new(0, 1)
+jobsButton.Position = UDim2.new(0, 12, 1, -12)
+jobsButton.Parent = gui
+
+-- Notificaciones
+local notifyHolder = new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 12),
+	Size = UDim2.new(0, 460, 0, 300),
+	BackgroundTransparency = 1,
+	Parent = gui,
+}, {
+	new("UIListLayout", {
+		Padding = UDim.new(0, 6),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}),
+	new("UISizeConstraint", { MaxSize = Vector2.new(460, 300) }),
+})
+
+-- Fundido para el Metro
+local fade = new("Frame", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundColor3 = Color3.new(0, 0, 0),
+	BackgroundTransparency = 1,
+	Visible = false,
+	ZIndex = 50,
+	Parent = gui,
+})
+local fadeText = new("TextLabel", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.GothamBlack,
+	TextColor3 = THEME.Orange,
+	TextSize = 32,
+	TextTransparency = 1,
+	ZIndex = 51,
+	Parent = fade,
+})
+
+-- Panel genérico ------------------------------------------------------------
+local panel = new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.new(0.9, 0, 0.75, 0),
+	BackgroundColor3 = THEME.Panel,
+	Visible = false,
+	ZIndex = 10,
+	Parent = gui,
+}, {
+	corner(12),
+	padding(12),
+	new("UISizeConstraint", { MaxSize = Vector2.new(560, 520) }),
+})
+local panelTitle = new("TextLabel", {
+	Size = UDim2.new(1, -50, 0, 36),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.GothamBlack,
+	TextColor3 = THEME.Text,
+	TextSize = 24,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	ZIndex = 11,
+	Parent = panel,
+})
+local closeBtn = button("X", THEME.Red, UDim2.fromOffset(36, 36))
+closeBtn.AnchorPoint = Vector2.new(1, 0)
+closeBtn.Position = UDim2.new(1, 0, 0, 0)
+closeBtn.ZIndex = 11
+closeBtn.Parent = panel
+local list = new("ScrollingFrame", {
+	Position = UDim2.fromOffset(0, 46),
+	Size = UDim2.new(1, 0, 1, -46),
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	ScrollBarThickness = 6,
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	CanvasSize = UDim2.new(),
+	ZIndex = 11,
+	Parent = panel,
+}, { new("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }) })
+
+local function closePanel()
+	panel.Visible = false
+end
+closeBtn.MouseButton1Click:Connect(closePanel)
+
+local function openPanel(title)
+	for _, c in ipairs(list:GetChildren()) do
+		if not c:IsA("UIListLayout") then
+			c:Destroy()
+		end
+	end
+	panelTitle.Text = title
+	panel.Visible = true
+	list.CanvasPosition = Vector2.zero
+end
+
+-- Fila: título, subtítulo, botón
+local function addRow(order, title, subtitle, accent, btnText, btnColor, onClick)
+	local row = new("Frame", {
+		LayoutOrder = order,
+		Size = UDim2.new(1, -8, 0, 72),
+		BackgroundColor3 = THEME.Row,
+		ZIndex = 12,
+		Parent = list,
+	}, { corner(8) })
+	new("Frame", { Size = UDim2.new(0, 6, 1, 0), BackgroundColor3 = accent or THEME.Pink, BorderSizePixel = 0, ZIndex = 13, Parent = row }, { corner(3) })
+	new("TextLabel", {
+		Position = UDim2.fromOffset(16, 8),
+		Size = UDim2.new(1, -150, 0, 24),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		TextColor3 = THEME.Text,
+		TextSize = 18,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		Text = title,
+		ZIndex = 13,
+		Parent = row,
+	})
+	new("TextLabel", {
+		Position = UDim2.fromOffset(16, 32),
+		Size = UDim2.new(1, -150, 0, 34),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.Gotham,
+		TextColor3 = THEME.Muted,
+		TextSize = 13,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Text = subtitle,
+		ZIndex = 13,
+		Parent = row,
+	})
+	local b = button(btnText, btnColor or THEME.Green, UDim2.fromOffset(116, 38))
+	b.AnchorPoint = Vector2.new(1, 0.5)
+	b.Position = UDim2.new(1, -10, 0.5, 0)
+	b.ZIndex = 13
+	b.Parent = row
+	b.MouseButton1Click:Connect(onClick)
+	return row
+end
+
+-- Pantallas ------------------------------------------------------------------
+local function showJobs()
+	openPanel("Bolsa de trabajo CDMX")
+	local current = player:GetAttribute("Job")
+	for i, job in ipairs(Config.Jobs) do
+		local isCurrent = job.Id == current
+		local salary = job.Salary > 0 and ("$" .. job.Salary .. "/quincena · ") or ""
+		addRow(i, job.Name, salary .. job.Description, BrickColor.new(job.Color).Color,
+			isCurrent and "Actual" or "Elegir", isCurrent and THEME.Row or THEME.Green, function()
+				if not isCurrent then
+					Remotes.ChangeJob:FireServer(job.Id)
+					closePanel()
+				end
+			end)
+	end
+end
+
+local function showShop(shopIndex, shopId)
+	local shop = Config.Shops[shopId]
+	if not shop then
+		return
+	end
+	openPanel(shop.Name)
+	for i, item in ipairs(shop.Items) do
+		addRow(i, item.Name, "Recupera " .. item.Heal .. " de vida", BrickColor.new(item.Color).Color,
+			"$" .. item.Price, THEME.Green, function()
+				Remotes.BuyItem:FireServer(shopIndex, item.Id)
+			end)
+	end
+end
+
+local function showMetro(currentIndex, names)
+	openPanel("Metro - ¿A dónde vas? (boleto $" .. Config.METRO_FARE .. ")")
+	local order = 0
+	for i, name in ipairs(names) do
+		if i ~= currentIndex then
+			order = order + 1
+			addRow(order, name, "Línea CDMX", THEME.Orange, "Viajar", THEME.Orange, function()
+				Remotes.MetroTravel:FireServer(i)
+				closePanel()
+			end)
+		end
+	end
+end
+
+-- Notificaciones -----------------------------------------------------------
+local notifyCount = 0
+local function notify(text, kind)
+	notifyCount = notifyCount + 1
+	local card = new("TextLabel", {
+		LayoutOrder = notifyCount,
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundColor3 = KIND_COLORS[kind] or KIND_COLORS.info,
+		BackgroundTransparency = 0.1,
+		Font = Enum.Font.GothamBold,
+		TextColor3 = THEME.Text,
+		TextSize = 16,
+		TextWrapped = true,
+		Text = text,
+		Parent = notifyHolder,
+	}, { corner(8), padding(10) })
+	local children = 0
+	for _, c in ipairs(notifyHolder:GetChildren()) do
+		if c:IsA("TextLabel") then
+			children = children + 1
+		end
+	end
+	if children > 4 then
+		-- Borra la más vieja
+		local oldest
+		for _, c in ipairs(notifyHolder:GetChildren()) do
+			if c:IsA("TextLabel") and (not oldest or c.LayoutOrder < oldest.LayoutOrder) then
+				oldest = c
+			end
+		end
+		if oldest then
+			oldest:Destroy()
+		end
+	end
+	task.delay(4.5, function()
+		if card.Parent then
+			local info = TweenInfo.new(0.4)
+			TweenService:Create(card, info, { BackgroundTransparency = 1, TextTransparency = 1 }):Play()
+			task.wait(0.45)
+			card:Destroy()
+		end
+	end)
+end
+
+local function doFade(text)
+	fade.Visible = true
+	fadeText.Text = "🚇  " .. (text or "")
+	local info = TweenInfo.new(0.5)
+	TweenService:Create(fade, info, { BackgroundTransparency = 0 }):Play()
+	TweenService:Create(fadeText, info, { TextTransparency = 0 }):Play()
+	task.wait(1.4)
+	TweenService:Create(fade, info, { BackgroundTransparency = 1 }):Play()
+	TweenService:Create(fadeText, info, { TextTransparency = 1 }):Play()
+	task.wait(0.5)
+	fade.Visible = false
+end
+
+-- Actualización del HUD ------------------------------------------------------
+local function bindMoney()
+	local leaderstats = player:WaitForChild("leaderstats")
+	local pesos = leaderstats:WaitForChild("Pesos")
+	local function update()
+		moneyLabel.Text = formatMoney(pesos.Value) .. " MXN"
+	end
+	pesos.Changed:Connect(update)
+	update()
+end
+
+local function updateInfo()
+	local t = Lighting.ClockTime
+	local h = math.floor(t)
+	local m = math.floor((t - h) * 60)
+	local job = Config.GetJob(player:GetAttribute("Job") or "Ciudadano")
+	infoLabel.Text = string.format("%02d:%02d · %s", h, m, job and job.Name or "")
+
+	local now = workspace:GetServerTimeNow()
+	local jailed = player:GetAttribute("JailedUntil")
+	local wantedUntil = player:GetAttribute("WantedUntil")
+	if jailed then
+		statusLabel.Visible = true
+		statusLabel.BackgroundColor3 = THEME.Orange
+		statusLabel.Text = "RECLUSORIO: " .. math.max(0, math.ceil(jailed - now)) .. "s"
+	elseif wantedUntil then
+		local left = math.max(0, math.ceil(wantedUntil - now))
+		statusLabel.Visible = true
+		statusLabel.BackgroundColor3 = THEME.Red
+		statusLabel.Text = string.format("¡SE BUSCA! %d:%02d", math.floor(left / 60), left % 60)
+	else
+		statusLabel.Visible = false
+	end
+end
+
+-- API para otros módulos del cliente ----------------------------------------------
+UI.Gui = gui
+UI.Theme = THEME
+UI.New = new
+UI.Corner = corner
+UI.Padding = padding
+UI.Button = button
+UI.FormatMoney = formatMoney
+UI.OpenPanel = openPanel
+UI.ClosePanel = closePanel
+UI.AddRow = addRow
+UI.Notify = notify
+UI.IsPanelOpen = function()
+	return panel.Visible
+end
+
+function UI.Init()
+	gui.Parent = player:WaitForChild("PlayerGui")
+
+	jobsButton.MouseButton1Click:Connect(function()
+		if panel.Visible and panelTitle.Text == "Bolsa de trabajo CDMX" then
+			closePanel()
+		else
+			showJobs()
+		end
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.J then
+			if panel.Visible then
+				closePanel()
+			else
+				showJobs()
+			end
+		end
+	end)
+
+	Remotes.Notify.OnClientEvent:Connect(notify)
+	Remotes.OpenShop.OnClientEvent:Connect(showShop)
+	Remotes.OpenMetro.OnClientEvent:Connect(showMetro)
+	Remotes.Fade.OnClientEvent:Connect(doFade)
+
+	task.spawn(bindMoney)
+	task.spawn(function()
+		while true do
+			updateInfo()
+			task.wait(0.5)
+		end
+	end)
+end
+
+return UI
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000016"><Properties><string name="Name">WeaponsClient</string><ProtectedString name="Source"><![CDATA[-- WeaponsClient: disparo, recarga, contador de munición y efectos visuales.
+-- El servidor valida cada disparo (ver server/Combat.luau).
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local Debris = game:GetService("Debris")
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+local WeaponsClient = {}
+
+local UI
+local ammoFrame, ammoLabel, nameLabel
+local equipped -- Tool equipado con WeaponId
+local firing = false
+local bound = setmetatable({}, { __mode = "k" }) -- herramientas ya conectadas
+
+local function updateAmmo()
+	if not equipped then
+		ammoFrame.Visible = false
+		return
+	end
+	ammoFrame.Visible = true
+	nameLabel.Text = equipped.Name
+	local mag = equipped:GetAttribute("Mag")
+	if equipped:GetAttribute("Reloading") then
+		ammoLabel.Text = "Recargando..."
+	elseif mag then
+		ammoLabel.Text = (equipped:GetAttribute("Ammo") or 0) .. " / " .. mag
+	else
+		ammoLabel.Text = "Cuerpo a cuerpo"
+	end
+end
+
+local function fireOnce()
+	if not equipped then
+		return false
+	end
+	local mag = equipped:GetAttribute("Mag")
+	if mag and (equipped:GetAttribute("Ammo") or 0) <= 0 then
+		if not equipped:GetAttribute("Reloading") then
+			Remotes.Reload:FireServer()
+		end
+		return false
+	end
+	Remotes.Shoot:FireServer(mouse.Hit.Position)
+	return true
+end
+
+local function startFiring()
+	if not equipped or firing then
+		return
+	end
+	if not equipped:GetAttribute("Auto") then
+		fireOnce()
+		return
+	end
+	firing = true
+	local tool = equipped
+	task.spawn(function()
+		while firing and equipped == tool do
+			if not fireOnce() then
+				break
+			end
+			task.wait(tool:GetAttribute("Cooldown") or 0.1)
+		end
+		firing = false
+	end)
+end
+
+local function bindTool(tool)
+	if not tool:IsA("Tool") or not tool:GetAttribute("WeaponId") or bound[tool] then
+		return
+	end
+	bound[tool] = true
+	tool.Activated:Connect(startFiring)
+	tool.Deactivated:Connect(function()
+		firing = false
+	end)
+	tool.Equipped:Connect(function()
+		equipped = tool
+		updateAmmo()
+	end)
+	tool.Unequipped:Connect(function()
+		if equipped == tool then
+			equipped = nil
+			firing = false
+		end
+		updateAmmo()
+	end)
+	tool:GetAttributeChangedSignal("Ammo"):Connect(updateAmmo)
+	tool:GetAttributeChangedSignal("Reloading"):Connect(updateAmmo)
+end
+
+-- Efectos: trazadoras y fogonazos (solo visuales, locales)
+local function onShotFx(origin, endPos, kind)
+	if kind == "Flash" then
+		local f = Instance.new("Part")
+		f.Anchored = true
+		f.CanCollide = false
+		f.CanQuery = false
+		f.Material = Enum.Material.Neon
+		f.Color = Color3.fromRGB(255, 210, 120)
+		f.Shape = Enum.PartType.Ball
+		f.Size = Vector3.new(0.8, 0.8, 0.8)
+		f.CFrame = CFrame.new(origin)
+		f.Parent = workspace
+		Debris:AddItem(f, 0.05)
+		return
+	end
+	if not endPos then
+		return
+	end
+	local len = (endPos - origin).Magnitude
+	if len < 0.5 then
+		return
+	end
+	local t = Instance.new("Part")
+	t.Anchored = true
+	t.CanCollide = false
+	t.CanQuery = false
+	t.CastShadow = false
+	t.Material = Enum.Material.Neon
+	t.Color = kind == "Taser" and Color3.fromRGB(120, 200, 255) or Color3.fromRGB(255, 220, 120)
+	t.Size = Vector3.new(0.12, 0.12, len)
+	t.CFrame = CFrame.lookAt(origin, endPos) * CFrame.new(0, 0, -len / 2)
+	t.Transparency = 0.2
+	t.Parent = workspace
+	Debris:AddItem(t, 0.07)
+	-- Chispa en el impacto (sin sangre)
+	local s = Instance.new("Part")
+	s.Anchored = true
+	s.CanCollide = false
+	s.CanQuery = false
+	s.Material = Enum.Material.Neon
+	s.Color = Color3.fromRGB(255, 240, 200)
+	s.Shape = Enum.PartType.Ball
+	s.Size = Vector3.new(0.5, 0.5, 0.5)
+	s.CFrame = CFrame.new(endPos)
+	s.Parent = workspace
+	Debris:AddItem(s, 0.08)
+end
+
+function WeaponsClient.Init(uiModule)
+	UI = uiModule
+	local new = UI.New
+	ammoFrame = new("Frame", {
+		Name = "Municion",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(1, -12, 1, -120),
+		Size = UDim2.fromOffset(200, 60),
+		BackgroundColor3 = UI.Theme.Bg,
+		BackgroundTransparency = 0.15,
+		Visible = false,
+		Parent = UI.Gui,
+	}, { UI.Corner(10), UI.Padding(8) })
+	nameLabel = new("TextLabel", {
+		Size = UDim2.new(1, 0, 0, 16), BackgroundTransparency = 1, Font = Enum.Font.GothamBold, TextSize = 13,
+		TextColor3 = UI.Theme.Muted, TextXAlignment = Enum.TextXAlignment.Right, Parent = ammoFrame,
+	})
+	ammoLabel = new("TextLabel", {
+		Position = UDim2.fromOffset(0, 18), Size = UDim2.new(1, 0, 0, 26), BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBlack, TextSize = 24, TextColor3 = UI.Theme.Text, TextXAlignment = Enum.TextXAlignment.Right,
+		Parent = ammoFrame,
+	})
+
+	local function watch(container)
+		for _, c in ipairs(container:GetChildren()) do
+			bindTool(c)
+		end
+		container.ChildAdded:Connect(bindTool)
+	end
+	local function onCharacter(char)
+		equipped = nil
+		firing = false
+		updateAmmo()
+		watch(char)
+		watch(player:WaitForChild("Backpack"))
+	end
+	if player.Character then
+		task.spawn(onCharacter, player.Character)
+	end
+	player.CharacterAdded:Connect(onCharacter)
+
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if not processed and input.KeyCode == Enum.KeyCode.R and equipped then
+			Remotes.Reload:FireServer()
+		end
+	end)
+	Remotes.ShotFx.OnClientEvent:Connect(onShotFx)
+end
+
+return WeaponsClient
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="Teams" referent="RBX0000001A"><Properties><string name="Name">Teams</string></Properties></Item><Item class="Lighting" referent="RBX0000001B"><Properties><string name="Name">Lighting</string><float name="ClockTime">10</float><float name="Brightness">2</float><bool name="GlobalShadows">true</bool></Properties></Item></roblox>

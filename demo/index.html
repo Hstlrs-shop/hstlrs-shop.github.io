@@ -1,0 +1,2010 @@
+<title>CDMX Roleplay</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@500;700&display=swap">
+<style>
+/* Layout: lienzo 3D a pantalla completa; HUD como señalética del Metro y taxis CDMX encima. Un solo look nocturno/asfalto, deliberado. */
+:root {
+  --asphalt: #17161c;
+  --panel: rgba(23, 22, 28, 0.88);
+  --row: #24222c;
+  --ink: #f6f3ee;
+  --muted: #b9b3c3;
+  --pink: #e8508f;      /* taxi CDMX */
+  --orange: #f0781a;    /* Metro */
+  --green: #00875a;     /* bandera */
+  --red: #ce1126;       /* bandera */
+  --money: #7fe39a;
+  --gold: #f0c83c;
+  --display: "Bungee", "Arial Black", Impact, sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --label: "Barlow Condensed", "Arial Narrow", "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--asphalt); color: var(--ink); font-family: var(--body); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+#hud { position: fixed; inset: 0; pointer-events: none;
+  padding-top: max(12px, env(safe-area-inset-top, 0px)); padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+#hud > * { pointer-events: auto; }
+
+.wallet { position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--panel); border-radius: 10px; padding: 10px 14px 12px; min-width: 190px; text-align: right; overflow: hidden; }
+.wallet .money { font-family: var(--display); font-size: 26px; color: var(--money); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.wallet .money small { font-family: var(--label); font-size: 14px; color: var(--muted); letter-spacing: .08em; margin-left: 4px; }
+.wallet .meta { font-family: var(--label); font-size: 15px; color: var(--muted); letter-spacing: .04em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tricolor { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: linear-gradient(90deg, var(--green) 0 33.3%, #fff 33.3% 66.6%, var(--red) 66.6%); }
+.health { margin-top: 8px; height: 8px; border-radius: 4px; background: #3a3742; overflow: hidden; }
+.health i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #e0453a, #f2b33d 40%, #5ed07a 70%); transition: width .3s; }
+.status { position: absolute; top: calc(max(12px, env(safe-area-inset-top, 0px)) + 118px); right: max(16px, env(safe-area-inset-right, 0px));
+  font-family: var(--display); font-size: 16px; padding: 8px 12px; border-radius: 8px; background: var(--red); color: var(--ink); }
+.status.jail { background: var(--orange); }
+
+.minimap { position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px));
+  width: 168px; height: 168px; border-radius: 50%; overflow: hidden; border: 3px solid var(--orange); background: #2a2930; }
+.minimap canvas { width: 100%; height: 100%; display: block; }
+.zone { position: absolute; top: calc(max(12px, env(safe-area-inset-top, 0px)) + 176px); left: max(16px, env(safe-area-inset-left, 0px));
+  width: 168px; text-align: center; font-family: var(--label); font-weight: 700; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-shadow: 0 1px 3px #000; }
+
+.notes { position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  width: min(440px, calc(100% - 420px)); display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.note { background: var(--panel); border-left: 5px solid var(--muted); padding: 9px 12px; border-radius: 6px; font-weight: 500; font-size: 15px; line-height: 1.3; transition: opacity .4s, transform .4s; }
+.note.good { border-color: var(--green); } .note.bad { border-color: var(--red); } .note.money { border-color: var(--money); } .note.alert { border-color: var(--red); background: rgba(120, 10, 25, .92); }
+.note.out { opacity: 0; transform: translateY(-6px); }
+
+.prompt { position: absolute; left: 50%; bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 120px); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; background: var(--panel); border-radius: 10px; padding: 8px 14px 8px 8px; cursor: pointer; max-width: calc(100% - 32px); }
+.prompt kbd { font-family: var(--display); font-size: 18px; background: var(--ink); color: var(--asphalt); border-radius: 6px; width: 34px; height: 34px; display: grid; place-items: center; flex: none; }
+.prompt b { display: block; font-size: 16px; }
+.prompt span { display: block; font-family: var(--label); color: var(--muted); font-size: 14px; letter-spacing: .03em; }
+.prompt .bar { position: absolute; left: 8px; right: 8px; bottom: 3px; height: 3px; background: var(--orange); transform-origin: left; transform: scaleX(0); border-radius: 2px; }
+
+.dock { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); bottom: max(12px, env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; flex-wrap: wrap; }
+button { font: inherit; cursor: pointer; border: 0; color: var(--ink); }
+button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.btn { font-family: var(--display); font-size: 15px; letter-spacing: .02em; padding: 11px 16px; border-radius: 8px; background: var(--pink); box-shadow: 0 3px 0 #9c2a5c; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c2a5c; }
+.btn.ghost { background: var(--panel); box-shadow: none; font-family: var(--label); font-weight: 700; font-size: 16px; letter-spacing: .06em; }
+
+/* Controles táctiles */
+.touch { display: none; }
+@media (pointer: coarse) {
+  .touch { display: block; }
+  .keys-hint, .keys-hint-inline { display: none; }
+  .prompt { bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 236px); }
+  #hud .dock { display: none; }
+  #hud .weapon { right: auto; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 186px); min-width: 0; padding: 6px 10px; }
+  #hud .weapon b { font-size: 18px; }
+  #hud .dialog { bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 236px); }
+}
+.stick { position: absolute; left: max(24px, env(safe-area-inset-left, 0px)); bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 64px);
+  width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.25); }
+.stick i { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(255,255,255,.55); }
+.tbtns { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 8px); display: grid; grid-template-columns: repeat(3, 58px); gap: 8px; }
+.tbtns button { width: 58px; height: 58px; border-radius: 50%; background: var(--panel); border: 2px solid rgba(255,255,255,.3); font-family: var(--display); font-size: 12px; }
+.tbtns button.on { background: var(--orange); }
+.tbtns .act { background: var(--pink); }
+
+.keys-hint { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  font-family: var(--label); font-size: 14px; color: var(--muted); background: var(--panel); padding: 8px 12px; border-radius: 8px; line-height: 1.5; letter-spacing: .02em; }
+.keys-hint kbd { font-family: var(--label); font-weight: 700; color: var(--ink); background: var(--row); padding: 0 5px; border-radius: 4px; }
+
+/* Paneles */
+.modal { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.45); z-index: 20;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px; }
+.sheet { width: min(560px, 100%); max-height: min(560px, 86vh); display: flex; flex-direction: column; background: var(--asphalt); border-radius: 14px; overflow: hidden; border: 1px solid #34313d; }
+.sheet header { display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px 18px; background: var(--row); }
+.sheet header h2 { flex: 1; font-family: var(--display); font-weight: 400; font-size: 20px; text-wrap: balance; }
+.sheet header .x { width: 38px; height: 38px; border-radius: 8px; background: var(--red); font-family: var(--display); }
+.sheet .sub { padding: 10px 18px 0; color: var(--muted); font-size: 14px; }
+.rows { overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.r { flex: none; display: grid; grid-template-columns: 6px 1fr auto; gap: 12px; align-items: center; background: var(--row); border-radius: 9px; padding: 10px 10px 10px 0; overflow: hidden; }
+.r .sw { align-self: stretch; border-radius: 0 3px 3px 0; }
+.r .t { min-width: 0; }
+.r .t b { display: block; font-size: 17px; }
+.r .t span { display: block; color: var(--muted); font-size: 14px; line-height: 1.3; }
+.r .go { font-family: var(--display); font-size: 14px; padding: 10px 12px; border-radius: 8px; background: var(--green); min-width: 96px; }
+.r .go.metro { background: var(--orange); }
+.r .go[disabled] { background: #3a3742; color: var(--muted); cursor: default; }
+
+/* Pantalla de inicio */
+#intro { position: fixed; inset: 0; z-index: 30; display: flex; overflow-y: auto;
+  background: linear-gradient(180deg, rgba(23,22,28,.55), rgba(23,22,28,.94) 65%);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px; }
+.card { width: min(620px, 100%); margin: auto; }
+.eyebrow { font-family: var(--label); font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--orange); font-size: 14px; }
+.card h1 { font-family: var(--display); font-weight: 400; font-size: clamp(40px, 9vw, 76px); line-height: .95; margin: 8px 0 12px; text-wrap: balance; }
+.card h1 em { font-style: normal; color: var(--pink); }
+.card p { color: var(--muted); font-size: 17px; line-height: 1.5; max-width: 60ch; }
+.taxi-stripe { height: 10px; margin: 18px 0; border-radius: 3px; background: repeating-linear-gradient(90deg, var(--pink) 0 40px, #fff 40px 80px); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 14px 0 22px; }
+.grid2 h3 { font-family: var(--label); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: 14px; color: var(--ink); margin-bottom: 6px; }
+.grid2 ul { list-style: none; color: var(--muted); font-size: 15px; line-height: 1.6; padding: 0; margin: 0; }
+.grid2 kbd { font-family: var(--label); font-weight: 700; color: var(--ink); background: var(--row); padding: 1px 6px; border-radius: 4px; }
+.play { font-size: 20px; padding: 14px 28px; }
+.fine { font-size: 13px; color: var(--muted); margin-top: 14px; }
+
+.tracker { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); top: calc(max(12px, env(safe-area-inset-top, 0px)) + 204px);
+  width: min(290px, calc(100% - 32px)); display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.tr { background: var(--panel); border-left: 4px solid var(--gold); border-radius: 6px; padding: 8px 10px; }
+.tr.job { border-color: var(--orange); }
+.tr b { display: block; font-family: var(--label); font-weight: 700; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+.tr.job b { color: var(--orange); }
+.tr span { display: block; font-size: 15px; font-weight: 500; line-height: 1.3; }
+.tr i { display: block; font-style: normal; font-family: var(--label); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.weapon { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 66px);
+  background: var(--panel); border-radius: 10px; padding: 8px 12px; text-align: right; min-width: 170px; }
+.weapon span { display: block; font-family: var(--label); font-size: 14px; color: var(--muted); letter-spacing: .04em; }
+.weapon b { display: block; font-family: var(--display); font-weight: 400; font-size: 22px; font-variant-numeric: tabular-nums; }
+.dialog { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 70px);
+  width: min(620px, calc(100% - 32px)); background: var(--asphalt); border: 1px solid #3a3742; border-radius: 12px; padding: 14px 16px; z-index: 15;
+  display: flex; flex-direction: column; gap: 8px; }
+.dialog b { font-family: var(--display); font-weight: 400; font-size: 18px; color: var(--gold); }
+.dialog p { font-size: 17px; line-height: 1.45; margin: 0; }
+.dialog .opts { display: flex; flex-direction: column; gap: 6px; }
+.dialog .opts:empty { display: none; }
+.dialog .opt { font-weight: 700; font-size: 15px; text-align: left; padding: 11px 12px; border-radius: 8px; background: var(--green); }
+.dialog .opt.bad { background: var(--red); }
+.dialog .btn { align-self: flex-start; }
+.btn.phone { background: var(--orange); box-shadow: 0 3px 0 #9a4a0a; }
+.tbtns .fire { background: var(--red); }
+#hurt { position: fixed; inset: 0; pointer-events: none; z-index: 24; box-shadow: inset 0 0 120px 30px rgba(206, 17, 38, .65); opacity: 0; transition: opacity .12s; }
+#hurt.on { opacity: 1; }
+#fade { position: fixed; inset: 0; background: #000; z-index: 25; display: grid; place-items: center; font-family: var(--display); font-size: clamp(20px, 5vw, 34px); color: var(--orange); opacity: 0; pointer-events: none; transition: opacity .45s; text-align: center; padding: 16px; }
+#fade.on { opacity: 1; }
+
+@media (max-width: 720px) {
+  .notes { width: calc(100% - 32px); top: calc(max(12px, env(safe-area-inset-top, 0px)) + 150px); }
+  .minimap { width: 112px; height: 112px; }
+  .zone { width: auto; min-width: 112px; white-space: nowrap; top: calc(max(12px, env(safe-area-inset-top, 0px)) + 118px); font-size: 13px; text-align: left; }
+  .tracker { top: calc(max(12px, env(safe-area-inset-top, 0px)) + 146px); width: calc(100% - 32px); }
+  .notes { top: calc(max(12px, env(safe-area-inset-top, 0px)) + 228px); }
+  .note:nth-last-child(n+3) { display: none; }
+  .tr span { font-size: 13px; }
+  .wallet { min-width: 160px; }
+  .wallet .money { font-size: 21px; }
+}
+@media (prefers-reduced-motion: reduce) { .note, #fade, .health i { transition: none; } }
+</style>
+
+<canvas id="scene" aria-label="Ciudad de México en 3D"></canvas>
+
+<div id="hud" hidden>
+  <div class="minimap" title="Minimapa"><canvas id="mini" width="336" height="336"></canvas></div>
+  <div class="zone" id="zone">Centro Histórico</div>
+  <div class="wallet">
+    <div class="money" id="money">$500<small>MXN</small></div>
+    <div class="meta" id="meta">09:00 · Ciudadano</div>
+    <div class="health" title="Vida"><i id="hp"></i></div>
+    <div class="tricolor"></div>
+  </div>
+  <div class="status" id="status" hidden></div>
+  <div class="notes" id="notes" aria-live="polite"></div>
+  <div class="prompt" id="prompt" hidden><kbd>E</kbd><div><b id="pAction"></b><span id="pObject"></span></div><i class="bar" id="pBar"></i></div>
+  <div class="tracker">
+    <div class="tr story" id="trStory" hidden><b></b><span></span><i></i></div>
+    <div class="tr job" id="trJob" hidden><b></b><span></span><i></i></div>
+  </div>
+  <div class="weapon" id="weapon" hidden><span id="wName"></span><b id="wAmmo"></b></div>
+  <div class="dialog" id="dialog" hidden>
+    <b id="dName"></b>
+    <p id="dText"></p>
+    <div class="opts" id="dOpts"></div>
+    <button class="btn" id="dNext">Siguiente ▶ [E]</button>
+  </div>
+  <div class="dock">
+    <button class="btn" id="jobsBtn">TRABAJOS <span class="keys-hint-inline">[J]</span></button>
+    <button class="btn phone" id="phoneBtn">TELÉFONO <span class="keys-hint-inline">[P]</span></button>
+  </div>
+  <div class="keys-hint"><kbd>WASD</kbd> moverse · <kbd>Shift</kbd> correr · <kbd>E</kbd> interactuar · <kbd>J</kbd> trabajos · <kbd>P</kbd> teléfono<br><kbd>Q</kbd> arma · <kbd>F</kbd> o clic dispara · <kbd>R</kbd> recarga · arrastra para girar cámara</div>
+  <div class="touch">
+    <div class="stick" id="stick"><i id="knob"></i></div>
+    <div class="tbtns">
+      <button id="tRun">CORRER</button><button id="tJump">SALTO</button><button id="tJobs">CHAMBA</button>
+      <button id="tPhone">TEL</button><button id="tGun">ARMA</button><button class="act" id="tAct">E</button>
+      <i></i><i></i><button class="fire" id="tFire">FUEGO</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <header><h2 id="mTitle">Bolsa de trabajo</h2><button class="x" id="mClose" aria-label="Cerrar">X</button></header>
+    <div class="sub" id="mSub"></div>
+    <div class="rows" id="mRows"></div>
+  </div>
+</div>
+
+<div id="fade"></div>
+<div id="hurt"></div>
+
+<div id="intro">
+  <div class="card">
+    <div class="eyebrow">Demo jugable · versión navegador</div>
+    <h1>CDMX <em>Roleplay</em></h1>
+    <p>Recorre la Ciudad de México en un juego de rol: del Zócalo a Coyoacán, de Polanco a Chapultepec. Elige chamba, come tacos al pastor, toma el Metro y maneja un taxi rosa.</p>
+    <div class="taxi-stripe"></div>
+    <div class="grid2">
+      <div>
+        <h3>Controles</h3>
+        <ul>
+          <li><kbd>WASD</kbd> o flechas para caminar o manejar</li>
+          <li><kbd>Shift</kbd> correr · <kbd>Espacio</kbd> saltar</li>
+          <li><kbd>E</kbd> interactuar · <kbd>J</kbd> trabajos · <kbd>P</kbd> teléfono</li>
+          <li><kbd>Q</kbd> arma · <kbd>F</kbd> o clic dispara · <kbd>R</kbd> recarga</li>
+          <li>Arrastra para girar la cámara; rueda para acercar</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Qué probar</h3>
+        <ul>
+          <li>La historia: habla con Doña Lupe (sigue el <b>!</b> amarillo)</li>
+          <li>Elige camino honrado o chueco y enfrenta a El Patrón</li>
+          <li>Compra un Nizzan Tsuro en la Agencia Reforma</li>
+          <li>Armería del Centro, Metro, taxis, micros y repartos</li>
+        </ul>
+      </div>
+    </div>
+    <button class="btn play" id="playBtn">¡JUGAR!</button>
+    <p class="fine">Demo para un jugador con NPCs. El juego completo para Roblox es multijugador y está en el repositorio (carpeta <code>src/</code>).</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+"use strict";
+// ============================================================ CONFIG (igual que src/shared/Config.luau)
+const CFG = {
+  START_MONEY: 500, PAYCHECK: 60, METRO_FARE: 5, DAY_SECONDS: 360,
+  WANTED: 60, JAIL: 20, ARREST_REWARD: 250, HEAL_REWARD: 40, COMMISSION: 10,
+  ROB_MIN: 150, ROB_MAX: 400, ROB_COOLDOWN: 90, TAXI_MIN: 15, TAXI_PER_100: 8,
+};
+const JOBS = [
+  { id: "Ciudadano", name: "Ciudadano", salary: 50, color: 0xa3a2a5, desc: "Vive la ciudad: pasea, come tacos y usa el Metro." },
+  { id: "Policia", name: "Policía (SSC)", salary: 150, color: 0x1f3a8a, desc: "Atiende alertas de asalto y arresta rateros con [E]. +$250 por arresto." },
+  { id: "Paramedico", name: "Paramédico (ERUM)", salary: 140, color: 0xc4281c, desc: "Busca heridos (cruz roja en el mapa) y atiéndelos. +$40 por curación." },
+  { id: "Taxista", name: "Taxista", salary: 100, color: 0xe8508f, desc: "Saca tu taxi en la base, recoge pasaje y llévalo a su destino." },
+  { id: "Taquero", name: "Taquero", salary: 110, color: 0xf0781a, desc: "Quédate junto a una taquería: comisión por cada orden vendida." },
+  { id: "Vendedor", name: "Vendedor ambulante", salary: 80, color: 0xf5cd30, desc: "Quédate junto a un puesto: comisión por cada elote o churro vendido." },
+  { id: "Repartidor", name: "Repartidor", salary: 70, color: 0xff7a1a, desc: "Saca tu moto junto a la Taquería El Güero y entrega pedidos (+$60 por entrega)." },
+  { id: "Microbusero", name: "Microbusero", salary: 90, color: 0x46965a, desc: "Maneja el micro de la Ruta 2 (base al este del Palacio). $25 por parada." },
+  { id: "Ladron", name: "Ratero", salary: 0, color: 0x1b1b1f, desc: "Asalta tienditas. La policía te perseguirá: corre o huye en vocho." },
+];
+const SHOPS = {
+  Taqueria: { name: "Taquería", job: "Taquero", items: [
+    ["Tacos al pastor (orden)", 45, 40, "#f0781a"], ["Tacos de suadero", 40, 35, "#8a4b2a"],
+    ["Quesadilla (con o sin queso)", 30, 25, "#f5cd30"], ["Agua de horchata", 20, 15, "#f1ede4"]] },
+  Puesto: { name: "Puesto callejero", job: "Vendedor", items: [
+    ["Elote con todo", 30, 25, "#ffe066"], ["Guajolota (torta de tamal)", 25, 30, "#d6b47a"],
+    ["Churros con chocolate", 35, 20, "#a0664a"], ["Esquites", 25, 20, "#f2e3a0"]] },
+  Tiendita: { name: "Tiendita de la esquina", items: [
+    ["Refresco", 22, 10, "#c4281c"], ["Papitas con chile", 18, 10, "#f0781a"],
+    ["Pastelito", 15, 10, "#ff9cc0"], ["Garrafón de agua", 40, 35, "#9fd3f0"]] },
+};
+const VEH = {
+  Taxi: { name: "Taxi Nizzan Tsuro", job: "Taxista", price: 0, max: 70, color: 0xeb5096, accent: 0xf5f5f5, style: "Sedan" },
+  Patrulla: { name: "Patrulla Doge Chargher", job: "Policia", price: 0, max: 90, color: 0xf0f0f5, accent: 0x14286e, siren: true, style: "Sedan" },
+  Ambulancia: { name: "Ambulancia ERUM", job: "Paramedico", price: 0, max: 80, color: 0xf5f5f5, accent: 0xc81e1e, siren: true, style: "Van" },
+  Vocho: { name: "Vochito de renta", job: null, price: 100, max: 55, color: 0x50a05a, accent: 0xe6e6e6, style: "Hatch" },
+  Reparto: { name: "Moto de reparto", job: "Repartidor", price: 0, max: 75, color: 0xeb6e1e, accent: 0x1b1b1f, style: "Moto" },
+  Micro: { name: "Microbús Ruta 2", job: "Microbusero", price: 0, max: 55, color: 0x46965a, accent: 0xdcdcd7, style: "Bus" },
+};
+
+// ============================================================ UTILIDADES
+let seed = 2026;
+const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const rr = (a, b) => a + (b - a) * rnd();
+const ri = (a, b) => Math.floor(rr(a, b + 1));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = (n) => "$" + Math.floor(n).toLocaleString("es-MX");
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("cdmxrp_" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("cdmxrp_" + k, JSON.stringify(v)); } catch (e) {} },
+};
+
+// ============================================================ THREE
+const canvas = $("scene");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, 1, 0.5, 2600);
+const hemi = new THREE.HemisphereLight(0xdfe8ff, 0x6b6150, 0.9);
+const sun = new THREE.DirectionalLight(0xfff1d6, 0.85);
+sun.position.set(-300, 500, 200);
+scene.add(hemi, sun);
+scene.fog = new THREE.Fog(0xd9c9b0, 250, 1400);
+
+// ============================================================ CONSTRUCCIÓN DEL MAPA (port de MapBuilder.luau)
+const boxes = [], cyls = [], balls = [], winBands = [], lampHeads = [];
+const rects = [];   // colisiones {x1,z1,x2,z2,top}
+const reserved = [];
+const labels = [];  // {sprite, maxDist}
+const C = {
+  Road: 0x2d2d32, Line: 0xf0c828, Plaza: 0xa39886, Grass: 0x558c46, Stone: 0xaf9b82, Tez: 0x963c32,
+  Marble: 0xebe6dc, Gold: 0xdcb43c, Glass: 0x3c5f78, Wood: 0x6e4b2d, Orange: 0xf0781a, Pink: 0xeb5096,
+};
+const PASTELS = [0xf0aaa0, 0xfad278, 0xa0d2be, 0xbeaadc, 0xf58c5a, 0x78b4dc, 0xe66e82, 0xf0e6c8, 0x6eaa78];
+const CENTRO = [0xaf9b82, 0x963c32, 0xc8b9a0, 0xbe7850, 0xdcc8aa];
+const GENERIC = [0xc8c8c3, 0xaaa5a0, 0xd2bea0, 0x8c96a0, 0xbeaf96, 0xdcd7cd];
+
+// cf = {x, z, yaw}; el frente (-Z local) mira hacia (dx, dz), como CFrame.lookAt
+const facing = (x, z, dx, dz) => ({ x, z, yaw: Math.atan2(-dx, -dz) });
+const L = (cf, lx, lz) => { const c = Math.cos(cf.yaw), s = Math.sin(cf.yaw); return [cf.x + lx * c + lz * s, cf.z - lx * s + lz * c]; };
+
+function addRect(x, z, sx, sz, yaw, top, base) {
+  const c = Math.abs(Math.cos(yaw)), s = Math.abs(Math.sin(yaw));
+  const hx = c * sx / 2 + s * sz / 2, hz = s * sx / 2 + c * sz / 2;
+  rects.push({ x1: x - hx, z1: z - hz, x2: x + hx, z2: z + hz, top, base: base || 0 });
+}
+// y = centro, igual que Roblox
+function box(x, y, z, sx, sy, sz, color, o) {
+  o = o || {};
+  const yaw = o.yaw || 0;
+  boxes.push({ x, y, z, sx, sy, sz, color, yaw });
+  if (o.collide) addRect(x, z, sx, sz, yaw, y + sy / 2, y - sy / 2);
+}
+const vcyl = (x, y, z, h, d, color, collide) => { cyls.push({ x, y, z, sx: d, sy: h, sz: d, color }); if (collide) addRect(x, z, d * 0.8, d * 0.8, 0, y + h / 2); };
+const ball = (x, y, z, d, color) => balls.push({ x, y, z, sx: d, sy: d, sz: d, color });
+const reserve = (cx, cz, sx, sz) => reserved.push([cx - sx / 2, cz - sz / 2, cx + sx / 2, cz + sz / 2]);
+const isFree = (cx, cz, sx, sz, m) => {
+  const x1 = cx - sx / 2 - m, z1 = cz - sz / 2 - m, x2 = cx + sx / 2 + m, z2 = cz + sz / 2 + m;
+  return !reserved.some(r => x1 < r[2] && x2 > r[0] && z1 < r[3] && z2 > r[1]);
+};
+
+function makeLabelTexture(text, color, bg) {
+  const cv = document.createElement("canvas");
+  const ctx = cv.getContext("2d");
+  const fs = 56;
+  ctx.font = `700 ${fs}px Barlow Condensed, Arial Narrow, sans-serif`;
+  const w = Math.ceil(ctx.measureText(text).width) + 40;
+  cv.width = w; cv.height = fs + 28;
+  ctx.font = `700 ${fs}px Barlow Condensed, Arial Narrow, sans-serif`;
+  if (bg) { ctx.fillStyle = bg; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(0, 0, w, cv.height, 14) : ctx.rect(0, 0, w, cv.height); ctx.fill(); }
+  ctx.textBaseline = "middle"; ctx.textAlign = "center";
+  ctx.lineWidth = 8; ctx.strokeStyle = "rgba(0,0,0,.75)";
+  if (!bg) ctx.strokeText(text, w / 2, cv.height / 2);
+  ctx.fillStyle = color || "#fff";
+  ctx.fillText(text, w / 2, cv.height / 2);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.minFilter = THREE.LinearFilter;
+  return { tex, aspect: w / cv.height };
+}
+function label(text, x, y, z, o) {
+  o = o || {};
+  const { tex, aspect } = makeLabelTexture(text, o.color, o.bg);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+  const sp = new THREE.Sprite(mat);
+  const h = o.size || 5;
+  sp.scale.set(h * aspect, h, 1);
+  sp.position.set(x, y, z);
+  scene.add(sp);
+  labels.push({ sprite: sp, max: o.max || 300 });
+  return sp;
+}
+
+function tree(x, z) {
+  const h = rr(10, 16);
+  vcyl(x, h / 2, z, h, 1.6, C.Wood);
+  ball(x, h + 2, z, rr(9, 13), (60 + ri(0, 30)) << 16 | (120 + ri(0, 40)) << 8 | 50);
+  addRect(x, z, 1.6, 1.6, 0, h);
+}
+function streetLight(x, z) {
+  vcyl(x, 8, z, 16, 0.8, 0x282828);
+  lampHeads.push({ x, y: 16.4, z, sx: 2.4, sy: 1, sz: 2.4 });
+}
+
+const ROADS_H = [[-200, -1050, 880, 40, "Paseo de la Reforma"], [-540, -1250, 880, 30, "Av. Ejército Nacional"], [260, -1250, 880, 32, "Eje 2 Sur"], [620, -1250, 880, 32, "Av. Río Churubusco"]];
+const ROADS_V = [[-240, -780, 980, 36, "Eje Central"], [260, -780, 980, 36, "Av. Circunvalación"], [-700, -780, 980, 34, "Av. Insurgentes"], [0, 90, 620, 30, "Av. 20 de Noviembre"]];
+
+function buildRoads() {
+  for (const [z, x1, x2, w] of ROADS_H) {
+    const len = x2 - x1, cx = (x1 + x2) / 2;
+    box(cx, 0.2, z, len, 0.4, w, C.Road);
+    box(cx, 0.43, z, len, 0.05, 0.8, C.Line);
+    for (let x = x1 + 20; x <= x2 - 20; x += 90) streetLight(x, z - w / 2 - 3);
+    reserve(cx, z, len, w);
+  }
+  for (const [x, z1, z2, w] of ROADS_V) {
+    const len = z2 - z1, cz = (z1 + z2) / 2;
+    box(x, 0.2, cz, w, 0.4, len, C.Road);
+    box(x, 0.43, cz, 0.8, 0.05, len, C.Line);
+    for (let z = z1 + 20; z <= z2 - 20; z += 90) streetLight(x - w / 2 - 3, z);
+    reserve(x, cz, w, len);
+  }
+}
+
+let flag;
+function buildZocalo() {
+  box(0, 0.15, 0, 180, 0.3, 180, C.Plaza); reserve(0, 0, 180, 180);
+  vcyl(0, 1.5, 0, 3, 14, C.Stone, true);
+  vcyl(0, 45, 0, 90, 1.4, 0xc8c8cd);
+  // Bandera ondeando (malla propia)
+  const cv = document.createElement("canvas"); cv.width = 420; cv.height = 240;
+  const g = cv.getContext("2d");
+  g.fillStyle = "#006847"; g.fillRect(0, 0, 140, 240);
+  g.fillStyle = "#ffffff"; g.fillRect(140, 0, 140, 240);
+  g.fillStyle = "#ce1126"; g.fillRect(280, 0, 140, 240);
+  g.fillStyle = "#7a5428"; g.beginPath(); g.ellipse(210, 120, 30, 36, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#3d7a3a"; g.beginPath(); g.ellipse(210, 150, 40, 12, 0, 0, Math.PI); g.fill();
+  const geo = new THREE.PlaneGeometry(42, 24, 24, 8);
+  const tex = new THREE.CanvasTexture(cv);
+  flag = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+  flag.rotation.y = -Math.PI / 2;
+  flag.position.set(0, 76, 21.7);
+  flag.userData.base = Float32Array.from(geo.attributes.position.array);
+  scene.add(flag);
+  label("Zócalo · Plaza de la Constitución", 0, 96, 0, { color: "#fff0c8", size: 7, max: 600 });
+
+  // Catedral
+  box(0, 20, -130, 90, 40, 60, C.Stone, { collide: true });
+  box(0, 26, -98, 40, 52, 4, 0xb9a58c, { collide: true });
+  box(0, 8, -95.6, 10, 16, 1, 0x462d1e);
+  for (const x of [-36, 36]) {
+    box(x, 35, -110, 18, 70, 18, C.Stone, { collide: true });
+    box(x, 77, -110, 14, 14, 14, 0xa59178);
+    ball(x, 86, -110, 12, 0x968c7d);
+    ball(x, 93, -110, 2, C.Gold);
+  }
+  ball(0, 42, -140, 28, 0xc8beaa);
+  reserve(0, -130, 90, 60);
+  label("Catedral Metropolitana", 0, 62, -100, { color: "#fff0c8", size: 5 });
+
+  // Palacio Nacional
+  box(135, 13, 0, 70, 26, 180, C.Tez, { collide: true });
+  box(135, 26.5, 0, 72, 2, 182, C.Stone);
+  box(98.5, 14, 0, 3, 1, 120, C.Stone);
+  for (let z = -80; z <= 80; z += 16) box(99.8, 17, z, 0.4, 7, 4, 0x28231e);
+  box(110, 31, 0, 8, 10, 8, C.Stone);
+  reserve(135, 0, 70, 180);
+  label("Palacio Nacional", 100, 36, 0, { color: "#fff0c8", size: 5 });
+}
+
+function buildCentro() {
+  box(-180, 90, -120, 30, 180, 30, C.Glass, { collide: true });
+  for (let y = 10; y <= 175; y += 12) box(-180, y, -120, 30.4, 1.2, 30.4, 0x969ba0);
+  vcyl(-180, 200, -120, 40, 1.5, 0xc8c8c8);
+  reserve(-180, -120, 30, 30);
+  label("Torre Latinoamericana", -180, 190, -120, { size: 9, max: 900 });
+
+  box(-330, 15, -120, 70, 30, 50, C.Marble, { collide: true });
+  box(-330, 1, -91, 40, 2, 8, C.Marble);
+  ball(-330, 36, -120, 32, 0xe18228);
+  ball(-330, 54, -120, 5, C.Gold);
+  ball(-356, 32, -120, 14, 0xe18228); ball(-304, 32, -120, 14, 0xe18228);
+  reserve(-330, -120, 70, 58);
+  label("Palacio de Bellas Artes", -330, 62, -120, { color: "#fff0c8", size: 5 });
+
+  box(-490, 0.2, -110, 150, 0.4, 100, C.Grass);
+  vcyl(-490, 1.2, -110, 2, 20, 0x50a0dc);
+  vcyl(-490, 6, -150, 12, 6, C.Marble, true);
+  for (let i = 0; i < 18; i++) tree(rr(-560, -420), rr(-155, -65));
+  reserve(-490, -110, 150, 100);
+  label("Alameda Central", -490, 14, -110, { size: 4, max: 200 });
+}
+
+function buildReforma() {
+  const x = -880, z = -200;
+  vcyl(x, 0.5, z, 0.6, 44, C.Grass);
+  vcyl(x, 4, z, 8, 18, C.Stone, true);
+  vcyl(x, 53, z, 90, 6, 0xd7cdb9);
+  vcyl(x, 100, z, 4, 9, C.Gold);
+  ball(x, 105, z, 5, C.Gold);
+  box(x - 3, 107, z, 6, 4, 0.5, C.Gold, { yaw: 0 });
+  box(x + 3, 107, z, 6, 4, 0.5, C.Gold, { yaw: 0 });
+  label("El Ángel de la Independencia", x, 116, z, { color: "#f2cf63", size: 7, max: 800 });
+  for (let tx = -1030; tx <= -280; tx += 60) if (Math.abs(tx - x) > 40) tree(tx, -224);
+}
+
+const HILL = { x: -1170, y: -38, z: -330, r: 75 };
+function buildChapultepec() {
+  const cx = -1155, cz = -205, sx = 190, sz = 610;
+  box(cx, 0.2, cz, sx, 0.4, sz, C.Grass); reserve(cx, cz, sx, sz);
+  const hill = new THREE.Mesh(new THREE.SphereGeometry(HILL.r, 32, 16), new THREE.MeshLambertMaterial({ color: 0x5f7d46 }));
+  hill.position.set(HILL.x, HILL.y, HILL.z); scene.add(hill);
+  box(-1170, 45, -330, 60, 18, 36, 0xe1d7c3, { collide: true });
+  box(-1150, 51, -330, 14, 30, 14, 0xe1d7c3, { collide: true });
+  box(-1150, 70, -327, 0.3, 4, 6, 0x006847);
+  label("Castillo de Chapultepec", -1170, 75, -330, { color: "#fff0c8", size: 7, max: 900 });
+  box(-1170, 0.3, -20, 70, 0.6, 110, 0x468cbe);
+  label("Bosque de Chapultepec", -1120, 12, -120, { size: 4, max: 250 });
+  for (let i = 0; i < 60; i++) {
+    const px = rr(cx - sx / 2 + 6, cx + sx / 2 - 6), pz = rr(cz - sz / 2 + 6, cz + sz / 2 - 6);
+    const nearHill = Math.hypot(px + 1170, pz + 330) < 80, inLake = Math.abs(px + 1170) < 40 && Math.abs(pz + 20) < 60;
+    if (!nearHill && !inLake) tree(px, pz);
+  }
+}
+
+function buildRoma() {
+  const px = -470, pz = 440;
+  vcyl(px, 0.2, pz, 0.4, 120, C.Grass);
+  vcyl(px, 0.75, pz, 1.5, 26, C.Plaza);
+  for (let i = 0; i < 16; i++) { const a = rr(0, Math.PI * 2), r = rr(20, 55); tree(px + Math.cos(a) * r, pz + Math.sin(a) * r); }
+  reserve(px, pz, 130, 130);
+  label("Parque México · Condesa", px, 14, pz, { size: 4, max: 220 });
+}
+
+function buildCoyoacan() {
+  box(0, 0.15, 800, 160, 0.3, 120, C.Plaza); reserve(0, 800, 160, 120);
+  vcyl(0, 1, 800, 2, 22, C.Stone);
+  for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; vcyl(Math.cos(a) * 9, 8, 800 + Math.sin(a) * 9, 12, 1, 0x287846, true); }
+  vcyl(0, 15, 800, 2, 24, 0x287846);
+  ball(0, 17, 800, 6, 0x287846);
+  label("Jardín Hidalgo · Coyoacán", 0, 26, 800, { color: "#fff0c8", size: 5, max: 260 });
+  box(0, 13, 905, 40, 26, 50, 0xe1be78, { collide: true });
+  box(-22, 22, 885, 12, 44, 12, 0xe1be78, { collide: true });
+  reserve(0, 905, 52, 50);
+  box(180, 8, 900, 40, 16, 30, 0x1e50c8, { collide: true });
+  box(180, 5, 884.8, 6, 10, 0.5, 0xc8283c);
+  label("La Casa Azul", 180, 22, 900, { color: "#9cc4ff", size: 4, max: 220 });
+  reserve(180, 900, 40, 30);
+  for (let i = 0; i < 20; i++) { const tx = rr(-75, 75), tz = rr(745, 855); if (Math.hypot(tx, tz - 800) > 20 && Math.hypot(tx - 60, tz - 780) > 10) tree(tx, tz); }
+}
+
+// ---- Puntos de interés
+const POI = { shops: [], stations: [], garages: [], robbables: [] };
+
+function serviceBuilding(name, cf, sx, sy, sz, color, signText, signBg) {
+  box(cf.x, sy / 2, cf.z, sx, sy, sz, color, { yaw: cf.yaw, collide: true });
+  const [ex, ez] = L(cf, 0, -sz / 2 - 0.3);
+  box(ex, 5, ez, 8, 10, 0.4, 0x3c5064, { yaw: cf.yaw });
+  const [lx, lz] = L(cf, 0, -sz / 2 - 2);
+  label(signText, lx, sy + 4, lz, { bg: signBg, color: "#fff", size: 4.5, max: 350 });
+  reserve(cf.x, cf.z, Math.max(sx, sz), Math.max(sx, sz));
+}
+function garage(kind, text, color, px, pz, sx, sz, yaw) {
+  box(sx, 0.5, sz, yaw ? 24 : 16, 0.1, yaw ? 16 : 24, color);
+  box(px, 3, pz, 2, 6, 2, color, { collide: true });
+  label(text, px, 8.5, pz, { size: 2.6, max: 90 });
+  POI.garages.push({ kind, x: px, z: pz, spawn: { x: sx, z: sz, yaw: yaw || 0 }, text });
+}
+function buildServices() {
+  serviceBuilding("SSC", facing(380, 100, 0, 1), 80, 24, 60, 0xe6e6eb, "SSC · POLICÍA CDMX", "#14286e");
+  garage("Patrulla", "Patrullas", 0x14286e, 350, 160, 380, 175, Math.PI / 2);
+  serviceBuilding("Hospital", facing(130, 400, 1, 0), 80, 30, 60, 0xf5f5f5, "HOSPITAL GENERAL", "#c81e1e");
+  box(161, 20, 380, 0.6, 14, 4, 0xc81e1e); box(161, 20, 380, 0.6, 4, 14, 0xc81e1e);
+  garage("Ambulancia", "Ambulancias", 0xc81e1e, 190, 360, 215, 400);
+  serviceBuilding("Taxis", facing(130, 540, 1, 0), 50, 14, 40, C.Pink, "BASE DE TAXIS", "#b8306c");
+  garage("Taxi", "Taxis CDMX", C.Pink, 190, 510, 215, 545);
+  garage("Vocho", "Renta de Vochos $100", 0x50a05a, 200, -60, 215, -20);
+  reserve(215, -40, 50, 60); reserve(205, 400, 40, 40); reserve(205, 530, 40, 50); reserve(370, 170, 50, 30);
+}
+
+const JAIL = { x: 620, z: -690, size: 150 };
+function buildJail() {
+  const { x, z, size } = JAIL, h = 30;
+  box(x, 0.2, z, size, 0.4, size, 0x787878);
+  box(x, h / 2, z - size / 2, size, h, 4, 0x6e6e73, { collide: true });
+  box(x, h / 2, z + size / 2, size, h, 4, 0x6e6e73, { collide: true });
+  box(x + size / 2, h / 2, z, 4, h, size, 0x6e6e73, { collide: true });
+  box(x - size / 2, h / 2, z, 4, h, size, 0x6e6e73, { collide: true });
+  for (let i = -2; i <= 2; i++) box(x + i * 22 + 11, 6, z - 50, 1, 12, 20, 0x464646, { collide: true });
+  label("RECLUSORIO", x, h + 6, z + size / 2, { color: "#ff6464", size: 7, max: 600 });
+  reserve(x, z, size + 10, size + 10);
+}
+
+function taqueria(name, cf) {
+  box(cf.x, 7, cf.z, 30, 14, 22, 0xf5963c, { yaw: cf.yaw, collide: true });
+  let [x, z] = L(cf, 0, -13);
+  box(x, 2, z, 18, 4, 3, 0xf0f0f0, { yaw: cf.yaw, collide: true });
+  const [tx, tz] = L(cf, 6, -13);
+  vcyl(tx, 7, tz, 6, 3, 0xaa461e); ball(tx, 10.6, tz, 2, 0xf0c828);
+  const [lx, lz] = L(cf, 0, -11.6);
+  label("TAQUERÍA " + name.toUpperCase(), lx, 16, lz, { bg: "#c81e3c", color: "#fff078", size: 3.6, max: 260 });
+  const [px, pz] = L(cf, 0, -17);
+  POI.shops.push({ shop: "Taqueria", name: "Taquería " + name, x: px, z: pz });
+  reserve(cf.x, cf.z, 34, 34);
+}
+function tiendita(name, cf) {
+  box(cf.x, 6, cf.z, 24, 12, 20, 0xfadc5a, { yaw: cf.yaw, collide: true });
+  let [x, z] = L(cf, -4, -12); box(x, 2, z, 10, 4, 3, 0x966e46, { yaw: cf.yaw, collide: true });
+  [x, z] = L(cf, 4, -12); box(x, 2, z, 4, 4, 3, 0x966e46, { yaw: cf.yaw, collide: true }); box(x, 4.75, z, 2, 1.5, 1.5, 0x3c3c3c, { yaw: cf.yaw });
+  const [lx, lz] = L(cf, 0, -10.6);
+  label(name.toUpperCase(), lx, 14, lz, { bg: "#c81e1e", color: "#fff", size: 3, max: 220 });
+  const [bx, bz] = L(cf, -4, -16), [rx, rz] = L(cf, 4, -16);
+  POI.shops.push({ shop: "Tiendita", name, x: bx, z: bz });
+  POI.robbables.push({ name, x: rx, z: rz, last: -1e9 });
+  reserve(cf.x, cf.z, 28, 30);
+}
+function puesto(name, x, z, y) {
+  y = y || 0;
+  box(x, y + 2, z, 8, 4, 4, 0xf0f0f0, { collide: true });
+  vcyl(x, y + 7, z, 8, 0.4, 0x3c3c3c);
+  vcyl(x, y + 11, z, 0.6, 12, rnd() < 0.5 ? C.Pink : C.Orange);
+  POI.shops.push({ shop: "Puesto", name: "Puesto " + name, x, z: z + 5 });
+  reserve(x, z, 14, 14);
+}
+function metro(name, cf) {
+  box(cf.x, 4.5, cf.z, 16, 9, 12, 0x3c3c41, { yaw: cf.yaw, collide: true });
+  box(cf.x, 8.25, cf.z, 16.4, 1.5, 12.4, C.Orange, { yaw: cf.yaw });
+  let [x, z] = L(cf, 0, -6.1); box(x, 3.5, z, 8, 7, 0.4, 0x141414, { yaw: cf.yaw });
+  [x, z] = L(cf, 10, -4); vcyl(x, 7, z, 14, 0.6, 0x3c3c3c);
+  label("M", x, 15, z, { bg: "#f0781a", color: "#fff", size: 4, max: 400 });
+  label("Metro " + name, cf.x, 13, cf.z, { color: "#ffaa3c", size: 3, max: 160 });
+  const [ax, az] = L(cf, 0, -12);
+  POI.stations.push({ name, x: ax, z: az });
+  reserve(cf.x, cf.z, 22, 22);
+}
+function buildCommerce() {
+  taqueria("El Güero", facing(-110, 170, 1, 0));
+  taqueria("La Roma", facing(-600, 330, 0, -1));
+  taqueria("Coyoacán", facing(-140, 720, 1, 0));
+  tiendita("Miscelánea Don Pepe", facing(380, 380, -1, 0));
+  tiendita("Abarrotes La Güera", facing(-600, 560, 0, -1));
+  tiendita("Miscelánea La Esperanza", facing(500, -300, 0, 1));
+  tiendita("Tiendita Polanco", facing(-900, -380, 0, 1));
+  puesto("del Zócalo", -70, 60, 0.3); puesto("de la Catedral", 70, 60, 0.3);
+  puesto("de la Alameda", -490, -45); puesto("de Coyoacán", 60, 780, 0.3); puesto("del Parque México", -470, 525);
+  metro("Zócalo", facing(-70, -60, 0, 1)); metro("Bellas Artes", facing(-330, -75, 0, 1));
+  metro("Insurgentes", facing(-660, 300, 1, 0)); metro("Chapultepec", facing(-1030, -150, 1, 0));
+  metro("Polanco", facing(-860, -300, 0, 1)); metro("Coyoacán", facing(110, 760, -1, 0));
+}
+
+function district(x, z) {
+  if (x < -720 && z < -225) return "Polanco";
+  if (x > -690 && x < -255 && z > 278 && z < 605) return "Roma";
+  if (z > 636) return "Coyoacan";
+  if (x > -690 && x < 700 && z < 278) return "Centro";
+  return "Generico";
+}
+function building(x, z, w, d, style) {
+  let h, color, band;
+  if (style === "Polanco") { h = rr(60, 150); color = (70 + ri(0, 40)) << 16 | (100 + ri(0, 40)) << 8 | (120 + ri(0, 40)); band = 0xbec3c8; }
+  else if (style === "Roma") { h = rr(16, 36); color = PASTELS[ri(0, PASTELS.length - 1)]; band = 0x323c46; }
+  else if (style === "Coyoacan") { h = rr(12, 20); color = PASTELS[ri(0, PASTELS.length - 1)]; band = 0x3c2d23; }
+  else if (style === "Centro") { h = rr(22, 45); color = CENTRO[ri(0, CENTRO.length - 1)]; band = 0x2d2823; }
+  else { h = rr(24, 70); color = GENERIC[ri(0, GENERIC.length - 1)]; band = 0x374b5f; }
+  box(x, h / 2, z, w, h, d, color, { collide: true });
+  let n = 0;
+  for (let y = 7; y <= h - 4 && n < 12; y += 10, n++) winBands.push({ x, y, z, sx: w + 0.3, sy: 3, sz: d + 0.3, color: band });
+  if (style !== "Polanco" && rnd() < 0.4) vcyl(x + w / 4, h + 2, z + d / 4, 4, 3.5, 0x1e1e1e);
+}
+function fillBuildings() {
+  for (let x = -1240; x <= 860; x += 85) for (let z = -770; z <= 970; z += 85) {
+    if (rnd() < 0.8) {
+      const w = rr(30, 55), d = rr(30, 55), cx = x + rr(-8, 8), cz = z + rr(-8, 8);
+      if (isFree(cx, cz, w, d, 8)) { building(cx, cz, w, d, district(cx, cz)); reserve(cx, cz, w, d); }
+    }
+  }
+}
+
+// ---- Volcado a InstancedMesh
+const tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpP = new THREE.Vector3(), tmpS = new THREE.Vector3(), tmpC = new THREE.Color(), UP = new THREE.Vector3(0, 1, 0);
+function instance(list, geo, mat) {
+  const mesh = new THREE.InstancedMesh(geo, mat, list.length);
+  list.forEach((b, i) => {
+    tmpP.set(b.x, b.y, b.z); tmpS.set(b.sx, b.sy, b.sz); tmpQ.setFromAxisAngle(UP, b.yaw || 0);
+    tmpM.compose(tmpP, tmpQ, tmpS); mesh.setMatrixAt(i, tmpM);
+    mesh.setColorAt(i, tmpC.setHex(b.color === undefined ? 0xffffff : b.color));
+  });
+  mesh.instanceMatrix.needsUpdate = true;
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  scene.add(mesh);
+  return mesh;
+}
+let windowMat, lampMat;
+function buildCity() {
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(2800, 2400), new THREE.MeshLambertMaterial({ color: 0xa09c94 }));
+  ground.rotation.x = -Math.PI / 2; ground.position.set(-200, 0, 100); scene.add(ground);
+  buildRoads(); buildZocalo(); buildCentro(); buildReforma(); buildChapultepec(); buildRoma(); buildCoyoacan();
+  buildServices(); buildJail(); buildCommerce(); buildExpansion(); fillBuildings();
+  instance(boxes, new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial());
+  instance(cyls, new THREE.CylinderGeometry(0.5, 0.5, 1, 14), new THREE.MeshLambertMaterial());
+  instance(balls, new THREE.SphereGeometry(0.5, 14, 10), new THREE.MeshLambertMaterial());
+  windowMat = new THREE.MeshLambertMaterial({ emissive: 0x000000 });
+  instance(winBands, new THREE.BoxGeometry(1, 1, 1), windowMat);
+  lampMat = new THREE.MeshBasicMaterial({ color: 0xbbb5a5 });
+  lampHeads.forEach(l => l.color = 0xffffff);
+  instance(lampHeads, new THREE.BoxGeometry(1, 1, 1), lampMat);
+}
+
+// ============================================================ PERSONAJES Y AUTOS
+const lam = (c) => new THREE.MeshLambertMaterial({ color: c });
+const BOXG = new THREE.BoxGeometry(1, 1, 1);
+function blk(group, sx, sy, sz, x, y, z, color) {
+  const m = new THREE.Mesh(BOXG, lam(color)); m.scale.set(sx, sy, sz); m.position.set(x, y, z); group.add(m); return m;
+}
+function makeAvatar(shirt, pants, skin) {
+  const g = new THREE.Group();
+  skin = skin || pick([0xc69c6d, 0xa47449, 0xe0b48a, 0x8d5a3b]);
+  const legL = new THREE.Group(), legR = new THREE.Group(), armL = new THREE.Group(), armR = new THREE.Group();
+  legL.position.set(-0.5, 2, 0); legR.position.set(0.5, 2, 0); armL.position.set(-1.5, 4, 0); armR.position.set(1.5, 4, 0);
+  blk(legL, 1, 2, 1, 0, -1, 0, pants); blk(legR, 1, 2, 1, 0, -1, 0, pants);
+  blk(armL, 1, 2, 1, 0, -1, 0, skin); blk(armR, 1, 2, 1, 0, -1, 0, skin);
+  const torso = blk(g, 2, 2, 1, 0, 3, 0, shirt);
+  blk(g, 1.25, 1.25, 1.25, 0, 4.65, 0, skin);
+  blk(g, 1.3, 0.35, 1.3, 0, 5.2, 0, 0x2a1d14); // cabello
+  g.add(legL, legR, armL, armR);
+  g.userData = { legL, legR, armL, armR, torso, phase: 0 };
+  return g;
+}
+function animateAvatar(av, speed, dt) {
+  const u = av.userData;
+  u.phase += dt * speed * 0.55;
+  const s = speed > 0.5 ? Math.sin(u.phase) * 0.7 : 0;
+  u.legL.rotation.x = s; u.legR.rotation.x = -s; u.armL.rotation.x = -s; u.armR.rotation.x = s;
+}
+// ============================================================ ESTADO DEL JUEGO
+const S = {
+  money: store.get("money", CFG.START_MONEY), job: store.get("job", "Ciudadano"),
+  hp: 100, clock: 9, payTimer: CFG.PAYCHECK, playing: false,
+  wantedUntil: 0, jailUntil: 0, time: 0, lastJobChange: -99,
+};
+const player = { x: 0, y: 0.3, z: 60, vy: 0, yaw: Math.PI, speed: 0, run: false, onGround: true, car: null };
+let avatar;
+const cars = []; // autos del jugador / estacionados
+const npcs = []; // peatones
+const traffic = [];
+let cop = null;
+const mission = { criminal: null, injured: [], passenger: null, fareDest: null, commissionTimer: 6, policeTimer: 8 };
+
+function jobOf(id) { return JOBS.find(j => j.id === id) || JOBS[0]; }
+function setJob(id) {
+  S.job = id; store.set("job", id);
+  const j = jobOf(id);
+  avatar.userData.torso.material.color.setHex(j.color);
+  mission.criminal && removeNpc(mission.criminal); mission.criminal = null;
+  mission.passenger && removeNpc(mission.passenger); mission.passenger = null; mission.fareDest = null;
+  mission.injured.forEach(removeNpc); mission.injured = [];
+  mission.policeTimer = 6;
+  if (id === "Paramedico") for (let i = 0; i < 3; i++) spawnInjured();
+  side = null;
+}
+function addMoney(n) { S.money = Math.max(0, S.money + n); store.set("money", S.money); }
+function charge(n) { if (S.money < n) return false; addMoney(-n); return true; }
+
+// ============================================================ UI
+const notesEl = $("notes");
+function notify(text, kind) {
+  const el = document.createElement("div");
+  el.className = "note " + (kind || "info");
+  el.textContent = text;
+  notesEl.appendChild(el);
+  while (notesEl.children.length > 4) notesEl.firstChild.remove();
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 450); }, 4500);
+}
+const modal = $("modal");
+let modalKind = null;
+function openModal(kind, title, sub, rows) {
+  modalKind = kind;
+  $("mTitle").textContent = title; $("mSub").textContent = sub || ""; $("mSub").hidden = !sub;
+  const box = $("mRows"); box.innerHTML = "";
+  rows.forEach(r => {
+    const row = document.createElement("div"); row.className = "r";
+    row.innerHTML = `<i class="sw"></i><div class="t"><b></b><span></span></div><button class="go"></button>`;
+    row.querySelector(".sw").style.background = r.color;
+    row.querySelector("b").textContent = r.title; row.querySelector("span").textContent = r.sub;
+    const b = row.querySelector("button"); b.textContent = r.btn; if (r.cls) b.classList.add(r.cls); if (r.disabled) b.disabled = true;
+    b.addEventListener("click", r.onClick);
+    box.appendChild(row);
+  });
+  modal.hidden = false;
+}
+function closeModal() { modal.hidden = true; modalKind = null; }
+$("mClose").addEventListener("click", closeModal);
+modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+function showJobs() {
+  if (modalKind === "jobs") return closeModal();
+  openModal("jobs", "Bolsa de trabajo CDMX", "Sueldo cada " + CFG.PAYCHECK + " segundos.", JOBS.map(j => ({
+    color: "#" + j.color.toString(16).padStart(6, "0"), title: j.name,
+    sub: (j.salary ? "$" + j.salary + "/quincena · " : "") + j.desc,
+    btn: j.id === S.job ? "Actual" : "Elegir", disabled: j.id === S.job,
+    onClick: () => {
+      if (S.jailUntil) return notify("No puedes cambiar de trabajo desde el reclusorio.", "bad");
+      if (S.wantedUntil) return notify("Estás buscado por la policía. ¡No puedes cambiar de trabajo!", "bad");
+      if (S.time - S.lastJobChange < 3) return notify("Espera unos segundos antes de cambiar otra vez.");
+      S.lastJobChange = S.time; setJob(j.id); closeModal();
+      notify("Ahora eres " + j.name + (j.salary ? ". Sueldo: $" + j.salary : "") + ".", "good");
+      if (j.id === "Policia") notify("Espera la alerta de asalto en el radio y sigue el punto rojo del minimapa.");
+      if (j.id === "Paramedico") notify("Hay heridos marcados con una cruz roja en el minimapa.");
+      if (j.id === "Taxista") notify("Saca tu taxi en la Base de Taxis (sur del Zócalo, junto al hospital).");
+      if (j.id === "Ladron") notify("Busca una tiendita y asalta la caja con [E].");
+      if (j.id === "Taquero") notify("Ve a la Taquería El Güero y quédate cerca del trompo.");
+      if (j.id === "Vendedor") notify("Ve a un puesto (hay dos en el Zócalo) y quédate cerca.");
+    },
+  })));
+}
+function showShop(poi) {
+  const shop = SHOPS[poi.shop];
+  openModal("shop", poi.name, "La comida recupera vida.", shop.items.map(([name, price, heal, color]) => ({
+    color, title: name, sub: "Recupera " + heal + " de vida", btn: "$" + price,
+    onClick: () => {
+      if (!charge(price)) return notify("No te alcanza, joven. Cuesta $" + price, "bad");
+      S.hp = Math.min(100, S.hp + heal);
+      notify("Compraste " + name + " (-$" + price + "). ¡Provecho!", "good");
+    },
+  })));
+}
+function showMetro(current) {
+  openModal("metro", "Metro · ¿A dónde vas?", "Boleto: $" + CFG.METRO_FARE, POI.stations.filter(s => s !== current).map(st => ({
+    color: "#f0781a", title: st.name, sub: "Línea CDMX", btn: "Viajar", cls: "metro",
+    onClick: () => {
+      closeModal();
+      if (!charge(CFG.METRO_FARE)) return notify("Te falta para el boleto ($" + CFG.METRO_FARE + ").", "bad");
+      fadeTo("Próxima estación: " + st.name, () => { player.x = st.x; player.z = st.z; player.y = 0.3; });
+    },
+  })));
+}
+const fadeEl = $("fade");
+function fadeTo(text, mid) {
+  fadeEl.textContent = text; fadeEl.classList.add("on");
+  setTimeout(() => { mid(); setTimeout(() => fadeEl.classList.remove("on"), 700); }, 600);
+}
+
+// ============================================================ INTERACCIONES
+let currentAction = null, holdT = 0;
+function gatherActions() {
+  const acts = [];
+  const px = player.car ? player.car.x : player.x, pz = player.car ? player.car.z : player.z;
+  const near = (o, r) => Math.hypot(o.x - px, o.z - pz) < r;
+  if (S.jailUntil) return acts;
+  if (player.car) {
+    acts.push({ a: "Bajarse", o: player.car.def.name, run: exitCar, pri: 0 });
+    if (S.job === "Taxista" && player.car.kind === "Taxi" && mission.passenger && !mission.fareDest && near(mission.passenger.g.position, 14))
+      acts.push({ a: "Subir pasaje", o: "Pasajero esperando", run: pickupPassenger, pri: 2 });
+    return acts;
+  }
+  for (const s of POI.shops) if (near(s, 9)) acts.push({ a: "Pedir comida", o: s.name, run: () => showShop(s), d: Math.hypot(s.x - px, s.z - pz) });
+  for (const s of POI.stations) if (near(s, 9)) acts.push({ a: "Tomar el Metro ($" + CFG.METRO_FARE + ")", o: "Metro " + s.name, run: () => showMetro(s), d: Math.hypot(s.x - px, s.z - pz) });
+  for (const g of POI.garages) if (near(g, 8)) acts.push({ a: "Sacar vehículo", o: g.text, run: () => spawnCar(g), d: Math.hypot(g.x - px, g.z - pz) });
+  for (const r of POI.robbables) if (near(r, 6)) acts.push({ a: "Asaltar", o: "Caja registradora", hold: 2, run: () => rob(r), d: Math.hypot(r.x - px, r.z - pz) - 0.5 });
+  for (const c of cars) if (near(c, Math.max(9, STYLES[c.def.style || "Sedan"].L / 2 + 2))) acts.push({ a: "Manejar", o: c.def.name, run: () => enterCar(c), d: Math.hypot(c.x - px, c.z - pz) - 1 });
+  if (S.job === "Policia" && mission.criminal && near(mission.criminal.g.position, 9))
+    acts.push({ a: "Arrestar", o: "Sospechoso", run: arrestNpc, d: -1 });
+  for (const n of mission.injured) if (near(n.g.position, 7) && S.job === "Paramedico")
+    acts.push({ a: "Atender herido", o: "Botiquín", run: () => healNpc(n), d: -1 });
+  extraActions(acts, near, px, pz);
+  acts.sort((a, b) => a.d - b.d);
+  return acts;
+}
+function doAction() {
+  if (dlg.data) return nextLine();
+  if (!S.playing || !modal.hidden || !currentAction) return;
+  if (currentAction.hold) return; // se maneja manteniendo
+  currentAction.run();
+}
+
+function rob(r) {
+  if (S.job !== "Ladron") return notify("Solo los rateros asaltan tienditas. ¡Aquí se trabaja honradamente!");
+  if (S.time - r.last < CFG.ROB_COOLDOWN) return notify("La caja está vacía. Vuelve en " + Math.ceil(CFG.ROB_COOLDOWN - (S.time - r.last)) + "s.");
+  r.last = S.time;
+  const loot = ri(CFG.ROB_MIN, CFG.ROB_MAX);
+  addMoney(loot);
+  S.wantedUntil = S.time + CFG.WANTED;
+  notify("¡Te llevaste $" + loot + "! La policía te busca por " + CFG.WANTED + "s. ¡Corre!", "money");
+  setTimeout(() => notify("🚨 Radio SSC: asalto en " + r.name + ". Unidad en camino.", "alert"), 1500);
+  spawnCop(r);
+}
+
+// ---- Autos
+function spawnCar(g) {
+  const def = VEH[g.kind];
+  if (def.job && S.job !== def.job) return notify("Necesitas el trabajo de " + jobOf(def.job).name + " para usar este vehículo.", "bad");
+  if (def.price && !charge(def.price)) return notify("La renta cuesta $" + def.price + ".", "bad");
+  const old = cars.find(c => c.mine); if (old) { scene.remove(old.g); cars.splice(cars.indexOf(old), 1); }
+  const g3 = makeCar(def, g.kind);
+  const car = { g: g3, def, kind: g.kind, x: g.spawn.x, z: g.spawn.z, h: g.spawn.yaw, speed: 0, mine: true };
+  g3.position.set(car.x, 0.4, car.z); g3.rotation.y = car.h; scene.add(g3);
+  cars.push(car);
+  notify("Tu " + def.name + " está listo. Acércate y presiona [E] para manejar.", "good");
+}
+function enterCar(c) { player.car = c; avatar.visible = false; camYawTarget = c.h; }
+function exitCar() {
+  const c = player.car; player.car = null; avatar.visible = true;
+  player.x = c.x + Math.cos(c.h) * -6; player.z = c.z - Math.sin(c.h) * -6; player.y = 0.3;
+  c.speed = 0;
+  if (mission.fareDest) { notify("El pasajero se bajó sin pagar porque lo dejaste a medio camino.", "bad"); endFare(); }
+}
+
+// ---- NPCs
+const SHIRTS = [0xc4281c, 0x0d69ac, 0xf5cd30, 0x4b974b, 0xffffff, 0x6b327c, 0xda8541, 0x27466f, 0xe8508f];
+const PLAZAS = [{ x: 0, z: 0, r: 80 }, { x: 0, z: 800, r: 65 }, { x: -490, z: -110, r: 60 }, { x: -470, z: 440, r: 50 }, { x: -1150, z: -120, r: 80 }];
+function makeNpc(x, z, shirt, opts) {
+  const g = makeAvatar(shirt || pick(SHIRTS), pick([0x27466f, 0x1b1b1f, 0x5a4632, 0x404a5a]));
+  g.position.set(x, groundY(x, z), z); scene.add(g);
+  const n = Object.assign({ g, tx: x, tz: z, speed: 0, wait: Math.random() * 3, plaza: null }, opts || {});
+  npcs.push(n);
+  return n;
+}
+function removeNpc(n) { if (!n) return; scene.remove(n.g); if (n.tag) scene.remove(n.tag); const i = npcs.indexOf(n); if (i >= 0) npcs.splice(i, 1); }
+function tagNpc(n, text, color, bg) {
+  const { tex, aspect } = makeLabelTexture(text, color, bg);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  sp.scale.set(2.2 * aspect, 2.2, 1); scene.add(sp); n.tag = sp;
+}
+function spawnPedestrians() {
+  for (const p of PLAZAS) for (let i = 0; i < 7; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.random() * p.r;
+    const n = makeNpc(p.x + Math.cos(a) * r, p.z + Math.sin(a) * r);
+    n.plaza = p;
+  }
+}
+function spawnInjured() {
+  const p = pick(PLAZAS.slice(0, 4));
+  const a = Math.random() * Math.PI * 2, r = 10 + Math.random() * (p.r - 10);
+  const n = makeNpc(p.x + Math.cos(a) * r, p.z + Math.sin(a) * r, 0xffffff, { injured: true });
+  n.g.rotation.z = Math.PI / 2; n.g.position.y += 0.5;
+  tagNpc(n, "+ HERIDO", "#fff", "#c81e1e");
+  mission.injured.push(n);
+}
+function healNpc(n) {
+  mission.injured.splice(mission.injured.indexOf(n), 1);
+  removeNpc(n);
+  addMoney(CFG.HEAL_REWARD);
+  notify("Atendiste al herido (+$" + CFG.HEAL_REWARD + "). ¡Buen trabajo, ERUM!", "money");
+  setTimeout(() => { if (S.job === "Paramedico") spawnInjured(); }, 6000);
+}
+function spawnCriminal() {
+  const r = pick(POI.robbables);
+  const n = makeNpc(r.x, r.z, 0x1b1b1f, { criminal: true });
+  tagNpc(n, "SOSPECHOSO", "#ff5050");
+  mission.criminal = n;
+  notify("🚨 Radio SSC: ¡asalto en " + r.name + "! Sigue el punto rojo del minimapa.", "alert");
+}
+function arrestNpc() {
+  removeNpc(mission.criminal); mission.criminal = null; mission.policeTimer = 15;
+  addMoney(CFG.ARREST_REWARD);
+  notify("¡Arrestaste al sospechoso! +$" + CFG.ARREST_REWARD, "money");
+}
+const FARE_DESTS = [
+  { name: "Ángel de la Independencia", x: -880, z: -230 }, { name: "Bellas Artes", x: -330, z: -170 },
+  { name: "Coyoacán", x: 0, z: 640 }, { name: "Polanco", x: -880, z: -540 }, { name: "Chapultepec", x: -1040, z: -200 },
+  { name: "La Roma", x: -470, z: 260 }, { name: "El Zócalo", x: 0, z: -180 }, { name: "Hospital General", x: 240, z: 400 },
+];
+function spawnPassenger() {
+  const roads = [[-240, rr(-700, 900)], [260, rr(-700, 900)], [-700, rr(-700, 900)]];
+  const [x, z] = pick(roads);
+  const n = makeNpc(x + 22, z, pick(SHIRTS), { passenger: true });
+  tagNpc(n, "🚕 PASAJE", "#fff", "#b8306c");
+  mission.passenger = n;
+  notify("Un pasajero pide taxi. Sigue el punto rosa del minimapa.");
+}
+function pickupPassenger() {
+  const p = mission.passenger;
+  let dest; do { dest = pick(FARE_DESTS); } while (Math.hypot(dest.x - p.g.position.x, dest.z - p.g.position.z) < 300);
+  mission.fareDest = dest; mission.fareStart = { x: p.g.position.x, z: p.g.position.z };
+  p.g.visible = false; if (p.tag) p.tag.visible = false;
+  notify("Pasajero a bordo: “Lléveme a " + dest.name + ", por favor.”", "good");
+}
+function endFare() { removeNpc(mission.passenger); mission.passenger = null; mission.fareDest = null; }
+
+// Policía que persigue al ratero
+function spawnCop(r) {
+  if (cop) removeNpc(cop);
+  const a = Math.random() * Math.PI * 2;
+  cop = makeNpc(r.x + Math.cos(a) * 90, r.z + Math.sin(a) * 90, 0x1f3a8a, { cop: true });
+  tagNpc(cop, "POLICÍA", "#9cb8ff");
+}
+
+// ---- Tráfico ambiental
+function spawnTraffic() {
+  const kinds = [{ color: 0xeb5096, accent: 0xf5f5f5 }, { color: 0x50a05a, accent: 0xe6e6e6 }, { color: 0xc8c8c8, accent: 0x5a5a5a }, { color: 0x3c64aa, accent: 0xdcdcdc }, { color: 0xb43c32, accent: 0xdcdcdc }];
+  const lanes = [];
+  for (const [z, x1, x2, w] of ROADS_H) { const o = w / 2 - 7; lanes.push({ ax: x1, az: z + o, bx: x2, bz: z + o }); lanes.push({ ax: x2, az: z - o, bx: x1, bz: z - o }); }
+  for (const [x, z1, z2, w] of ROADS_V) { const o = w / 2 - 7; lanes.push({ ax: x - o, az: z1, bx: x - o, bz: z2 }); lanes.push({ ax: x + o, az: z2, bx: x + o, bz: z1 }); }
+  for (let i = 0; i < 26; i++) {
+    const lane = lanes[i % lanes.length];
+    const k = kinds[i % kinds.length];
+    const g = makeCar(Object.assign({ style: i % 5 === 0 ? "Sedan" : pick(["Sedan", "Sedan", "Hatch", "Pickup", "SUV"]) }, k), i % 5 === 0 ? "Taxi" : "");
+    g.scale.setScalar(0.92);
+    scene.add(g);
+    traffic.push({ g, lane, t: Math.random(), speed: 30 + Math.random() * 20 });
+  }
+}
+
+// ============================================================ FÍSICA SIMPLE
+function groundY(x, z) {
+  const d = Math.hypot(x - HILL.x, z - HILL.z);
+  let y = 0.3;
+  if (d < HILL.r) y = Math.max(y, HILL.y + Math.sqrt(HILL.r * HILL.r - d * d));
+  return y;
+}
+function collide(p, radius, y) {
+  let hit = false;
+  for (let i = 0; i < rects.length; i++) {
+    const r = rects[i];
+    if (p.x + radius < r.x1 || p.x - radius > r.x2 || p.z + radius < r.z1 || p.z - radius > r.z2) continue;
+    if (y >= r.top - 0.6 || y + 5 < r.base) continue;
+    const cx = clamp(p.x, r.x1, r.x2), cz = clamp(p.z, r.z1, r.z2);
+    let dx = p.x - cx, dz = p.z - cz;
+    const d = Math.hypot(dx, dz);
+    if (d > 0 && d < radius) { p.x = cx + dx / d * radius; p.z = cz + dz / d * radius; hit = true; }
+    else if (d === 0) {
+      const l = p.x - r.x1, rr2 = r.x2 - p.x, t = p.z - r.z1, b = r.z2 - p.z, m = Math.min(l, rr2, t, b);
+      if (m === l) p.x = r.x1 - radius; else if (m === rr2) p.x = r.x2 + radius; else if (m === t) p.z = r.z1 - radius; else p.z = r.z2 + radius;
+      hit = true;
+    }
+  }
+  p.x = clamp(p.x, -1290, 890); p.z = clamp(p.z, -790, 990);
+  return hit;
+}
+
+// ============================================================ ENTRADA
+const keys = {};
+let camYaw = Math.PI * 0.0, camPitch = 0.38, camDist = 26, camYawTarget = null;
+window.addEventListener("keydown", (e) => {
+  if (!S.playing) return;
+  const k = e.key.toLowerCase();
+  keys[k] = true;
+  if (k === "e" && !e.repeat) doAction();
+  if (k === "j") showJobs();
+  if (k === "p") showPhone();
+  if (k === "q") cycleWeapon();
+  if (k === "r") reloadWeapon();
+  if (k === "f") { INV.held = true; if (!e.repeat) fire(); }
+  if (k === "escape") closeModal();
+  if (k === " " || k.startsWith("arrow")) e.preventDefault();
+});
+window.addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; if (e.key.toLowerCase() === "f") INV.held = false; });
+window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
+
+let drag = null;
+canvas.addEventListener("pointerdown", (e) => { drag = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: performance.now() }; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener("pointermove", (e) => {
+  if (!drag || drag.id !== e.pointerId) return;
+  camYaw -= (e.clientX - drag.x) * 0.006; camPitch = clamp(camPitch + (e.clientY - drag.y) * 0.004, 0.08, 1.2);
+  drag.x = e.clientX; drag.y = e.clientY; camYawTarget = null;
+});
+const endDrag = (e) => {
+  if (!drag || drag.id !== e.pointerId) return;
+  // Un clic corto (sin arrastrar) dispara si traes un arma
+  if (e.type === "pointerup" && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 6 && performance.now() - drag.t < 350 && curWeapon()) fire();
+  drag = null;
+};
+canvas.addEventListener("pointerup", endDrag); canvas.addEventListener("pointercancel", endDrag);
+canvas.addEventListener("wheel", (e) => { camDist = clamp(camDist + e.deltaY * 0.03, 10, 80); e.preventDefault(); }, { passive: false });
+
+// Joystick táctil
+const stick = $("stick"), knob = $("knob");
+const joy = { x: 0, y: 0, id: null };
+stick.addEventListener("pointerdown", (e) => { joy.id = e.pointerId; stick.setPointerCapture(e.pointerId); moveJoy(e); });
+stick.addEventListener("pointermove", (e) => { if (joy.id === e.pointerId) moveJoy(e); });
+const endJoy = (e) => { if (joy.id === e.pointerId) { joy.id = null; joy.x = joy.y = 0; knob.style.transform = ""; } };
+stick.addEventListener("pointerup", endJoy); stick.addEventListener("pointercancel", endJoy);
+function moveJoy(e) {
+  const r = stick.getBoundingClientRect(); let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const m = Math.hypot(dx, dy), max = r.width / 2 - 10; if (m > max) { dx = dx / m * max; dy = dy / m * max; }
+  joy.x = dx / max; joy.y = dy / max; knob.style.transform = `translate(${dx}px, ${dy}px)`;
+}
+let touchRun = false, touchAct = false;
+$("tRun").addEventListener("click", (e) => { touchRun = !touchRun; e.currentTarget.classList.toggle("on", touchRun); });
+$("tJump").addEventListener("pointerdown", () => { keys[" "] = true; setTimeout(() => keys[" "] = false, 120); });
+$("tJobs").addEventListener("click", showJobs);
+$("tAct").addEventListener("pointerdown", () => { touchAct = true; doAction(); });
+$("tAct").addEventListener("pointerup", () => { touchAct = false; });
+$("tAct").addEventListener("pointercancel", () => { touchAct = false; });
+$("prompt").addEventListener("pointerdown", () => { touchAct = true; doAction(); });
+window.addEventListener("pointerup", () => { touchAct = false; });
+$("jobsBtn").addEventListener("click", showJobs);
+$("phoneBtn").addEventListener("click", showPhone);
+$("tGun").addEventListener("click", cycleWeapon);
+$("tPhone").addEventListener("click", showPhone);
+$("tFire").addEventListener("pointerdown", () => { INV.held = true; fire(); });
+$("tFire").addEventListener("pointerup", () => { INV.held = false; });
+$("tFire").addEventListener("pointercancel", () => { INV.held = false; });
+
+// ============================================================ MINIMAPA
+const mini = $("mini"), mctx = mini.getContext("2d");
+const MAP = { x1: -1300, z1: -800, x2: 900, z2: 1000, s: 0.5 };
+const mapCanvas = document.createElement("canvas");
+function drawBaseMap() {
+  mapCanvas.width = (MAP.x2 - MAP.x1) * MAP.s; mapCanvas.height = (MAP.z2 - MAP.z1) * MAP.s;
+  const g = mapCanvas.getContext("2d");
+  g.fillStyle = "#3a3842"; g.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+  const R = (x, z, w, h, c) => { g.fillStyle = c; g.fillRect((x - MAP.x1) * MAP.s, (z - MAP.z1) * MAP.s, w * MAP.s, h * MAP.s); };
+  R(-1250, -510, 190, 610, "#3f6b3a"); R(-565, -160, 150, 100, "#3f6b3a"); R(-535, 375, 130, 130, "#3f6b3a"); R(-80, 740, 160, 120, "#6b665e"); R(-90, -90, 180, 180, "#6b665e");
+  for (const r of rects) if (r.top > 8) R(r.x1, r.z1, r.x2 - r.x1, r.z2 - r.z1, "#55525d");
+  for (const [z, x1, x2, w] of ROADS_H) R(x1, z - w / 2, x2 - x1, w, "#1d1c22");
+  for (const [x, z1, z2, w] of ROADS_V) R(x - w / 2, z1, w, z2 - z1, "#1d1c22");
+  g.font = "bold 13px Barlow Condensed, sans-serif"; g.fillStyle = "#f0781a";
+  for (const s of POI.stations) { g.beginPath(); g.arc((s.x - MAP.x1) * MAP.s, (s.z - MAP.z1) * MAP.s, 4, 0, 7); g.fill(); }
+}
+function drawMini() {
+  const W = mini.width, H = mini.height, span = 360; // studs visibles
+  const px = player.car ? player.car.x : player.x, pz = player.car ? player.car.z : player.z;
+  mctx.save(); mctx.fillStyle = "#2a2930"; mctx.fillRect(0, 0, W, H);
+  mctx.translate(W / 2, H / 2); mctx.rotate(camYaw); // norte arriba = dirección de la cámara
+  const k = W / span;
+  mctx.scale(k / MAP.s, k / MAP.s);
+  mctx.drawImage(mapCanvas, -(px - MAP.x1) * MAP.s, -(pz - MAP.z1) * MAP.s);
+  mctx.restore();
+  const dot = (x, z, color, r) => {
+    let dx = (x - px) * k, dz = (z - pz) * k; const c = Math.cos(camYaw), s = Math.sin(camYaw);
+    let rx = dx * c - dz * s, rz = dx * s + dz * c; const m = Math.hypot(rx, rz), lim = W / 2 - 10;
+    if (m > lim) { rx = rx / m * lim; rz = rz / m * lim; }
+    mctx.fillStyle = color; mctx.strokeStyle = "#000"; mctx.lineWidth = 2; mctx.beginPath(); mctx.arc(W / 2 + rx, H / 2 + rz, r || 7, 0, 7); mctx.fill(); mctx.stroke();
+  };
+  if (mission.criminal) dot(mission.criminal.g.position.x, mission.criminal.g.position.z, "#ff3b3b");
+  for (const n of mission.injured) dot(n.g.position.x, n.g.position.z, "#ffffff");
+  if (mission.passenger && !mission.fareDest) dot(mission.passenger.g.position.x, mission.passenger.g.position.z, "#e8508f");
+  if (mission.fareDest) dot(mission.fareDest.x, mission.fareDest.z, "#e8508f", 9);
+  miniExtra(dot);
+  if (cop) dot(cop.g.position.x, cop.g.position.z, "#5b8cff");
+  // Jugador (flecha)
+  const heading = (player.car ? player.car.h : player.yaw) - camYaw;
+  mctx.save(); mctx.translate(W / 2, H / 2); mctx.rotate(-heading);
+  mctx.fillStyle = "#fff"; mctx.strokeStyle = "#000"; mctx.lineWidth = 2;
+  mctx.beginPath(); mctx.moveTo(0, -12); mctx.lineTo(8, 9); mctx.lineTo(0, 4); mctx.lineTo(-8, 9); mctx.closePath(); mctx.fill(); mctx.stroke();
+  mctx.restore();
+}
+function zoneName(x, z) {
+  if (Math.abs(x) < 100 && Math.abs(z) < 100) return "Zócalo";
+  if (x < -1050 && z > -520 && z < 110) return "Chapultepec";
+  if (x > 540 && x < 700 && z < -610) return "Reclusorio";
+  const d = district(x, z);
+  return { Polanco: "Polanco", Roma: "Roma · Condesa", Coyoacan: "Coyoacán", Centro: z < -180 && x < -600 ? "Reforma" : "Centro Histórico", Generico: x < -700 ? "Reforma" : "Colonia Doctores" }[d];
+}
+
+// ============================================================ BUCLE
+const pAction = $("pAction"), pObject = $("pObject"), promptEl = $("prompt"), pBar = $("pBar");
+const camTarget = new THREE.Vector3();
+const skyDay = new THREE.Color(0xa9c6e2), skyDusk = new THREE.Color(0xe39a6b), skyNight = new THREE.Color(0x0e1426), fogDay = new THREE.Color(0xd9c9b0);
+let hudTimer = 0, nightOn = null;
+
+function updateSky() {
+  const t = S.clock;
+  let day = clamp(Math.sin((t - 6) / 12 * Math.PI) * 1.4, 0, 1); // 0 noche, 1 día
+  const dusk = clamp(1 - Math.abs(t - 18.5) / 1.6, 0, 1) + clamp(1 - Math.abs(t - 6.3) / 1.4, 0, 1);
+  const col = skyNight.clone().lerp(skyDay, day).lerp(skyDusk, clamp(dusk, 0, 1) * 0.6);
+  scene.background = col;
+  scene.fog.color.copy(col).lerp(fogDay, day * 0.5);
+  hemi.intensity = 0.22 + day * 0.42; sun.intensity = 0.08 + day * 0.5;
+  sun.position.set(Math.cos((t - 6) / 12 * Math.PI) * 500, 100 + day * 400, 200);
+  const night = t >= 18.3 || t < 6.2;
+  if (night !== nightOn) {
+    nightOn = night;
+    lampMat.color.setHex(night ? 0xffd890 : 0xbbb5a5);
+    windowMat.emissive.setHex(night ? 0x4a3412 : 0x000000);
+  }
+}
+
+function step(dt) {
+  S.time += dt;
+  S.clock = (S.clock + dt * 24 / CFG.DAY_SECONDS) % 24;
+  // Sueldo
+  S.payTimer -= dt;
+  if (S.payTimer <= 0) {
+    S.payTimer = CFG.PAYCHECK;
+    const j = jobOf(S.job);
+    if (j.salary > 0 && !S.jailUntil) { addMoney(j.salary); notify("¡Día de pago! +$" + j.salary + " (" + j.name + ")", "money"); }
+  }
+  // Hambre
+  S.hp -= dt * 0.22;
+  if (S.hp <= 0 && S.time - (S.lastHit || -99) < 5) {
+    S.hp = 100; S.lastHit = -99;
+    const fee = Math.min(100, S.money); addMoney(-fee);
+    if (player.car) exitCar();
+    if (group) { clearGroup(); setTimeout(() => notify("Los enemigos se reagruparon. Regresa cuando estés listo."), 1600); }
+    fadeTo("Te llevaron al Hospital General", () => { player.x = 185; player.z = 430; });
+    setTimeout(() => notify("La consulta costó $" + fee + ". ¡Cuídate allá afuera!", "bad"), 1300);
+  } else if (S.hp <= 0) {
+    S.hp = 60; addMoney(-50);
+    if (player.car) exitCar();
+    fadeTo("Te desmayaste de hambre… despiertas en el Hospital General", () => { player.x = 240; player.z = 380; });
+    setTimeout(() => notify("La consulta costó $50. ¡Come algo, que la ciudad cansa!", "bad"), 1400);
+  }
+  // Búsqueda y cárcel
+  if (S.wantedUntil && S.time >= S.wantedUntil) { S.wantedUntil = 0; if (cop) { removeNpc(cop); cop = null; } notify("La policía dejó de buscarte... por ahora.", "info"); }
+  if (S.jailUntil && S.time >= S.jailUntil) {
+    S.jailUntil = 0;
+    fadeTo("Cumpliste tu condena", () => { player.x = 0; player.z = 60; });
+    setTimeout(() => notify("¡Pórtate bien!", "good"), 1300);
+  }
+
+  // Movimiento
+  let ix = (keys["d"] || keys["arrowright"] ? 1 : 0) - (keys["a"] || keys["arrowleft"] ? 1 : 0) + joy.x;
+  let iz = (keys["s"] || keys["arrowdown"] ? 1 : 0) - (keys["w"] || keys["arrowup"] ? 1 : 0) + joy.y;
+  if (!modal.hidden || dlg.data) ix = iz = 0;
+  ix = clamp(ix, -1, 1); iz = clamp(iz, -1, 1);
+
+  if (player.car) {
+    const c = player.car, throttle = -iz, steer = ix;
+    let target = throttle * c.def.max; if (throttle < 0) target = throttle * c.def.max * 0.4;
+    const rate = (throttle === 0 || target * c.speed < 0) ? 45 : 28;
+    c.speed = c.speed < target ? Math.min(c.speed + rate * dt, target) : Math.max(c.speed - rate * dt, target);
+    const grip = clamp(Math.abs(c.speed) / 15, 0, 1), dir = c.speed >= 0 ? 1 : -1;
+    c.h -= steer * 1.65 * grip * dir * dt;
+    c.x += -Math.sin(c.h) * c.speed * dt; c.z += -Math.cos(c.h) * c.speed * dt;
+    if (collide(c, c.g.userData.radius || 5, 0.5)) c.speed *= 0.5;
+    c.g.position.set(c.x, 0.4, c.z); c.g.rotation.y = c.h;
+    player.x = c.x; player.z = c.z; player.y = 0.3;
+    camYawTarget = c.h;
+    // Entrega de pasaje
+    if (mission.fareDest && Math.hypot(c.x - mission.fareDest.x, c.z - mission.fareDest.z) < 30 && Math.abs(c.speed) < 12) {
+      const dist = Math.hypot(mission.fareDest.x - mission.fareStart.x, mission.fareDest.z - mission.fareStart.z);
+      const fare = Math.max(CFG.TAXI_MIN, Math.floor(dist / 100 * CFG.TAXI_PER_100));
+      addMoney(fare); notify("Llegamos a " + mission.fareDest.name + ". Tu pasajero pagó $" + fare + ". ¡Gracias, jefe!", "money");
+      endFare(); mission.passengerTimer = 5;
+    }
+  } else {
+    const run = keys["shift"] || touchRun;
+    const fx = -Math.sin(camYaw), fz = -Math.cos(camYaw), rx = Math.cos(camYaw), rz = -Math.sin(camYaw);
+    let mx = rx * ix + fx * -iz, mz = rz * ix + fz * -iz;
+    const m = Math.hypot(mx, mz);
+    const spd = (run ? 26 : 16) * Math.min(1, m);
+    if (m > 0.05) { mx /= m; mz /= m; player.yaw = Math.atan2(-mx, -mz); }
+    player.x += mx * spd * dt; player.z += mz * spd * dt;
+    player.speed = spd;
+    // salto + gravedad
+    const gy = groundY(player.x, player.z);
+    if (keys[" "] && player.onGround) { player.vy = 36; player.onGround = false; }
+    player.vy -= 196 * dt * 0.5; player.y += player.vy * dt;
+    if (player.y <= gy) { player.y = gy; player.vy = 0; player.onGround = true; }
+    collide(player, 1.4, player.y);
+    avatar.position.set(player.x, player.y, player.z);
+    avatar.rotation.y = player.yaw;
+    animateAvatar(avatar, spd, dt);
+  }
+
+  // Bandera
+  if (flag) {
+    const pos = flag.geometry.attributes.position, base = flag.userData.base;
+    for (let i = 0; i < pos.count; i++) {
+      const x = base[i * 3], y = base[i * 3 + 1];
+      pos.array[i * 3 + 2] = Math.sin(x * 0.25 - S.time * 3 + y * 0.05) * 1.3 * ((x + 21) / 42);
+    }
+    pos.needsUpdate = true;
+  }
+
+  // Peatones
+  for (const n of npcs) {
+    const p = n.g.position;
+    if (n.injured) { if (n.tag) n.tag.position.set(p.x, p.y + 4, p.z); continue; }
+    let speed = 0;
+    if (n.cop) {
+      const tx = player.x - p.x, tz = player.z - p.z, d = Math.hypot(tx, tz);
+      speed = d > 3 ? 19 : 0;
+      if (d > 0.1) { p.x += tx / d * speed * dt; p.z += tz / d * speed * dt; n.g.rotation.y = Math.atan2(-tx, -tz); }
+      collide(p, 1.4, 0.3);
+      if (d < 4 && !player.car && S.wantedUntil) jailPlayer();
+    } else if (n.criminal) {
+      const tx = p.x - player.x, tz = p.z - player.z, d = Math.hypot(tx, tz);
+      if (d < 50) { speed = 14; p.x += tx / d * speed * dt; p.z += tz / d * speed * dt; n.g.rotation.y = Math.atan2(-tx, -tz); collide(p, 1.4, 0.3); }
+    } else if (n.passenger) {
+      // espera el taxi
+    } else {
+      n.wait -= dt;
+      const tx = n.tx - p.x, tz = n.tz - p.z, d = Math.hypot(tx, tz);
+      if (d < 1 || n.wait > 0) {
+        if (d < 1 && n.wait <= 0) {
+          n.wait = 1 + Math.random() * 4;
+          const a = Math.random() * Math.PI * 2, r = Math.random() * n.plaza.r;
+          n.tx = n.plaza.x + Math.cos(a) * r; n.tz = n.plaza.z + Math.sin(a) * r;
+        }
+      } else {
+        speed = 7; p.x += tx / d * speed * dt; p.z += tz / d * speed * dt; n.g.rotation.y = Math.atan2(-tx, -tz);
+      }
+    }
+    p.y = groundY(p.x, p.z);
+    animateAvatar(n.g, speed, dt);
+    if (n.tag) n.tag.position.set(p.x, p.y + 7.5, p.z);
+  }
+
+  // Tráfico
+  for (const t of traffic) {
+    const L2 = t.lane, len = Math.hypot(L2.bx - L2.ax, L2.bz - L2.az);
+    const x = L2.ax + (L2.bx - L2.ax) * t.t, z = L2.az + (L2.bz - L2.az) * t.t;
+    const blocked = Math.hypot(x - player.x, z - player.z) < 14 && !player.car;
+    if (!blocked) t.t += t.speed * dt / len;
+    if (t.t > 1) t.t = 0;
+    t.g.position.set(x, 0.4, z);
+    t.g.rotation.y = Math.atan2(-(L2.bx - L2.ax), -(L2.bz - L2.az));
+  }
+  // Sirenas
+  const blink = Math.floor(S.time * 4) % 2;
+  for (const c of cars) if (c.g.userData.sirens.length) { c.g.userData.sirens[0].visible = !!blink; c.g.userData.sirens[1].visible = !blink; }
+
+  // Misiones por trabajo
+  if (S.job === "Policia" && !mission.criminal) { mission.policeTimer -= dt; if (mission.policeTimer <= 0) spawnCriminal(); }
+  if (S.job === "Taxista" && !mission.passenger) {
+    mission.passengerTimer = (mission.passengerTimer === undefined ? 3 : mission.passengerTimer) - dt;
+    if (mission.passengerTimer <= 0 && cars.some(c => c.kind === "Taxi")) spawnPassenger();
+  }
+  if ((S.job === "Taquero" || S.job === "Vendedor") && !player.car) {
+    const type = S.job === "Taquero" ? "Taqueria" : "Puesto";
+    const near = POI.shops.find(s => s.shop === type && Math.hypot(s.x - player.x, s.z - player.z) < 25);
+    if (near) {
+      mission.commissionTimer -= dt;
+      if (mission.commissionTimer <= 0) {
+        mission.commissionTimer = 6 + Math.random() * 4;
+        const item = pick(SHOPS[type].items);
+        addMoney(CFG.COMMISSION);
+        notify("Vendiste " + item[0].toLowerCase() + " a un cliente (+$" + CFG.COMMISSION + " de comisión)", "money");
+      }
+    }
+  }
+
+  // Acciones
+  const acts = gatherActions();
+  currentAction = acts[0] || null;
+  if (currentAction && modal.hidden) {
+    promptEl.hidden = false; pAction.textContent = currentAction.a; pObject.textContent = currentAction.o;
+    if (currentAction.hold) {
+      if (keys["e"] || touchAct) { holdT += dt; if (holdT >= currentAction.hold) { holdT = 0; keys["e"] = false; touchAct = false; currentAction.run(); } }
+      else holdT = 0;
+      pBar.style.transform = `scaleX(${clamp(holdT / currentAction.hold, 0, 1)})`;
+    } else { holdT = 0; pBar.style.transform = "scaleX(0)"; }
+  } else { promptEl.hidden = true; holdT = 0; }
+  stepExpansion(dt);
+}
+
+function jailPlayer() {
+  S.wantedUntil = 0; S.jailUntil = S.time + CFG.JAIL;
+  if (cop) { removeNpc(cop); cop = null; }
+  fadeTo("Fuiste arrestado · " + CFG.JAIL + "s en el Reclusorio", () => { player.x = JAIL.x; player.z = JAIL.z + 20; player.y = 0.3; });
+}
+
+function updateCamera(dt) {
+  if (camYawTarget !== null) {
+    let d = camYawTarget - camYaw; d = Math.atan2(Math.sin(d), Math.cos(d));
+    camYaw += d * Math.min(1, dt * 3);
+  }
+  const dist = player.car ? Math.max(camDist, 34) : camDist;
+  camTarget.set(player.x, player.y + (player.car ? 6 : 4), player.z);
+  camera.position.set(
+    camTarget.x + Math.sin(camYaw) * Math.cos(camPitch) * dist,
+    camTarget.y + Math.sin(camPitch) * dist,
+    camTarget.z + Math.cos(camYaw) * Math.cos(camPitch) * dist);
+  if (camera.position.y < 2) camera.position.y = 2;
+  camera.lookAt(camTarget);
+  for (const l of labels) { const d = l.sprite.position.distanceTo(camera.position); l.sprite.visible = d < l.max && d > 16; }
+}
+
+function updateHud() {
+  $("money").innerHTML = fmt(S.money) + "<small>MXN</small>";
+  const h = Math.floor(S.clock), m = Math.floor((S.clock - h) * 60);
+  $("meta").textContent = String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + " · " + jobOf(S.job).name;
+  $("hp").style.width = clamp(S.hp, 0, 100) + "%";
+  const st = $("status");
+  if (S.jailUntil) { st.hidden = false; st.className = "status jail"; st.textContent = "RECLUSORIO: " + Math.ceil(S.jailUntil - S.time) + "s"; }
+  else if (S.wantedUntil) { const l = Math.ceil(S.wantedUntil - S.time); st.hidden = false; st.className = "status"; st.textContent = "¡SE BUSCA! " + Math.floor(l / 60) + ":" + String(l % 60).padStart(2, "0"); }
+  else st.hidden = true;
+  $("zone").textContent = zoneName(player.x, player.z);
+  hudExtra();
+}
+
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+window.addEventListener("resize", resize);
+
+// ============================================================ EXPANSIÓN · autos, armas, historia
+// Mismos datos que src/shared/Cars.luau, Weapons.luau y Story.luau
+const STYLES = {
+  Sedan: { L: 15, W: 8, H: 2.4, roof: { L: 7.8, Z: 1, H: 4.2 }, wheel: 3 },
+  Hatch: { L: 13, W: 7.6, H: 2.4, roof: { L: 7.4, Z: 1.6, H: 4 }, wheel: 2.8 },
+  Pickup: { L: 17, W: 8.2, H: 2.8, roof: { L: 6, Z: -1.8, H: 4.2 }, wheel: 3.4, bed: true },
+  SUV: { L: 16, W: 8.4, H: 3, roof: { L: 10.5, Z: 1.6, H: 4.6 }, wheel: 3.4 },
+  Sport: { L: 15, W: 8.2, H: 2, roof: { L: 6, Z: 1.4, H: 3.2 }, wheel: 2.8 },
+  Van: { L: 18, W: 8.4, H: 3, roof: { L: 14.5, Z: 1.4, H: 5.4 }, wheel: 3.2 },
+  Bus: { L: 30, W: 9, H: 3, roof: { L: 27, Z: 0.8, H: 6.5 }, wheel: 3.6 },
+  Moto: { L: 6, W: 2.2, H: 1.6, wheel: 2.6, moto: true },
+};
+const STYLE_NAMES = { Sedan: "Sedán", Hatch: "Compacto", Pickup: "Pickup", SUV: "Camioneta", Sport: "Deportivo", Moto: "Moto", Van: "Van", Bus: "Micro" };
+const PAINTS = [["Blanco", 0xf0f0f0], ["Negro", 0x19191c], ["Plata", 0xb4b6bc], ["Rojo", 0xbe1e23], ["Azul", 0x1e46a0], ["Verde", 0x3c8c50],
+  ["Amarillo", 0xf0c828], ["Gris", 0x64666c], ["Vino", 0x6e1423], ["Naranja", 0xeb6e1e], ["Rosa", 0xeb5096], ["Arena", 0xc8b48c]];
+const CATALOG = [
+  { id: "Vochito", name: "Volkswagon Vochito", style: "Hatch", price: 6000, max: 55, seats: 4, desc: "El escarabajo eterno. Lento, ruidoso y querido por todos." },
+  { id: "Tsuro", name: "Nizzan Tsuro", style: "Sedan", price: 8000, max: 65, seats: 4, desc: "El rey de la CDMX: taxi, carro familiar y leyenda." },
+  { id: "Avio", name: "Chebrolet Avio", style: "Sedan", price: 12000, max: 68, seats: 4, desc: "El sedán de app de transporte por excelencia." },
+  { id: "Rion", name: "Kya Rion", style: "Hatch", price: 14000, max: 70, seats: 4, desc: "Compacto, económico y fácil de estacionar en la Roma." },
+  { id: "Versu", name: "Nizzan Versu", style: "Sedan", price: 15000, max: 72, seats: 4, desc: "Sucesor espiritual del Tsuro." },
+  { id: "Jeta", name: "Volkswagon Jeta", style: "Sedan", price: 18000, max: 78, seats: 4, desc: "Clásico de la clase media. Aguanta todo." },
+  { id: "Civik", name: "Hondo Civik", style: "Sedan", price: 22000, max: 82, seats: 4, desc: "Confiable y rápido. Ideal para Periférico." },
+  { id: "Hilox", name: "Toyoda Hilox", style: "Pickup", price: 25000, max: 70, seats: 2, desc: "Pickup indestructible para la chamba pesada." },
+  { id: "Lobo", name: "Forb Lobo", style: "Pickup", price: 30000, max: 76, seats: 2, desc: "La troca norteña que también conquistó la capital." },
+  { id: "Suburbia", name: "Chebrolet Suburbia", style: "SUV", price: 45000, max: 75, seats: 4, desc: "Camionetota negra. Te abren paso en Polanco." },
+  { id: "Serie3", name: "BMV Serie 3", style: "Sedan", price: 70000, max: 95, seats: 4, desc: "Lujo alemán para llegar a Masaryk con estilo." },
+  { id: "ClaseC", name: "Merceditas Clase C", style: "Sedan", price: 85000, max: 95, seats: 4, desc: "Elegancia de la estrella... de parodia." },
+  { id: "Uracan", name: "Lamborjini Uracán", style: "Sport", price: 250000, max: 130, seats: 1, desc: "Para presumir en Reforma un domingo." },
+  { id: "FT150", name: "Itáliko FT-150", style: "Moto", price: 3500, max: 75, seats: 1, desc: "La moto de los repartidores." },
+];
+const WEAPONS = {
+  Macana: { name: "Macana", type: "melee", dmg: 15, range: 9, cd: 0.7, color: 0x191919 },
+  Bat: { name: "Bat de béisbol", type: "melee", dmg: 20, range: 9, cd: 0.9, color: 0x96693c },
+  Taser: { name: "Taser", type: "taser", range: 35, cd: 2.5, mag: 2, reload: 2, stun: 4, color: 0xf0c81e },
+  Pistola: { name: "Pistola 9 mm", type: "gun", dmg: 22, range: 150, cd: 0.25, mag: 15, reload: 1.6, color: 0x232326 },
+  Revolver: { name: "Revólver .38", type: "gun", dmg: 40, range: 150, cd: 0.6, mag: 6, reload: 2.4, color: 0x96969b },
+  Escopeta: { name: "Escopeta de bomba", type: "gun", dmg: 12, pellets: 7, range: 60, cd: 0.95, mag: 6, reload: 3, color: 0x5a3c23 },
+  Subfusil: { name: "Subfusil", type: "gun", dmg: 14, range: 130, cd: 0.09, auto: true, mag: 30, reload: 2, color: 0x28282d },
+  RifleSSC: { name: "Rifle de asalto SSC", type: "gun", dmg: 24, range: 200, cd: 0.12, auto: true, mag: 30, reload: 2.2, color: 0x1e231e },
+  Rifle: { name: "Rifle de asalto", type: "gun", dmg: 24, range: 200, cd: 0.12, auto: true, mag: 30, reload: 2.4, color: 0x463728 },
+};
+const WSHOPS = {
+  Armeria: { name: "Armería del Centro", items: [["Bat", 150], ["Pistola", 800], ["Revolver", 1200], ["Escopeta", 2500]] },
+  Tianguis: { name: "El Tuerto · mercado negro", job: "Ladron", items: [["Pistola", 600], ["Subfusil", 4500], ["Rifle", 9000]] },
+  SSC: { name: "Armería de la SSC", job: "Policia", items: [["Macana", 0], ["Taser", 0], ["Pistola", 0], ["RifleSSC", 0]] },
+};
+const SAFE_ZONES = [{ x: 0, z: 20, r: 95 }, { x: 160, z: 400, r: 60 }, { x: 620, z: -690, r: 95 }];
+const isSafe = (x, z) => SAFE_ZONES.some(s => Math.hypot(x - s.x, z - s.z) < s.r);
+
+const STORY_NPCS = {
+  Lupe: { name: "Doña Lupe", x: -90, z: 152, fx: -60, fz: 152, shirt: 0xc82846, pants: 0x28283c, skin: 0xaa7855 },
+  Profe: { name: "El Profe", x: -56, z: -46, fx: -56, fz: 0, shirt: 0x786446, pants: 0x463c32, skin: 0x96694b },
+  Chino: { name: "El Chino", x: 16, z: 822, fx: 0, fz: 800, shirt: 0x1e1e23, pants: 0x284678, skin: 0xbe9169 },
+  Ramirez: { name: "Comandante Ramírez", x: 395, z: 145, fx: 395, fz: 200, shirt: 0x14286e, pants: 0x141928, skin: 0xa07350 },
+  Tuerto: { name: "El Tuerto", x: 445, z: 548, fx: 445, fz: 600, shirt: 0x641e1e, pants: 0x1e1e1e, skin: 0x8c6446 },
+};
+const IDLE_LINES = {
+  Lupe: ["¿Unos taquitos, mijo? El pastor está recién salido del trompo."], Profe: ["Lleve sus chicles, sus chicles de a cinco..."],
+  Chino: ["¿Qué onda, carnal? Aquí andamos."], Ramirez: ["Circule, ciudadano."], Tuerto: ["Yo no vi nada, yo no sé nada."],
+};
+const GROUPS = {
+  Bodega: [[505, 455, "Pistola"], [535, 458, "Pistola"], [512, 485, "Escopeta"], [530, 490, "Pistola"]],
+  Mansion: [[-985, -425, "Subfusil"], [-935, -425, "Subfusil"], [-990, -455, "Pistola"], [-930, -455, "Pistola"], [-960, -470, "Escopeta"], [-960, -455, "Rifle", "El Patrón", 450]],
+};
+const CHAPTERS = [
+  { title: "Recién llegado", reward: 200, steps: [
+    { t: "talk", npc: "Lupe", lines: ["¡Ándale, mijo! ¿Recién bajadito del camión? Se te ve en la cara.", "Aquí en la CDMX nadie regala nada, pero yo te echo la mano.", "Mis repartidores no llegaron. Llévame estas tres órdenes de pastor, ¡y que no se enfríen!"] },
+    { t: "route", r: 14, pts: [[0, -92, "Entrega la orden en la Catedral (1/3)"], [-180, -100, "Entrega la orden en la Torre Latino (2/3)"], [-330, -88, "Entrega la orden en Bellas Artes (3/3)"]] },
+    { t: "talk", npc: "Lupe", lines: ["¡Eres rapidísimo! Toma, tu primera lana honrada.", "Para moverte vas a necesitar conocer la ciudad. Búscate al Profe en el Metro Zócalo."] },
+  ] },
+  { title: "Conociendo la ciudad", reward: 250, steps: [
+    { t: "talk", npc: "Profe", lines: ["Buenas, joven. Treinta años vendiendo chicles en el Metro: conozco esta ciudad como mi bolsillo.", "El que no conoce la ciudad, se la come la ciudad.", "Ve al Ángel, sube al Castillo de Chapultepec y remata en Coyoacán. Usa el Metro: sale en cinco pesos."] },
+    { t: "goto", x: -880, z: -200, r: 35, label: "Visita el Ángel de la Independencia" },
+    { t: "goto", x: -1170, z: -330, r: 45, label: "Sube al Castillo de Chapultepec" },
+    { t: "goto", x: 0, z: 800, r: 30, label: "Llega al Jardín Hidalgo, en Coyoacán" },
+    { t: "talk", npc: "Chino", lines: ["Quiubo. Tú has de ser el nuevo del que habla Doña Lupe.", "Yo soy El Chino. Aquí en Coyoacán todos me conocen."] },
+  ] },
+  { title: "La banda del barrio", reward: 300, steps: [
+    { t: "talk", npc: "Chino", lines: ["En esta ciudad sin carro no eres nadie, carnal.", "Renta un Vochito junto al Palacio Nacional o cómprate algo en la Agencia Reforma.", "Luego ven manejando a Coyoacán y nos damos la vuelta."] },
+    { t: "goto", x: 0, z: 640, r: 30, vehicle: true, label: "Consigue un carro y llega manejando a Coyoacán" },
+    { t: "talk", npc: "Chino", lines: ["¡Así me gusta! Ya andas sobre ruedas.", "Oye... a Doña Lupe la andan extorsionando unos tipos: Los Tlacuaches.", "Le cobran \"piso\" cada semana. Ve a verla, anda bien espantada."] },
+  ] },
+  { title: "Cobro de piso", reward: 800, steps: [
+    { t: "choice", npc: "Lupe", lines: ["Ay, mijo... vinieron otra vez. Si no pago cinco mil pesos el viernes, me queman el local.", "Treinta años con esta taquería. ¿Qué hago?"],
+      options: [["Vamos a la policía. Esto se arregla por la buena.", "Honrado"], ["Déjelo en mis manos. El Chino y yo nos encargamos.", "Chueco"]] },
+    { path: "Honrado", t: "talk", npc: "Ramirez", lines: ["¿Los Tlacuaches? Llevamos meses tras ellos y nadie se atreve a denunciar.", "Si de verdad quieres ayudar, date de alta como policía.", "Tu equipo está en la armería de la SSC, aquí junto a la entrada."] },
+    { path: "Honrado", t: "job", job: "Policia", label: "Date de alta como policía en la bolsa de trabajo [J]" },
+    { path: "Chueco", t: "talk", npc: "Chino", lines: ["Así se habla. Pero sin fierro no hacemos nada.", "Ve con El Tuerto, en el tianguis de la Doctores. Dile que vas de mi parte.", "Y date de alta como ratero: esto no es chamba de oficina."] },
+    { path: "Chueco", t: "job", job: "Ladron", label: "Hazte ratero en la bolsa de trabajo [J]" },
+    { path: "Chueco", t: "talk", npc: "Tuerto", lines: ["¿De parte del Chino? Pásale, pásale.", "Aquí tengo de todo, nomás que no se te ocurra decir dónde lo conseguiste."] },
+    { t: "goto", x: 520, z: 470, r: 45, label: "Llega a la bodega de Los Tlacuaches (Colonia Doctores)" },
+    { t: "defeat", group: "Bodega", label: "Vence a Los Tlacuaches de la bodega" },
+    { path: "Honrado", t: "talk", npc: "Ramirez", lines: ["Buen trabajo, oficial. Entre las cajas encontramos libretas con todos los cobros.", "El que manda es un tal El Patrón. Vive en una mansión en Polanco."] },
+    { path: "Chueco", t: "talk", npc: "Chino", lines: ["¡Te rifaste, carnal! Y mira lo que había: la lana de todas las taquerías del Centro.", "Y una dirección en Polanco. Ahí vive el que manda: El Patrón."] },
+  ] },
+  { title: "El Patrón", reward: 3000, steps: [
+    { t: "goto", x: -960, z: -440, r: 60, label: "Ve a la mansión de El Patrón, en Polanco" },
+    { t: "defeat", group: "Mansion", label: "Derrota a El Patrón y a sus guardias" },
+    { path: "Honrado", t: "talk", npc: "Lupe", title: "Héroe del barrio", lines: ["¡Saliste en las noticias, mijo! El Patrón ya está en el Reclusorio.", "El barrio respira otra vez. Eres un héroe... y aquí siempre tendrás tacos gratis."] },
+    { path: "Chueco", t: "talk", npc: "Lupe", title: "Leyenda de la calle", lines: ["No sé qué hiciste... y no quiero saber.", "Pero ya nadie nos cobra piso. Gracias, mijo. Cuídate mucho, ¿eh?"] },
+  ] },
+];
+const ADDRESSES = [["Depto. en la Roma", -560, 420], ["Oficina en Reforma", -620, -240], ["Casa en Coyoacán", 120, 700], ["Hospital General", 200, 360],
+  ["Torre en Polanco", -850, -480], ["Base de taxis", 200, 520], ["Condesa", -420, 330], ["Colonia Doctores", 400, 520]];
+const BUS_ROUTE = [["Zócalo", 240, -188], ["Eje Central", -215, -188], ["Bellas Artes", -330, -188], ["Insurgentes", -670, -188], ["El Ángel", -830, -188],
+  ["Chapultepec", -1030, -188], ["El Ángel (regreso)", -930, -212], ["Insurgentes (regreso)", -730, -212], ["Bellas Artes (regreso)", -360, -212], ["Zócalo (regreso)", 220, -212]];
+const PARKING = [[215, -20, 0], [-560, -210, Math.PI / 2], [-692, 380, 0], [40, 620, Math.PI / 2], [-860, -540, Math.PI / 2], [-1020, -200, Math.PI / 2], [268, 450, 0], [-232, 100, 0]];
+
+// ---- Estado persistente
+const SS = store.get("story", { ch: 1, step: 0, sub: 0, path: null, title: null });
+const GARAGE = store.get("garage", []);
+const INV = { list: store.get("inv", []), ammo: {}, cur: -1, lastFire: -9, reloadUntil: 0, held: false };
+const saveStory = () => store.set("story", SS);
+let side = null; // misión de trabajo
+let group = null; // enemigos activos
+const enemies = [];
+const storyNpcModels = {};
+
+// ---- Carrocerías
+function makeCar(def, kind) {
+  const st = STYLES[def.style || "Sedan"], g = new THREE.Group();
+  const { L, W, H } = st, bodyTop = 1.2 + H, accent = def.accent === undefined ? 0xe6e6e6 : def.accent;
+  const basic = (c) => new THREE.MeshBasicMaterial({ color: c });
+  if (st.moto) blk(g, 1.4, 1, L - 1, 0, 0.6, 0, 0x232323); else blk(g, W - 1, 1.2, L - 1, 0, 0.6, 0, 0x232323);
+  blk(g, W, H, L, 0, 1.2 + H / 2, 0, def.color);
+  for (const x of st.moto ? [0] : [-(W / 2 - 1.2), W / 2 - 1.2]) {
+    const f = new THREE.Mesh(BOXG, basic(0xfffadc)); f.scale.set(1.4, 0.8, 0.3); f.position.set(x, 1.2 + H * 0.6, -L / 2 - 0.1); g.add(f);
+    const r = new THREE.Mesh(BOXG, basic(0xc81414)); r.scale.set(1.4, 0.8, 0.3); r.position.set(x, 1.2 + H * 0.6, L / 2 + 0.1); g.add(r);
+  }
+  const wg = new THREE.CylinderGeometry(st.wheel / 2, st.wheel / 2, st.moto ? 0.6 : 1.2, 14);
+  const wz = st.moto ? L / 2 - 0.8 : L / 2 - 2.8;
+  const zs = def.style === "Bus" ? [-wz, -wz + 4, wz] : [-wz, wz];
+  for (const x of st.moto ? [0] : [-(W / 2 - 0.4), W / 2 - 0.4]) for (const z of zs) {
+    const w = new THREE.Mesh(wg, lam(0x141414)); w.rotation.z = Math.PI / 2; w.position.set(x, st.wheel / 2, z); g.add(w);
+  }
+  g.userData.sirens = [];
+  if (st.moto) {
+    blk(g, 2.4, 0.3, 0.3, 0, bodyTop + 1.2, -L / 2 + 1, 0x1e1e1e);
+  } else {
+    const r = st.roof, roofY = bodyTop + r.H, front = r.Z - r.L / 2 + 0.3, back = r.Z + r.L / 2 - 0.3;
+    blk(g, W - 0.4, 0.4, r.L, 0, roofY + 0.2, r.Z, accent);
+    for (const x of [-(W / 2 - 0.4), W / 2 - 0.4]) for (const z of [front, back]) blk(g, 0.4, r.H, 0.4, x, bodyTop + r.H / 2, z, accent);
+    const glass = new THREE.Mesh(BOXG, new THREE.MeshLambertMaterial({ color: 0x9fd0ec, transparent: true, opacity: 0.45 }));
+    glass.scale.set(W - 1.2, r.H * 0.85, 0.2); glass.position.set(0, bodyTop + r.H / 2, front); g.add(glass);
+    if (st.bed) { blk(g, 0.4, 1.4, L / 2 - 1, -(W / 2 - 0.2), bodyTop + 0.7, L / 4 + 0.5, def.color); blk(g, 0.4, 1.4, L / 2 - 1, W / 2 - 0.2, bodyTop + 0.7, L / 4 + 0.5, def.color); blk(g, W, 1.4, 0.4, 0, bodyTop + 0.7, L / 2 - 0.2, def.color); }
+    if (kind === "Taxi") { const s = new THREE.Mesh(BOXG, basic(0xffffff)); s.scale.set(3, 1, 1.4); s.position.set(0, roofY + 0.9, r.Z); g.add(s); }
+    else if (def.siren) {
+      const a = new THREE.Mesh(BOXG, basic(0xff1e1e)); a.scale.set(2.4, 0.6, 1.2); a.position.set(-1.3, roofY + 0.7, r.Z - 0.6); g.add(a);
+      const b = new THREE.Mesh(BOXG, basic(kind === "Patrulla" ? 0x1e50ff : 0xffffff)); b.scale.set(2.4, 0.6, 1.2); b.position.set(1.3, roofY + 0.7, r.Z - 0.6); g.add(b);
+      g.userData.sirens = [a, b];
+    }
+  }
+  g.userData.radius = st.moto ? 2.5 : Math.min(6.5, W / 2 + 1.2);
+  return g;
+}
+function carOf(id, paint) {
+  const c = CATALOG.find(c => c.id === id), p = PAINTS[(paint || 1) - 1] || PAINTS[0];
+  return { name: c.name, style: c.style, max: c.max, color: p[1], accent: new THREE.Color(p[1]).lerp(new THREE.Color(0xffffff), 0.15).getHex() };
+}
+
+// ---- Mapa extra (mismas posiciones que MapBuilder.luau)
+function buildExpansion() {
+  POI.weaponShops = [];
+  box(-560, 10, -290, 80, 20, 40, 0xebebf0, { collide: true });
+  box(-560, 8, -269.7, 70, 14, 0.4, C.Glass);
+  label("AGENCIA REFORMA · AUTOS", -560, 23, -268, { bg: "#141419", color: "#f0c83c", size: 4.5, max: 420 });
+  box(-560, 2, -264, 10, 4, 3, 0xf0c83c, { collide: true });
+  box(-560, 0.5, -247, 90, 0.2, 45, 0x3c3c42);
+  [["Tsuro", 5], ["Jeta", 4], ["Lobo", 6], ["Uracan", 10]].forEach(([id, p], i) => {
+    const g = makeCar(carOf(id, p)); const x = -590 + i * 20;
+    g.position.set(x, 0.6, -245); g.rotation.y = Math.PI / 2; scene.add(g); addRect(x, -245, 15, 8, Math.PI / 2, 5);
+  });
+  POI.dealer = { x: -560, z: -258 };
+  reserve(-560, -268, 92, 90);
+
+  box(-120, 7, -300, 30, 14, 24, 0x464b46, { collide: true });
+  label("ARMERÍA DEL CENTRO", -120, 16, -287, { bg: "#1e1e1e", color: "#e63c32", size: 3.6, max: 300 });
+  box(-120, 2, -286, 14, 4, 3, 0x6e5032, { collide: true });
+  POI.weaponShops.push({ shop: "Armeria", x: -120, z: -281 });
+  reserve(-120, -295, 36, 36);
+
+  box(410, 3, 142, 4, 6, 3, 0x14286e, { collide: true });
+  label("Armería SSC", 410, 8.5, 142, { color: "#9cb8ff", size: 2.4, max: 90 });
+  POI.weaponShops.push({ shop: "SSC", x: 410, z: 147 });
+
+  const tarps = [C.Pink, 0xf0781a, 0x2878c8, 0xdcc828, 0x783ca0, 0x28965a];
+  for (let i = 0; i < 6; i++) {
+    const x = 420 + (i % 3) * 25, z = 565 + Math.floor(i / 3) * 18;
+    box(x, 1.5, z, 10, 3, 5, 0x785a3c, { collide: true }); box(x, 9, z, 14, 0.3, 10, tarps[i]);
+    vcyl(x - 6, 4.5, z, 9, 0.4, 0x3c3c3c); vcyl(x + 6, 4.5, z, 9, 0.4, 0x3c3c3c);
+  }
+  box(445, 1.5, 540, 8, 3, 4, 0x322823, { collide: true }); box(445, 9, 540, 12, 0.3, 8, 0x191919);
+  label("Tianguis de la Doctores", 445, 14, 540, { color: "#ffdc78", size: 3.2, max: 200 });
+  POI.weaponShops.push({ shop: "Tianguis", x: 445, z: 545 });
+  reserve(445, 565, 80, 65);
+
+  const wc = 0x78736a;
+  box(520, 0.15, 470, 60, 0.3, 50, 0x5a5a5c);
+  box(520, 9, 445, 60, 18, 2, wc, { collide: true }); box(520, 9, 495, 60, 18, 2, wc, { collide: true }); box(550, 9, 470, 2, 18, 50, wc, { collide: true });
+  box(490, 9, 452.5, 2, 18, 15, wc, { collide: true }); box(490, 9, 487.5, 2, 18, 15, wc, { collide: true });
+  for (const [x, z] of [[515, 465], [528, 476], [542, 468], [503, 474]]) box(x, 2.5, z, 5, 5, 5, 0x966e41, { collide: true });
+  label("BODEGA 13", 520, 22, 470, { color: "#eee", size: 4, max: 300 });
+  reserve(520, 470, 70, 60);
+
+  const mw = 0xe6e1d2;
+  box(-960, 0.15, -440, 80, 0.3, 70, C.Grass);
+  box(-1000, 5, -440, 2, 10, 70, mw, { collide: true }); box(-920, 5, -440, 2, 10, 70, mw, { collide: true });
+  box(-984, 5, -405, 32, 10, 2, mw, { collide: true }); box(-936, 5, -405, 32, 10, 2, mw, { collide: true });
+  box(-960, 13, -490, 60, 26, 22, C.Marble, { collide: true }); box(-960, 14, -478.8, 50, 12, 0.4, C.Glass);
+  vcyl(-960, 1, -432, 2, 12, 0x50a0dc, true);
+  for (const [x, z] of [[-975, -440], [-945, -440], [-960, -415]]) box(x, 1.5, z, 8, 3, 3, 0x96826e, { collide: true });
+  label("Mansión de El Patrón", -960, 34, -490, { color: "#ff7878", size: 5, max: 500 });
+  reserve(-960, -455, 90, 105);
+
+  garage("Reparto", "Motos de reparto", 0xeb6e1e, -60, 205, -60, 222);
+  garage("Micro", "Base de micros · Ruta 2", 0x46965a, 300, -100, 305, -130);
+  reserve(-60, 214, 26, 34); reserve(305, -120, 26, 50);
+  for (const k in STORY_NPCS) reserve(STORY_NPCS[k].x, STORY_NPCS[k].z, 16, 16);
+  for (const a of ADDRESSES) reserve(a[1], a[2], 18, 18);
+}
+
+// ---- Personajes de la historia
+function spawnStoryNpcs() {
+  for (const id in STORY_NPCS) {
+    const d = STORY_NPCS[id];
+    const g = makeAvatar(d.shirt, d.pants, d.skin);
+    g.position.set(d.x, 0.3, d.z); g.rotation.y = Math.atan2(-(d.fx - d.x), -(d.fz - d.z));
+    scene.add(g);
+    const nameTag = label(d.name, d.x, 7.6, d.z, { size: 1.6, max: 70 });
+    const bang = label("!", d.x, 10, d.z, { color: "#f0c83c", size: 3.4, max: 400 });
+    labels.splice(labels.findIndex(l => l.sprite === bang), 1); // su visibilidad la controla la historia
+    bang.visible = false;
+    storyNpcModels[id] = { g, bang, nameTag };
+    addRect(d.x, d.z, 2.2, 2.2, 0, 6);
+  }
+}
+
+// ---- Diálogos
+const dlg = { el: null, data: null, i: 0 };
+function openDialog(name, lines, options, onDone) {
+  closeModal();
+  dlg.data = { name, lines, options, onDone }; dlg.i = 0;
+  $("dName").textContent = name; $("dialog").hidden = false; showLine();
+}
+function showLine() {
+  const d = dlg.data; $("dText").textContent = d.lines[dlg.i];
+  const last = dlg.i >= d.lines.length - 1, opts = $("dOpts"); opts.innerHTML = "";
+  if (last && d.options) {
+    $("dNext").hidden = true;
+    d.options.forEach((o, k) => {
+      const b = document.createElement("button"); b.className = "opt " + (k === 0 ? "good" : "bad"); b.textContent = o[0];
+      b.addEventListener("click", () => finishDialog(k)); opts.appendChild(b);
+    });
+  } else { $("dNext").hidden = false; $("dNext").textContent = last ? "Cerrar [E]" : "Siguiente ▶ [E]"; }
+}
+function nextLine() {
+  if (!dlg.data) return;
+  if (dlg.i >= dlg.data.lines.length - 1) { if (!dlg.data.options) finishDialog(null); return; }
+  dlg.i++; showLine();
+}
+function finishDialog(choice) { const d = dlg.data; dlg.data = null; $("dialog").hidden = true; if (d.onDone) d.onDone(choice); }
+$("dNext").addEventListener("click", nextLine);
+
+// ---- Historia
+function curStep() {
+  for (;;) {
+    const ch = CHAPTERS[SS.ch - 1];
+    if (!ch) return null;
+    const st = ch.steps[SS.step];
+    if (!st) {
+      addMoney(ch.reward);
+      notify("✔ Capítulo " + SS.ch + " completado: " + ch.title + ". +$" + ch.reward, "money");
+      SS.ch++; SS.step = 0; SS.sub = 0; saveStory();
+      if (CHAPTERS[SS.ch - 1]) notify("Capítulo " + SS.ch + ": " + CHAPTERS[SS.ch - 1].title, "good");
+      continue;
+    }
+    if (st.path && st.path !== SS.path) { SS.step++; continue; }
+    return st;
+  }
+}
+function advanceStory() { SS.step++; SS.sub = 0; saveStory(); }
+function groupCenter(name) { const g = GROUPS[name]; return { x: g.reduce((a, e) => a + e[0], 0) / g.length, z: g.reduce((a, e) => a + e[1], 0) / g.length }; }
+function storyObjective() {
+  const st = curStep();
+  if (!st) return { title: "Historia completada", label: "Título: " + (SS.title || "—") + ". ¡Gracias por jugar!" };
+  const o = { title: "Capítulo " + SS.ch + " · " + CHAPTERS[SS.ch - 1].title };
+  if (st.t === "talk" || st.t === "choice") { const n = STORY_NPCS[st.npc]; o.label = "Habla con " + n.name; o.target = n; o.npc = st.npc; }
+  else if (st.t === "goto") { o.label = st.label; o.target = st; }
+  else if (st.t === "route") { const p = st.pts[SS.sub]; o.label = p[2]; o.target = { x: p[0], z: p[1] }; }
+  else if (st.t === "job") o.label = st.label;
+  else if (st.t === "defeat") {
+    const left = group && group.name === st.group ? group.list.filter(e => e.hp > 0).length : GROUPS[st.group].length;
+    o.label = st.label + " (quedan " + left + ")"; o.target = groupCenter(st.group);
+  }
+  return o;
+}
+function talkTo(id) {
+  const st = curStep(), n = STORY_NPCS[id];
+  if (st && (st.t === "talk" || st.t === "choice") && st.npc === id) {
+    openDialog(n.name, st.lines, st.t === "choice" ? st.options : null, (choice) => {
+      if (st.t === "choice") { if (choice === null) return; SS.path = st.options[choice][1]; notify(SS.path === "Honrado" ? "Elegiste el camino honrado." : "Elegiste el camino chueco."); }
+      if (st.title) { SS.title = st.title; notify("🏆 Nuevo título: " + st.title, "money"); }
+      advanceStory();
+    });
+  } else openDialog(n.name, [pick(IDLE_LINES[id])], null, null);
+}
+function updateStory() {
+  const st = curStep();
+  if (!st) return;
+  const near = (x, z, r) => Math.hypot(player.x - x, player.z - z) < r;
+  if (st.t === "goto" && near(st.x, st.z, st.r) && (!st.vehicle || player.car)) advanceStory();
+  else if (st.t === "route") {
+    const p = st.pts[SS.sub];
+    if (near(p[0], p[1], st.r)) { if (SS.sub >= st.pts.length - 1) advanceStory(); else { SS.sub++; saveStory(); notify("¡Entregado!", "good"); } }
+  } else if (st.t === "job" && S.job === st.job) advanceStory();
+  else if (st.t === "defeat") {
+    if (!group || group.name !== st.group) { const c = groupCenter(st.group); if (near(c.x, c.z, 150)) spawnGroup(st.group); }
+    else if (group.list.every(e => e.hp <= 0)) { clearGroup(); notify("¡Zona despejada!", "good"); advanceStory(); }
+  }
+}
+
+// ---- Enemigos
+function spawnGroup(name) {
+  clearGroup();
+  group = { name, list: [] };
+  for (const [x, z, w, bossName, hp] of GROUPS[name]) {
+    const boss = !!bossName;
+    const g = makeAvatar(boss ? 0xf0f0eb : 0x3c1419, boss ? 0xf0f0eb : 0x19191e);
+    const gun = new THREE.Mesh(BOXG, lam(WEAPONS[w].color)); gun.scale.set(0.4, 0.5, 2.4); gun.position.set(0, -2, -1); g.userData.armR.add(gun);
+    g.userData.armR.rotation.x = -1.4;
+    g.position.set(x, 0.3, z); scene.add(g);
+    const tag = label(boss ? bossName : "Tlacuache", x, 7.5, z, { color: boss ? "#ff7878" : "#ffb4b4", size: 1.8, max: 160 });
+    const e = { g, tag, x, z, hp: hp || 100, max: hp || 100, def: WEAPONS[w], last: S.time + Math.random() * 1.5, boss, stun: 0, home: { x, z } };
+    group.list.push(e); enemies.push(e);
+  }
+  notify("⚠ ¡Te descubrieron! Equipa tu arma con [Q] y dispara con [F] o clic.", "alert");
+}
+function clearGroup() {
+  if (!group) return;
+  for (const e of group.list) { scene.remove(e.g); scene.remove(e.tag); const i = enemies.indexOf(e); if (i >= 0) enemies.splice(i, 1); }
+  group = null;
+}
+function hurtPlayer(d) {
+  if (isSafe(player.x, player.z) || S.jailUntil) return;
+  S.hp -= d; S.lastHit = S.time;
+  const h = $("hurt"); h.classList.add("on"); setTimeout(() => h.classList.remove("on"), 120);
+}
+function updateEnemies(dt) {
+  for (const e of enemies) {
+    if (e.hp <= 0) continue;
+    const dx = player.x - e.x, dz = player.z - e.z, d = Math.hypot(dx, dz);
+    let speed = 0;
+    if (S.time > e.stun) {
+      if (d > 30 && d < 220) { speed = 12; e.x += dx / d * speed * dt; e.z += dz / d * speed * dt; collide(e, 1.4, 0.3); }
+      e.g.rotation.y = Math.atan2(-dx, -dz);
+      if (d < 90 && S.time - e.last > Math.max(0.8, e.def.cd * 6)) {
+        e.last = S.time;
+        const from = new THREE.Vector3(e.x, 4, e.z), hit = Math.random() < (player.car ? 0.25 : 0.4);
+        tracer(from, new THREE.Vector3(player.x + (hit ? 0 : rr(-4, 4)), player.y + 3, player.z + (hit ? 0 : rr(-4, 4))), 0xff8a5a);
+        if (hit) hurtPlayer((e.def.dmg || 10) * (e.def.pellets ? 3 : 1) * (e.boss ? 0.45 : 0.3));
+      }
+    }
+    e.g.position.set(e.x, 0.3, e.z);
+    e.tag.position.set(e.x, 7.5, e.z);
+    animateAvatar(e.g, speed, dt);
+  }
+}
+
+// ---- Armas del jugador
+const tracers = [];
+function tracer(a, b, color) {
+  const geo = new THREE.BufferGeometry().setFromPoints([a, b]);
+  const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color }));
+  scene.add(line); tracers.push({ line, t: 0.07 });
+}
+function giveWeapon(id) {
+  if (!INV.list.includes(id)) { INV.list.push(id); store.set("inv", INV.list); }
+  INV.ammo[id] = WEAPONS[id].mag;
+  INV.cur = INV.list.indexOf(id); equipVisual();
+}
+function curWeapon() { return INV.cur >= 0 ? INV.list[INV.cur] : null; }
+let handGun = null;
+function equipVisual() {
+  if (!avatar) return;
+  if (handGun) { avatar.userData.armR.remove(handGun); handGun = null; }
+  const id = curWeapon();
+  avatar.userData.armR.rotation.x = 0;
+  if (id) { handGun = new THREE.Mesh(BOXG, lam(WEAPONS[id].color)); handGun.scale.set(0.4, 0.5, WEAPONS[id].type === "melee" ? 3 : 2); handGun.position.set(0, -2, -0.8); avatar.userData.armR.add(handGun); }
+}
+function cycleWeapon() {
+  if (!INV.list.length) return notify("No traes armas. Cómpralas en la Armería del Centro (al sur de Reforma).");
+  INV.cur = INV.cur + 1 >= INV.list.length ? -1 : INV.cur + 1;
+  equipVisual();
+  notify(INV.cur < 0 ? "Guardaste el arma." : "Equipaste: " + WEAPONS[curWeapon()].name);
+}
+function reloadWeapon() {
+  const id = curWeapon(); if (!id || !WEAPONS[id].mag || INV.reloadUntil > S.time) return;
+  INV.reloadUntil = S.time + WEAPONS[id].reload;
+  setTimeout(() => { INV.ammo[id] = WEAPONS[id].mag; }, WEAPONS[id].reload * 1000);
+}
+function fire() {
+  const id = curWeapon();
+  if (!id || !S.playing || dlg.data || !modal.hidden || player.car || S.jailUntil) return false;
+  const w = WEAPONS[id];
+  if (S.time - INV.lastFire < w.cd || INV.reloadUntil > S.time) return false;
+  if (w.mag) {
+    if (INV.ammo[id] === undefined) INV.ammo[id] = w.mag;
+    if (INV.ammo[id] <= 0) { reloadWeapon(); return false; }
+    INV.ammo[id]--;
+  }
+  INV.lastFire = S.time;
+  if (isSafe(player.x, player.z)) { notify("Zona segura: aquí no se permiten peleas."); return false; }
+  // Autoapuntado: el enemigo más cercano al frente
+  const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
+  const range = w.type === "melee" ? w.range : w.range;
+  let best = null, bestScore = 1e9;
+  for (const e of enemies) {
+    if (e.hp <= 0) continue;
+    const dx = e.x - player.x, dz = e.z - player.z, d = Math.hypot(dx, dz);
+    if (d > range) continue;
+    const dot = (dx * fx + dz * fz) / (d || 1);
+    if (dot < (w.type === "melee" ? 0.3 : 0.55)) continue;
+    const score = d * (2 - dot);
+    if (score < bestScore) { best = e; bestScore = score; }
+  }
+  const from = new THREE.Vector3(player.x - fz * 1.5, player.y + 3.6, player.z + fx * 1.5);
+  if (!best) {
+    if (w.type !== "melee") tracer(from, new THREE.Vector3(player.x + fx * 60, player.y + 3.6, player.z + fz * 60), w.type === "taser" ? 0x78c8ff : 0xffdc78);
+    return true;
+  }
+  const d = Math.hypot(best.x - player.x, best.z - player.z);
+  const to = new THREE.Vector3(best.x, 3.5, best.z);
+  if (w.type === "taser") { tracer(from, to, 0x78c8ff); best.stun = S.time + w.stun; return true; }
+  if (w.type !== "melee") tracer(from, to, 0xffdc78);
+  let dmg = 0;
+  const shots = w.pellets || 1, chance = clamp(1 - d / w.range * 0.55, 0.4, 0.97);
+  for (let i = 0; i < shots; i++) if (w.type === "melee" || Math.random() < chance) dmg += w.dmg;
+  if (dmg > 0) {
+    best.hp -= dmg;
+    if (best.hp <= 0) {
+      best.g.rotation.z = Math.PI / 2; best.g.position.y = 1; best.tag.visible = false;
+      const b = best; setTimeout(() => { scene.remove(b.g); scene.remove(b.tag); }, 2500);
+      if (best.boss) notify("¡Venciste a El Patrón!", "money");
+    }
+  }
+  return true;
+}
+
+// ---- Tiendas, agencia, teléfono
+function showWeaponShop(poi) {
+  const shop = WSHOPS[poi.shop];
+  if (shop.job && S.job !== shop.job) return notify(poi.shop === "SSC" ? "Solo personal de la SSC." : "El Tuerto te mira raro: \"Yo no vendo nada, joven\". (Solo rateros)", "bad");
+  openModal("wshop", shop.name, "Equipa con [Q], dispara con [F] o clic, recarga con [R].", shop.items.map(([id, price]) => {
+    const w = WEAPONS[id];
+    const sub = w.type === "gun" ? "Daño " + w.dmg + (w.pellets ? " × " + w.pellets : "") + " · cargador " + w.mag + (w.auto ? " · automática" : "") : w.type === "taser" ? "Paraliza " + w.stun + " s" : "Cuerpo a cuerpo · daño " + w.dmg;
+    return { color: "#" + w.color.toString(16).padStart(6, "0"), title: w.name, sub, btn: price ? fmt(price) : "Gratis", onClick: () => {
+      if (price && !charge(price)) return notify("No te alcanza. Cuesta " + fmt(price) + ".", "bad");
+      giveWeapon(id); notify((price ? "Compraste " : "Recibiste ") + w.name + ". Ya la traes en la mano.", "good");
+    } };
+  }));
+}
+function showDealer() {
+  openModal("dealer", "Agencia Reforma · Autos", "Elige un modelo y luego el color. Tu auto se guarda en tu teléfono.", CATALOG.map(c => ({
+    color: "#f0c83c", title: c.name, sub: STYLE_NAMES[c.style] + " · " + c.max + " km/h · " + c.seats + " plazas. " + c.desc, btn: fmt(c.price),
+    onClick: () => openModal("paint", c.name + " · elige color", "Precio: " + fmt(c.price), PAINTS.map((p, i) => ({
+      color: "#" + p[1].toString(16).padStart(6, "0"), title: p[0], sub: c.name, btn: "Comprar",
+      onClick: () => {
+        if (GARAGE.length >= 10) return notify("Tu garage está lleno (máximo 10 autos).", "bad");
+        if (!charge(c.price)) return notify("No te alcanza. El " + c.name + " cuesta " + fmt(c.price) + ".", "bad");
+        GARAGE.push({ id: c.id, paint: i + 1 }); store.set("garage", GARAGE); closeModal();
+        spawnOwned(GARAGE.length - 1, [-560, -210, Math.PI / 2]);
+        notify("¡Felicidades por tu " + c.name + "! Te espera afuera de la agencia.", "money");
+      },
+    }))),
+  })));
+}
+function spawnOwned(index, spot) {
+  const entry = GARAGE[index]; if (!entry) return;
+  if (!spot) { spot = PARKING[0]; let bd = 1e9; for (const p of PARKING) { const d = Math.hypot(p[0] - player.x, p[1] - player.z); if (d < bd) { bd = d; spot = p; } } }
+  const def = carOf(entry.id, entry.paint);
+  const old = cars.find(c => c.mine); if (old) { scene.remove(old.g); cars.splice(cars.indexOf(old), 1); }
+  const g3 = makeCar(def, "Propio");
+  const car = { g: g3, def, kind: "Propio", x: spot[0], z: spot[1], h: spot[2], speed: 0, mine: true };
+  g3.position.set(car.x, 0.4, car.z); g3.rotation.y = car.h; scene.add(g3); cars.push(car);
+  extraTarget = { x: spot[0], z: spot[1], label: "Tu auto" };
+}
+let extraTarget = null;
+function showPhone() {
+  if (modalKind === "phone") return closeModal();
+  const o = storyObjective();
+  const rows = [{ color: "#f0c83c", title: "Historia · " + Math.min(SS.ch, CHAPTERS.length) + "/" + CHAPTERS.length + " · " + o.title, sub: o.label + (SS.path ? " · Camino " + (SS.path === "Honrado" ? "honrado" : "chueco") : ""), btn: "OK", onClick: closeModal }];
+  if (!GARAGE.length) rows.push({ color: "#e8508f", title: "Mis autos", sub: "Todavía no tienes autos. Compra uno en la Agencia Reforma.", btn: "Ruta", onClick: () => { extraTarget = { x: -560, z: -258, label: "Agencia Reforma" }; closeModal(); } });
+  GARAGE.forEach((g, i) => { const c = CATALOG.find(c => c.id === g.id), p = PAINTS[g.paint - 1]; rows.push({ color: "#" + p[1].toString(16).padStart(6, "0"), title: c.name, sub: "Color " + p[0] + " · " + c.max + " km/h", btn: "Pedir", onClick: () => { spawnOwned(i); closeModal(); notify("Tu " + c.name + " te espera en el estacionamiento más cercano (mira el GPS)."); } }); });
+  rows.push({ color: "#b9b3c3", title: "Armas", sub: INV.list.length ? INV.list.map(id => WEAPONS[id].name).join(", ") : "Ninguna. Ve a la Armería del Centro.", btn: "OK", onClick: closeModal });
+  openModal("phone", "Teléfono", "[P] abre y cierra el teléfono.", rows);
+}
+
+// ---- Misiones de trabajo
+function updateSide() {
+  const job = S.job;
+  if (job !== "Repartidor" && job !== "Microbusero") { side = null; return; }
+  const px = player.x, pz = player.z;
+  if (job === "Repartidor") {
+    if (!side || side.kind !== "del") { const t = pick(POI.shops.filter(s => s.shop === "Taqueria")); side = { kind: "del", phase: "pick", target: t, title: "Reparto", label: "Recoge el pedido en " + t.name }; }
+    if (side.phase !== "wait" && Math.hypot(px - side.target.x, pz - side.target.z) < 16) {
+      if (side.phase === "pick") { const a = pick(ADDRESSES); side = { kind: "del", phase: "drop", from: side.target, target: { x: a[1], z: a[2] }, title: "Reparto", label: "Entrega el pedido en: " + a[0] }; notify("Pedido listo. Llévalo a " + a[0] + "."); }
+      else { const pay = 60 + Math.floor(Math.hypot(side.from.x - side.target.x, side.from.z - side.target.z) / 100) * 4; addMoney(pay); notify("¡Entregado! +$" + pay + ". Buscando el siguiente pedido...", "money"); side = { kind: "del", phase: "wait", title: "Reparto", label: "Esperando pedido..." }; setTimeout(() => { if (S.job === "Repartidor") side = null; }, 3000); }
+    }
+  } else {
+    if (!side || side.kind !== "bus") side = { kind: "bus", i: 0 };
+    const s = BUS_ROUTE[side.i];
+    side.target = { x: s[1], z: s[2] }; side.title = "Ruta 2 · Zócalo – Chapultepec"; side.label = "Siguiente parada: " + s[0] + " (maneja el micro)";
+    if (player.car && player.car.kind === "Micro" && Math.hypot(px - s[1], pz - s[2]) < 20) { addMoney(25); notify("Parada " + s[0] + ": ¡súbale, súbale! +$25", "money"); side.i = (side.i + 1) % BUS_ROUTE.length; }
+  }
+}
+
+// ---- Marcadores 3D y rastreador
+const markerMeshes = {};
+function marker(slot, color) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 300, 10, 1, true), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35, depthWrite: false }));
+  m.position.y = 150; m.visible = false; scene.add(m); markerMeshes[slot] = m;
+}
+function setTracker(slot, o) {
+  const row = $(slot === "story" ? "trStory" : "trJob");
+  const m = markerMeshes[slot];
+  if (!o) { row.hidden = true; m.visible = false; return; }
+  row.hidden = false;
+  row.querySelector("b").textContent = o.title; row.querySelector("span").textContent = o.label;
+  const dEl = row.querySelector("i");
+  if (o.target) { m.visible = true; m.position.x = o.target.x; m.position.z = o.target.z; dEl.textContent = "A " + Math.round(Math.hypot(o.target.x - player.x, o.target.z - player.z)) + " m"; }
+  else { m.visible = false; dEl.textContent = ""; }
+}
+function hudExtra() {
+  const o = storyObjective();
+  setTracker("story", o);
+  setTracker("job", side && side.label ? side : null);
+  for (const id in storyNpcModels) storyNpcModels[id].bang.visible = o.npc === id;
+  const m = markerMeshes.extra;
+  if (extraTarget) { m.visible = true; m.position.x = extraTarget.x; m.position.z = extraTarget.z; if (Math.hypot(extraTarget.x - player.x, extraTarget.z - player.z) < 15) extraTarget = null; }
+  else m.visible = false;
+  const id = curWeapon(), wEl = $("weapon");
+  if (!id) wEl.hidden = true;
+  else {
+    const w = WEAPONS[id]; wEl.hidden = false;
+    $("wName").textContent = w.name;
+    $("wAmmo").textContent = INV.reloadUntil > S.time ? "Recargando..." : w.mag ? (INV.ammo[id] === undefined ? w.mag : INV.ammo[id]) + " / " + w.mag : "Cuerpo a cuerpo";
+  }
+}
+function miniExtra(dot) {
+  const o = storyObjective();
+  if (o.target) dot(o.target.x, o.target.z, "#f0c83c", 8);
+  if (side && side.target) dot(side.target.x, side.target.z, "#f0781a", 8);
+  if (extraTarget) dot(extraTarget.x, extraTarget.z, "#78c8ff", 7);
+  for (const e of enemies) if (e.hp > 0) dot(e.x, e.z, "#ff3b3b", 4);
+}
+function extraActions(acts, near, px, pz) {
+  for (const id in STORY_NPCS) { const n = STORY_NPCS[id]; if (near(n, 8)) acts.push({ a: "Hablar", o: n.name, run: () => talkTo(id), d: -2 }); }
+  for (const s of POI.weaponShops) if (near(s, 8)) acts.push({ a: s.shop === "SSC" ? "Equiparse" : "Comprar armas", o: WSHOPS[s.shop].name, run: () => showWeaponShop(s), d: Math.hypot(s.x - px, s.z - pz) });
+  if (POI.dealer && near(POI.dealer, 10)) acts.push({ a: "Ver autos", o: "Agencia Reforma", run: showDealer, d: 0 });
+}
+function stepExpansion(dt) {
+  updateStory();
+  updateSide();
+  updateEnemies(dt);
+  if (INV.held) { const id = curWeapon(); if (id && WEAPONS[id].auto) fire(); }
+  for (let i = tracers.length - 1; i >= 0; i--) { tracers[i].t -= dt; if (tracers[i].t <= 0) { scene.remove(tracers[i].line); tracers[i].line.geometry.dispose(); tracers.splice(i, 1); } }
+}
+function initExpansion() {
+  spawnStoryNpcs();
+  marker("story", 0xf0c83c); marker("job", 0xf0781a); marker("extra", 0x78c8ff);
+}
+
+// ============================================================ ARRANQUE
+function start() {
+buildCity();
+avatar = makeAvatar(jobOf(S.job).color, 0x27466f, 0xc69c6d);
+scene.add(avatar);
+spawnPedestrians();
+spawnTraffic();
+drawBaseMap();
+setJob(S.job);
+initExpansion();
+resize();
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (S.playing) step(dt);
+  else { camYaw += dt * 0.08; S.clock = (S.clock + dt * 0.02) % 24; avatar.position.set(player.x, player.y, player.z); }
+  updateSky();
+  updateCamera(dt);
+  hudTimer -= dt; if (hudTimer <= 0) { hudTimer = 0.2; updateHud(); drawMini(); }
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+camPitch = 0.5; camDist = 70;
+requestAnimationFrame(frame);
+// Gancho para pruebas automáticas
+window.cdmxDebug = {
+  teleport(x, z) { if (player.car) { player.car.x = x; player.car.z = z; } player.x = x; player.z = z; player.y = groundY(x, z); },
+  state: () => ({ money: S.money, job: S.job, hp: Math.round(S.hp), wanted: !!S.wantedUntil, jailed: !!S.jailUntil, inCar: !!player.car, x: Math.round(player.x), z: Math.round(player.z), cars: cars.length }),
+  poi: POI,
+  story: () => ({ ...SS, objective: storyObjective(), enemies: enemies.filter(e => e.hp > 0).length }),
+  setStory(ch, step, path) { SS.ch = ch; SS.step = step; SS.sub = 0; if (path !== undefined) SS.path = path; },
+  give: (id) => giveWeapon(id),
+  addMoney: (n) => addMoney(n),
+  fire: () => fire(),
+  side: () => side,
+  setYaw(y) { player.yaw = y; },
+  killAll() { for (const e of enemies) e.hp = 0; },
+  aimNearest() {
+    let best = null, bd = 1e9;
+    for (const e of enemies) { const d = Math.hypot(e.x - player.x, e.z - player.z); if (e.hp > 0 && d < bd) { bd = d; best = e; } }
+    if (best) player.yaw = Math.atan2(-(best.x - player.x), -(best.z - player.z));
+    return best ? Math.round(bd) : null;
+  },
+};
+}
+// Espera las fuentes para que los letreros 3D usen la tipografía correcta
+const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+Promise.race([fontsReady, new Promise(r => setTimeout(r, 1500))]).then(start);
+
+$("playBtn").addEventListener("click", () => {
+  $("intro").hidden = true; $("hud").hidden = false; S.playing = true; camDist = 26; camPitch = 0.38; camYaw = 0;
+  notify("¡Bienvenido a CDMX Roleplay! Presiona [J] o TRABAJOS para elegir chamba.", "good");
+  setTimeout(() => notify("Tip: la Taquería El Güero está al suroeste del Zócalo. La vida baja con el hambre."), 2500);
+});
+})();
+</script>
