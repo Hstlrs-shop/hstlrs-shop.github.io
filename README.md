@@ -49,7 +49,22 @@ Roblox sin assets externos.
 - Los rateros asaltan cajas registradoras; la policía recibe la alerta.
 - Arresto → 60 s en el **Reclusorio**. Al salir apareces en el Zócalo.
 
-### Cómo instalarlo en Roblox Studio
+### Versión demostrable
+
+**1. Demo en el navegador (sin Roblox):** `demo/index.html` es una versión 3D de un
+jugador del mismo mapa y sistemas, con NPCs que hacen de clientes, heridos,
+pasajeros, rateros y policías. Ábrelo en cualquier navegador moderno (tiene
+controles táctiles para celular).
+
+**2. Lugar listo para Roblox Studio:** `CDMX-Roleplay.rbxlx` ya contiene todos los
+scripts. Ábrelo con doble clic en Roblox Studio y presiona **Play**; no necesitas
+Rojo. Si cambias el código, regenéralo con:
+
+```bash
+python3 tools/build_place.py
+```
+
+### Cómo instalarlo en Roblox Studio con Rojo (para desarrollar)
 
 El proyecto usa [Rojo](https://rojo.space) para sincronizar el código con Studio.
 
@@ -85,6 +100,8 @@ src/server/Vehicles.luau     Autos y cobro de taxi
 src/server/DayNight.luau     Ciclo día/noche y alumbrado
 src/client/UI.luau           Interfaz (dinero, menús, notificaciones)
 src/client/Driving.luau      Manejo de autos
+tools/build_place.py         Genera CDMX-Roleplay.rbxlx sin Rojo
+demo/index.html              Demo jugable en el navegador
 ```
 
 ### Ideas para seguir

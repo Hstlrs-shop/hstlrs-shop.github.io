@@ -1,0 +1,2469 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><Item class="Workspace" referent="RBX00000015"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="ReplicatedStorage" referent="RBX00000003"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX00000002"><Properties><string name="Name">Shared</string></Properties><Item class="ModuleScript" referent="RBX00000001"><Properties><string name="Name">Config</string><ProtectedString name="Source"><![CDATA[-- Configuración central de "CDMX Roleplay"
+-- Cambia aquí sueldos, precios, estaciones, etc.
+
+local Config = {}
+
+Config.GAME_NAME = "CDMX Roleplay"
+Config.CURRENCY = "$"
+Config.STARTING_MONEY = 500
+Config.PAYCHECK_INTERVAL = 60 -- segundos entre cada quincena (sueldo)
+Config.DATASTORE_NAME = "CDMX_RP_v1"
+Config.AUTOSAVE_INTERVAL = 120
+Config.DAY_LENGTH_MINUTES = 20 -- duración de un día completo en el juego
+Config.JOB_CHANGE_COOLDOWN = 10
+
+-- Trabajos ------------------------------------------------------------------
+-- Id: identificador interno. Team: nombre del equipo en la lista de jugadores.
+Config.Jobs = {
+	{
+		Id = "Ciudadano",
+		Name = "Ciudadano",
+		Salary = 50,
+		Color = "Medium stone grey",
+		Description = "Vive la ciudad: pasea, come tacos y usa el Metro.",
+	},
+	{
+		Id = "Policia",
+		Name = "Policía (SSC)",
+		Salary = 150,
+		Color = "Navy blue",
+		Description = "Patrulla la ciudad y arresta a los rateros buscados con tus esposas.",
+	},
+	{
+		Id = "Paramedico",
+		Name = "Paramédico (ERUM)",
+		Salary = 140,
+		Color = "Bright red",
+		Description = "Cura a los heridos con tu botiquín. Ganas un bono por cada curación.",
+	},
+	{
+		Id = "Taxista",
+		Name = "Taxista",
+		Salary = 100,
+		Color = "Hot pink",
+		Description = "Saca tu taxi rosa de la base y cobra a tus pasajeros por distancia.",
+	},
+	{
+		Id = "Taquero",
+		Name = "Taquero",
+		Salary = 110,
+		Color = "Bright orange",
+		Description = "Quédate cerca de una taquería: ganas comisión por cada orden que se venda.",
+	},
+	{
+		Id = "Vendedor",
+		Name = "Vendedor ambulante",
+		Salary = 80,
+		Color = "Bright yellow",
+		Description = "Quédate junto a un puesto: ganas comisión por cada elote, guajolota o churro vendido.",
+	},
+	{
+		Id = "Ladron",
+		Name = "Ratero",
+		Salary = 0,
+		Color = "Really black",
+		Description = "Asalta tienditas para ganar dinero... pero cuidado con la policía.",
+	},
+}
+
+-- Tiendas y productos ------------------------------------------------------
+-- Heal = vida que recupera al comerlo.
+Config.Shops = {
+	Taqueria = {
+		Name = "Taquería",
+		CommissionJob = "Taquero",
+		Items = {
+			{ Id = "Pastor", Name = "Tacos al pastor (orden)", Price = 45, Heal = 40, Color = "Bright orange" },
+			{ Id = "Suadero", Name = "Tacos de suadero", Price = 40, Heal = 35, Color = "Reddish brown" },
+			{ Id = "Quesadilla", Name = "Quesadilla (con o sin queso)", Price = 30, Heal = 25, Color = "Bright yellow" },
+			{ Id = "Horchata", Name = "Agua de horchata", Price = 20, Heal = 15, Color = "Institutional white" },
+		},
+	},
+	Puesto = {
+		Name = "Puesto callejero",
+		CommissionJob = "Vendedor",
+		Items = {
+			{ Id = "Elote", Name = "Elote con todo", Price = 30, Heal = 25, Color = "New Yeller" },
+			{ Id = "Guajolota", Name = "Guajolota (torta de tamal)", Price = 25, Heal = 30, Color = "Brick yellow" },
+			{ Id = "Churros", Name = "Churros con chocolate", Price = 35, Heal = 20, Color = "Nougat" },
+			{ Id = "Esquite", Name = "Esquites", Price = 25, Heal = 20, Color = "Pastel yellow" },
+		},
+	},
+	Tiendita = {
+		Name = "Tiendita de la esquina",
+		Items = {
+			{ Id = "Refresco", Name = "Refresco", Price = 22, Heal = 10, Color = "Bright red" },
+			{ Id = "Papitas", Name = "Papitas con chile", Price = 18, Heal = 10, Color = "Bright orange" },
+			{ Id = "Gansito", Name = "Pastelito", Price = 15, Heal = 10, Color = "Pink" },
+			{ Id = "Garrafon", Name = "Garrafón de agua", Price = 40, Heal = 35, Color = "Pastel light blue" },
+		},
+	},
+}
+
+-- Comisión que recibe el jugador con el trabajo indicado por cada venta.
+Config.SALE_COMMISSION = 10
+
+-- Metro ----------------------------------------------------------------------
+Config.METRO_FARE = 5
+
+-- Vehículos ------------------------------------------------------------------
+Config.Vehicles = {
+	Taxi = { Name = "Taxi", Job = "Taxista", Price = 0, MaxSpeed = 70, Color = Color3.fromRGB(235, 80, 150), Accent = Color3.fromRGB(245, 245, 245), Seats = 3 },
+	Patrulla = { Name = "Patrulla", Job = "Policia", Price = 0, MaxSpeed = 85, Color = Color3.fromRGB(240, 240, 245), Accent = Color3.fromRGB(20, 40, 110), Seats = 1, Siren = true },
+	Ambulancia = { Name = "Ambulancia", Job = "Paramedico", Price = 0, MaxSpeed = 80, Color = Color3.fromRGB(245, 245, 245), Accent = Color3.fromRGB(200, 30, 30), Seats = 1, Siren = true },
+	Vocho = { Name = "Vocho (renta)", Job = nil, Price = 100, MaxSpeed = 55, Color = Color3.fromRGB(80, 160, 90), Accent = Color3.fromRGB(230, 230, 230), Seats = 1 },
+}
+Config.TAXI_MIN_FARE = 15
+Config.TAXI_FARE_PER_100_STUDS = 8
+
+-- Crimen y policía ---------------------------------------------------------
+Config.ROBBERY_MIN = 150
+Config.ROBBERY_MAX = 400
+Config.ROBBERY_COOLDOWN = 90 -- por tienda
+Config.WANTED_DURATION = 180
+Config.ARREST_REWARD = 250
+Config.ARREST_RANGE = 10
+Config.JAIL_TIME = 60
+
+-- Paramédicos ----------------------------------------------------------------
+Config.HEAL_AMOUNT = 50
+Config.HEAL_REWARD = 40
+Config.HEAL_RANGE = 10
+Config.HEAL_COOLDOWN = 5
+
+function Config.GetJob(id)
+	for _, job in ipairs(Config.Jobs) do
+		if job.Id == id then
+			return job
+		end
+	end
+	return nil
+end
+
+function Config.GetItem(shopId, itemId)
+	local shop = Config.Shops[shopId]
+	if not shop then
+		return nil
+	end
+	for _, item in ipairs(shop.Items) do
+		if item.Id == itemId then
+			return item
+		end
+	end
+	return nil
+end
+
+return Config
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX0000000D"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Script" referent="RBX0000000C"><Properties><string name="Name">Server</string><ProtectedString name="Source"><![CDATA[-- CDMX Roleplay - punto de entrada del servidor.
+-- Construye la ciudad y arranca todos los sistemas.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local MapBuilder = require(script.MapBuilder)
+local Economy = require(script.Economy)
+local Jobs = require(script.Jobs)
+local Crime = require(script.Crime)
+local Shops = require(script.Shops)
+local Metro = require(script.Metro)
+local Vehicles = require(script.Vehicles)
+local DayNight = require(script.DayNight)
+
+-- Remotes ----------------------------------------------------------------
+local remotesFolder = Instance.new("Folder")
+remotesFolder.Name = "Remotes"
+local Remotes = {}
+for _, name in ipairs({ "Notify", "ChangeJob", "OpenShop", "BuyItem", "OpenMetro", "MetroTravel", "Fade" }) do
+	local r = Instance.new("RemoteEvent")
+	r.Name = name
+	r.Parent = remotesFolder
+	Remotes[name] = r
+end
+remotesFolder.Parent = ReplicatedStorage
+
+local function Notify(player, text, kind)
+	Remotes.Notify:FireClient(player, text, kind or "info")
+end
+
+-- Mundo ------------------------------------------------------------------
+local t0 = os.clock()
+local map = MapBuilder.Build()
+print(string.format("[CDMX] Ciudad construida en %.2fs", os.clock() - t0))
+
+-- Sistemas -----------------------------------------------------------------
+local ctx = {
+	Remotes = Remotes,
+	Economy = Economy,
+	Notify = Notify,
+	Map = map,
+}
+ctx.Crime = Crime
+ctx.Jobs = Jobs
+
+Economy.Init()
+Jobs.Init(ctx)
+Crime.Init(ctx)
+Shops.Init(ctx)
+Metro.Init(ctx)
+Vehicles.Init(ctx)
+DayNight.Init()
+
+Players.PlayerAdded:Connect(function(player)
+	task.wait(3)
+	if player.Parent then
+		Notify(player, "¡Bienvenido a " .. Config.GAME_NAME .. "! Presiona [J] o el botón TRABAJOS para elegir chamba.", "good")
+	end
+end)
+
+print("[CDMX] Servidor listo. ¡Órale!")
+]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX00000004"><Properties><string name="Name">Crime</string><ProtectedString name="Source"><![CDATA[-- Crime: asaltos a tienditas, nivel de búsqueda, arrestos y reclusorio.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Crime = {}
+
+local ctx -- { Remotes, Economy, Notify, Map }
+local storeCooldown = {} -- [prompt] = os.clock() del último asalto
+
+local function teleport(player, cf)
+	local char = player.Character
+	if char then
+		char:PivotTo(cf)
+	end
+end
+
+local function jailCFrame()
+	local c = ctx.Map.JailCenter
+	local r = ctx.Map.JailRadius
+	return CFrame.new(c + Vector3.new(math.random(-r, r), 0, math.random(-r, r) + 10))
+end
+
+local function notifyJob(jobId, text, kind)
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p:GetAttribute("Job") == jobId then
+			ctx.Notify(p, text, kind)
+		end
+	end
+end
+
+function Crime.SetWanted(player)
+	player:SetAttribute("Wanted", true)
+	player:SetAttribute("WantedUntil", os.time() + Config.WANTED_DURATION)
+end
+
+function Crime.ClearWanted(player)
+	player:SetAttribute("Wanted", nil)
+	player:SetAttribute("WantedUntil", nil)
+end
+
+function Crime.Jail(player, officer)
+	Crime.ClearWanted(player)
+	player:SetAttribute("JailedUntil", os.time() + Config.JAIL_TIME)
+	teleport(player, jailCFrame())
+	local by = officer and (" por " .. officer.DisplayName) or ""
+	ctx.Notify(player, "Fuiste arrestado" .. by .. ". " .. Config.JAIL_TIME .. "s en el Reclusorio.", "bad")
+end
+
+function Crime.TryArrest(officer)
+	if officer:GetAttribute("Job") ~= "Policia" then
+		return
+	end
+	local oChar = officer.Character
+	local oRoot = oChar and oChar:FindFirstChild("HumanoidRootPart")
+	if not oRoot then
+		return
+	end
+	local target, best = nil, Config.ARREST_RANGE
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= officer and p:GetAttribute("Wanted") and p.Character then
+			local root = p.Character:FindFirstChild("HumanoidRootPart")
+			if root then
+				local d = (root.Position - oRoot.Position).Magnitude
+				if d <= best then
+					target, best = p, d
+				end
+			end
+		end
+	end
+	if not target then
+		ctx.Notify(officer, "No hay ningún sospechoso buscado al alcance.", "info")
+		return
+	end
+	Crime.Jail(target, officer)
+	ctx.Economy.Add(officer, Config.ARREST_REWARD)
+	ctx.Notify(officer, "¡Arrestaste a " .. target.DisplayName .. "! +$" .. Config.ARREST_REWARD, "money")
+end
+
+local function onRob(player, robbable)
+	if player:GetAttribute("Job") ~= "Ladron" then
+		ctx.Notify(player, "Solo los rateros asaltan tienditas. ¡Aquí se trabaja honradamente!", "info")
+		return
+	end
+	if player:GetAttribute("JailedUntil") then
+		return
+	end
+	local last = storeCooldown[robbable.Prompt]
+	if last and os.clock() - last < Config.ROBBERY_COOLDOWN then
+		local left = math.ceil(Config.ROBBERY_COOLDOWN - (os.clock() - last))
+		ctx.Notify(player, "La caja está vacía. Vuelve en " .. left .. "s.", "info")
+		return
+	end
+	storeCooldown[robbable.Prompt] = os.clock()
+	local loot = math.random(Config.ROBBERY_MIN, Config.ROBBERY_MAX)
+	ctx.Economy.Add(player, loot)
+	Crime.SetWanted(player)
+	ctx.Notify(player, "¡Te llevaste $" .. loot .. "! La policía te busca por " .. Config.WANTED_DURATION .. "s.", "money")
+	notifyJob("Policia", "🚨 ¡Asalto en " .. robbable.Name .. "! Sospechoso: " .. player.DisplayName, "alert")
+end
+
+function Crime.Init(context)
+	ctx = context
+	for _, robbable in ipairs(ctx.Map.Robbables) do
+		robbable.Prompt.Triggered:Connect(function(player)
+			onRob(player, robbable)
+		end)
+	end
+
+	-- Si alguien reaparece mientras está preso, vuelve a la cárcel
+	local function onPlayer(player)
+		player.CharacterAdded:Connect(function(char)
+			if player:GetAttribute("JailedUntil") then
+				char:WaitForChild("HumanoidRootPart", 10)
+				task.wait(0.2)
+				teleport(player, jailCFrame())
+			end
+		end)
+	end
+	Players.PlayerAdded:Connect(onPlayer)
+	for _, p in ipairs(Players:GetPlayers()) do
+		onPlayer(p)
+	end
+
+	-- Reloj: expira búsqueda y libera presos
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			local now = os.time()
+			for _, p in ipairs(Players:GetPlayers()) do
+				local wantedUntil = p:GetAttribute("WantedUntil")
+				if wantedUntil and now >= wantedUntil then
+					Crime.ClearWanted(p)
+					ctx.Notify(p, "La policía dejó de buscarte... por ahora.", "info")
+				end
+				local jailedUntil = p:GetAttribute("JailedUntil")
+				if jailedUntil and now >= jailedUntil then
+					p:SetAttribute("JailedUntil", nil)
+					teleport(p, ctx.Map.ReleaseCFrame)
+					ctx.Notify(p, "Cumpliste tu condena. ¡Pórtate bien!", "good")
+				end
+			end
+		end
+	end)
+end
+
+return Crime
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000005"><Properties><string name="Name">DayNight</string><ProtectedString name="Source"><![CDATA[-- DayNight: ciclo de día y noche; enciende el alumbrado público al anochecer.
+
+local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local DayNight = {}
+
+local function setLights(on)
+	for _, lamp in ipairs(CollectionService:GetTagged("StreetLight")) do
+		local light = lamp:FindFirstChildOfClass("PointLight")
+		if light then
+			light.Enabled = on
+		end
+		lamp.Material = on and Enum.Material.Neon or Enum.Material.SmoothPlastic
+	end
+end
+
+function DayNight.Init()
+	Lighting.ClockTime = 9
+	-- Un toque de neblina/smog chilango
+	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere")
+	atmosphere.Density = 0.32
+	atmosphere.Haze = 1.6
+	atmosphere.Color = Color3.fromRGB(215, 200, 180)
+	atmosphere.Decay = Color3.fromRGB(150, 130, 110)
+	atmosphere.Parent = Lighting
+
+	local hoursPerSecond = 24 / (Config.DAY_LENGTH_MINUTES * 60)
+	local lightsOn = nil
+	RunService.Heartbeat:Connect(function(dt)
+		Lighting.ClockTime = (Lighting.ClockTime + dt * hoursPerSecond) % 24
+		local night = Lighting.ClockTime >= 18.3 or Lighting.ClockTime < 6.2
+		if night ~= lightsOn then
+			lightsOn = night
+			setLights(night)
+		end
+	end)
+end
+
+return DayNight
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[-- Economy: dinero en pesos con guardado en DataStore.
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Economy = {}
+
+local store
+do
+	local ok, result = pcall(function()
+		return DataStoreService:GetDataStore(Config.DATASTORE_NAME)
+	end)
+	if ok then
+		store = result
+	else
+		warn("[CDMX] DataStore no disponible (activa 'Enable Studio Access to API Services'):", result)
+	end
+end
+
+local loaded = {} -- [player] = true cuando sus datos ya cargaron
+
+local function key(player)
+	return "player_" .. player.UserId
+end
+
+local function getValue(player)
+	local ls = player:FindFirstChild("leaderstats")
+	return ls and ls:FindFirstChild("Pesos")
+end
+
+function Economy.Get(player)
+	local v = getValue(player)
+	return v and v.Value or 0
+end
+
+function Economy.Add(player, amount)
+	local v = getValue(player)
+	if v then
+		v.Value = v.Value + math.floor(amount)
+	end
+end
+
+-- Cobra si alcanza; devuelve true/false
+function Economy.Charge(player, amount)
+	local v = getValue(player)
+	if v and v.Value >= amount then
+		v.Value = v.Value - amount
+		return true
+	end
+	return false
+end
+
+-- Transfiere hasta `amount` (lo que alcance) y devuelve lo transferido
+function Economy.Transfer(from, to, amount)
+	local fv, tv = getValue(from), getValue(to)
+	if not fv or not tv then
+		return 0
+	end
+	local paid = math.min(fv.Value, amount)
+	fv.Value = fv.Value - paid
+	tv.Value = tv.Value + paid
+	return paid
+end
+
+local function save(player)
+	if not store or not loaded[player] then
+		return
+	end
+	local amount = Economy.Get(player)
+	local ok, err = pcall(function()
+		store:SetAsync(key(player), { Money = amount }, { player.UserId })
+	end)
+	if not ok then
+		warn("[CDMX] No se pudo guardar a", player.Name, err)
+	end
+end
+
+local function onPlayerAdded(player)
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+	local pesos = Instance.new("IntValue")
+	pesos.Name = "Pesos"
+	pesos.Value = Config.STARTING_MONEY
+	pesos.Parent = leaderstats
+	leaderstats.Parent = player
+
+	if store then
+		local ok, data = pcall(function()
+			return store:GetAsync(key(player))
+		end)
+		if ok then
+			if type(data) == "table" and type(data.Money) == "number" then
+				pesos.Value = data.Money
+			end
+			loaded[player] = true
+		else
+			-- Si falla la carga no guardamos, para no sobrescribir datos buenos
+			warn("[CDMX] No se pudieron cargar los datos de", player.Name, data)
+		end
+	end
+end
+
+function Economy.Init()
+	Players.PlayerAdded:Connect(onPlayerAdded)
+	for _, p in ipairs(Players:GetPlayers()) do
+		task.spawn(onPlayerAdded, p)
+	end
+	Players.PlayerRemoving:Connect(function(player)
+		save(player)
+		loaded[player] = nil
+	end)
+	game:BindToClose(function()
+		for _, p in ipairs(Players:GetPlayers()) do
+			save(p)
+		end
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(Config.AUTOSAVE_INTERVAL)
+			for _, p in ipairs(Players:GetPlayers()) do
+				task.spawn(save, p)
+			end
+		end
+	end)
+end
+
+return Economy
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000007"><Properties><string name="Name">Jobs</string><ProtectedString name="Source"><![CDATA[-- Jobs: trabajos, equipos, herramientas de trabajo, sueldo y etiqueta sobre la cabeza.
+
+local Players = game:GetService("Players")
+local Teams = game:GetService("Teams")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Jobs = {}
+
+local ctx -- { Remotes, Economy, Notify, Crime }
+local teams = {}
+local lastChange = {}
+local lastHeal = {}
+
+-- Herramientas -------------------------------------------------------------
+local function makeTool(name, color, size)
+	local tool = Instance.new("Tool")
+	tool.Name = name
+	tool.CanBeDropped = false
+	tool:SetAttribute("JobTool", true)
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = size or Vector3.new(1, 1, 1)
+	handle.Color = color
+	handle.Material = Enum.Material.SmoothPlastic
+	handle.CanCollide = false
+	handle.Massless = true
+	handle.Parent = tool
+	return tool
+end
+
+local function nearestPlayer(from, range, filter)
+	local fromChar = from.Character
+	local fromRoot = fromChar and fromChar:FindFirstChild("HumanoidRootPart")
+	if not fromRoot then
+		return nil
+	end
+	local best, bestDist = nil, range
+	for _, other in ipairs(Players:GetPlayers()) do
+		if other ~= from and other.Character then
+			local root = other.Character:FindFirstChild("HumanoidRootPart")
+			local hum = other.Character:FindFirstChildOfClass("Humanoid")
+			if root and hum and hum.Health > 0 and (not filter or filter(other, hum)) then
+				local d = (root.Position - fromRoot.Position).Magnitude
+				if d <= bestDist then
+					best, bestDist = other, d
+				end
+			end
+		end
+	end
+	return best
+end
+
+local function giveHandcuffs(player)
+	local tool = makeTool("Esposas", Color3.fromRGB(160, 160, 170), Vector3.new(1.2, 0.3, 0.6))
+	tool.ToolTip = "Arresta a un ratero buscado cercano"
+	tool.Activated:Connect(function()
+		ctx.Crime.TryArrest(player)
+	end)
+	tool.Parent = player.Backpack
+end
+
+local function giveMedkit(player)
+	local tool = makeTool("Botiquín", Color3.fromRGB(220, 30, 30), Vector3.new(1.4, 1, 0.8))
+	tool.ToolTip = "Cura al jugador herido más cercano"
+	tool.Activated:Connect(function()
+		local now = os.clock()
+		if lastHeal[player] and now - lastHeal[player] < Config.HEAL_COOLDOWN then
+			return
+		end
+		local target = nearestPlayer(player, Config.HEAL_RANGE, function(_, hum)
+			return hum.Health < hum.MaxHealth
+		end)
+		if not target then
+			ctx.Notify(player, "No hay nadie herido cerca.", "info")
+			return
+		end
+		lastHeal[player] = now
+		local hum = target.Character:FindFirstChildOfClass("Humanoid")
+		hum.Health = math.min(hum.MaxHealth, hum.Health + Config.HEAL_AMOUNT)
+		ctx.Economy.Add(player, Config.HEAL_REWARD)
+		ctx.Notify(player, "Curaste a " .. target.DisplayName .. " (+$" .. Config.HEAL_REWARD .. ")", "good")
+		ctx.Notify(target, "Un paramédico te atendió. ¡Que te mejores!", "good")
+	end)
+	tool.Parent = player.Backpack
+end
+
+local JOB_TOOLS = {
+	Policia = giveHandcuffs,
+	Paramedico = giveMedkit,
+}
+
+local function clearJobTools(player)
+	local containers = { player:FindFirstChild("Backpack"), player.Character }
+	for _, c in ipairs(containers) do
+		if c then
+			for _, t in ipairs(c:GetChildren()) do
+				if t:IsA("Tool") and t:GetAttribute("JobTool") then
+					t:Destroy()
+				end
+			end
+		end
+	end
+end
+
+local function giveJobTools(player)
+	clearJobTools(player)
+	local giver = JOB_TOOLS[player:GetAttribute("Job")]
+	if giver and player:FindFirstChild("Backpack") then
+		giver(player)
+	end
+end
+
+-- Etiqueta sobre la cabeza ---------------------------------------------------
+local function updateTag(player)
+	local char = player.Character
+	local head = char and char:FindFirstChild("Head")
+	if not head then
+		return
+	end
+	local tag = head:FindFirstChild("RPTag")
+	if not tag then
+		tag = Instance.new("BillboardGui")
+		tag.Name = "RPTag"
+		tag.Size = UDim2.fromOffset(200, 60)
+		tag.StudsOffset = Vector3.new(0, 2.6, 0)
+		tag.MaxDistance = 80
+		local list = Instance.new("UIListLayout")
+		list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		list.Parent = tag
+		for i, name in ipairs({ "Nombre", "Trabajo", "Estado" }) do
+			local l = Instance.new("TextLabel")
+			l.Name = name
+			l.LayoutOrder = i
+			l.Size = UDim2.new(1, 0, 0, i == 1 and 22 or 18)
+			l.BackgroundTransparency = 1
+			l.Font = Enum.Font.GothamBold
+			l.TextScaled = true
+			l.TextStrokeTransparency = 0.3
+			l.TextColor3 = Color3.new(1, 1, 1)
+			l.Parent = tag
+		end
+		tag.Parent = head
+		local hum = char:FindFirstChildOfClass("Humanoid")
+		if hum then
+			hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		end
+	end
+	local job = Config.GetJob(player:GetAttribute("Job")) or Config.Jobs[1]
+	tag.Nombre.Text = player.DisplayName
+	tag.Trabajo.Text = job.Name
+	tag.Trabajo.TextColor3 = BrickColor.new(job.Color).Color:Lerp(Color3.new(1, 1, 1), 0.35)
+	local status = tag.Estado
+	if player:GetAttribute("JailedUntil") then
+		status.Text = "EN EL RECLUSORIO"
+		status.TextColor3 = Color3.fromRGB(255, 160, 60)
+		status.Visible = true
+	elseif player:GetAttribute("Wanted") then
+		status.Text = "¡SE BUSCA!"
+		status.TextColor3 = Color3.fromRGB(255, 60, 60)
+		status.Visible = true
+	else
+		status.Visible = false
+	end
+end
+Jobs.UpdateTag = updateTag
+
+-- API ----------------------------------------------------------------------
+function Jobs.Set(player, jobId)
+	local job = Config.GetJob(jobId)
+	if not job then
+		return false
+	end
+	player:SetAttribute("Job", job.Id)
+	player.Team = teams[job.Id]
+	giveJobTools(player)
+	updateTag(player)
+	return true
+end
+
+local function onChangeJob(player, jobId)
+	if type(jobId) ~= "string" or not Config.GetJob(jobId) then
+		return
+	end
+	if player:GetAttribute("Job") == jobId then
+		return
+	end
+	if player:GetAttribute("JailedUntil") then
+		ctx.Notify(player, "No puedes cambiar de trabajo desde el reclusorio.", "bad")
+		return
+	end
+	if player:GetAttribute("Wanted") then
+		ctx.Notify(player, "Estás buscado por la policía. ¡No puedes cambiar de trabajo!", "bad")
+		return
+	end
+	local now = os.clock()
+	if lastChange[player] and now - lastChange[player] < Config.JOB_CHANGE_COOLDOWN then
+		ctx.Notify(player, "Espera unos segundos antes de cambiar otra vez.", "info")
+		return
+	end
+	lastChange[player] = now
+	Jobs.Set(player, jobId)
+	local job = Config.GetJob(jobId)
+	ctx.Notify(player, "Ahora eres " .. job.Name .. ". Sueldo: $" .. job.Salary .. " cada " .. Config.PAYCHECK_INTERVAL .. "s", "good")
+end
+
+function Jobs.Init(context)
+	ctx = context
+	for _, job in ipairs(Config.Jobs) do
+		local team = Teams:FindFirstChild(job.Name) or Instance.new("Team")
+		team.Name = job.Name
+		team.TeamColor = BrickColor.new(job.Color)
+		team.AutoAssignable = false
+		team.Parent = Teams
+		teams[job.Id] = team
+	end
+
+	ctx.Remotes.ChangeJob.OnServerEvent:Connect(onChangeJob)
+
+	local function onPlayer(player)
+		player:SetAttribute("Job", "Ciudadano")
+		player.Team = teams.Ciudadano
+		local function onCharacter(char)
+			char:WaitForChild("Head", 10)
+			player:WaitForChild("Backpack", 10)
+			giveJobTools(player)
+			updateTag(player)
+		end
+		player.CharacterAdded:Connect(onCharacter)
+		if player.Character then
+			task.spawn(onCharacter, player.Character)
+		end
+		player:GetAttributeChangedSignal("Wanted"):Connect(function()
+			updateTag(player)
+		end)
+		player:GetAttributeChangedSignal("JailedUntil"):Connect(function()
+			updateTag(player)
+		end)
+	end
+	Players.PlayerAdded:Connect(onPlayer)
+	for _, p in ipairs(Players:GetPlayers()) do
+		onPlayer(p)
+	end
+	Players.PlayerRemoving:Connect(function(p)
+		lastChange[p] = nil
+		lastHeal[p] = nil
+	end)
+
+	-- Sueldo
+	task.spawn(function()
+		while true do
+			task.wait(Config.PAYCHECK_INTERVAL)
+			for _, p in ipairs(Players:GetPlayers()) do
+				local job = Config.GetJob(p:GetAttribute("Job"))
+				if job and job.Salary > 0 and not p:GetAttribute("JailedUntil") then
+					ctx.Economy.Add(p, job.Salary)
+					ctx.Notify(p, "¡Día de pago! +$" .. job.Salary .. " (" .. job.Name .. ")", "money")
+				end
+			end
+		end
+	end)
+end
+
+return Jobs
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000008"><Properties><string name="Name">MapBuilder</string><ProtectedString name="Source"><![CDATA[-- MapBuilder: genera por código un mapa estilizado de la Ciudad de México.
+-- No usa assets externos, así que funciona en cualquier lugar nuevo de Roblox.
+-- Devuelve una tabla con los puntos de interés (tiendas, metro, garajes, cárcel).
+
+local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local MapBuilder = {}
+
+local rng = Random.new(2026)
+local root -- carpeta Workspace.CDMX
+local reserved = {} -- rectángulos ocupados {x1, z1, x2, z2}
+
+-- Paleta -------------------------------------------------------------------
+local C = {
+	Ground = Color3.fromRGB(160, 156, 148),
+	Road = Color3.fromRGB(45, 45, 50),
+	Line = Color3.fromRGB(240, 200, 40),
+	Plaza = Color3.fromRGB(190, 180, 165),
+	Grass = Color3.fromRGB(85, 140, 70),
+	Stone = Color3.fromRGB(175, 155, 130),
+	Tezontle = Color3.fromRGB(150, 60, 50),
+	Marble = Color3.fromRGB(235, 230, 220),
+	Gold = Color3.fromRGB(220, 180, 60),
+	Glass = Color3.fromRGB(60, 95, 120),
+	FlagGreen = Color3.fromRGB(0, 104, 71),
+	FlagWhite = Color3.fromRGB(255, 255, 255),
+	FlagRed = Color3.fromRGB(206, 17, 38),
+	MetroOrange = Color3.fromRGB(240, 120, 20),
+	Pink = Color3.fromRGB(235, 80, 150),
+	Wood = Color3.fromRGB(110, 75, 45),
+}
+
+local PASTELS = {
+	Color3.fromRGB(240, 170, 160), Color3.fromRGB(250, 210, 120), Color3.fromRGB(160, 210, 190),
+	Color3.fromRGB(190, 170, 220), Color3.fromRGB(245, 140, 90), Color3.fromRGB(120, 180, 220),
+	Color3.fromRGB(230, 110, 130), Color3.fromRGB(240, 230, 200), Color3.fromRGB(110, 170, 120),
+}
+local CENTRO = {
+	Color3.fromRGB(175, 155, 130), Color3.fromRGB(150, 60, 50), Color3.fromRGB(200, 185, 160),
+	Color3.fromRGB(190, 120, 80), Color3.fromRGB(220, 200, 170),
+}
+local GENERIC = {
+	Color3.fromRGB(200, 200, 195), Color3.fromRGB(170, 165, 160), Color3.fromRGB(210, 190, 160),
+	Color3.fromRGB(140, 150, 160), Color3.fromRGB(190, 175, 150), Color3.fromRGB(220, 215, 205),
+}
+
+-- Utilidades ---------------------------------------------------------------
+local function folder(name, parent)
+	local f = Instance.new("Folder")
+	f.Name = name
+	f.Parent = parent or root
+	return f
+end
+
+local function part(name, size, cf, color, material, parent, shape)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Anchored = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	if shape then
+		p.Shape = shape
+	end
+	p.Size = size
+	p.CFrame = cf
+	p.Color = color
+	p.Material = material or Enum.Material.SmoothPlastic
+	p.Parent = parent or root
+	return p
+end
+
+-- Cilindro vertical (los cilindros de Roblox tienen el eje en X)
+local function vcyl(name, height, diameter, pos, color, material, parent)
+	return part(name, Vector3.new(height, diameter, diameter),
+		CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90)), color, material, parent, Enum.PartType.Cylinder)
+end
+
+local function ball(name, diameter, pos, color, material, parent)
+	return part(name, Vector3.new(diameter, diameter, diameter), CFrame.new(pos), color, material, parent, Enum.PartType.Ball)
+end
+
+local function reserve(cx, cz, sx, sz)
+	table.insert(reserved, { cx - sx / 2, cz - sz / 2, cx + sx / 2, cz + sz / 2 })
+end
+
+local function isFree(cx, cz, sx, sz, margin)
+	local x1, z1, x2, z2 = cx - sx / 2 - margin, cz - sz / 2 - margin, cx + sx / 2 + margin, cz + sz / 2 + margin
+	for _, r in ipairs(reserved) do
+		if x1 < r[3] and x2 > r[1] and z1 < r[4] and z2 > r[2] then
+			return false
+		end
+	end
+	return true
+end
+
+local function surfaceText(target, text, bg, fg, faces)
+	for _, face in ipairs(faces or { Enum.NormalId.Front }) do
+		local sg = Instance.new("SurfaceGui")
+		sg.Face = face
+		sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		sg.PixelsPerStud = 25
+		sg.LightInfluence = 0.3
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.fromScale(1, 1)
+		label.BackgroundColor3 = bg or Color3.new(0, 0, 0)
+		label.BackgroundTransparency = bg and 0 or 1
+		label.TextColor3 = fg or Color3.new(1, 1, 1)
+		label.TextScaled = true
+		label.Font = Enum.Font.GothamBlack
+		label.Text = text
+		label.Parent = sg
+		sg.Parent = target
+	end
+end
+
+local function billboard(target, text, color, offsetY, maxDistance)
+	local bb = Instance.new("BillboardGui")
+	bb.Size = UDim2.fromOffset(260, 50)
+	bb.StudsOffsetWorldSpace = Vector3.new(0, offsetY or 0, 0)
+	bb.MaxDistance = maxDistance or 250
+	bb.AlwaysOnTop = false
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = color or Color3.new(1, 1, 1)
+	label.TextStrokeTransparency = 0.2
+	label.TextScaled = true
+	label.Font = Enum.Font.GothamBlack
+	label.Text = text
+	label.Parent = bb
+	bb.Parent = target
+	return bb
+end
+
+local function prompt(parent, action, object, hold, distance)
+	local p = Instance.new("ProximityPrompt")
+	p.ActionText = action
+	p.ObjectText = object or ""
+	p.HoldDuration = hold or 0
+	p.MaxActivationDistance = distance or 12
+	p.RequiresLineOfSight = false
+	p.Parent = parent
+	return p
+end
+
+local function tree(pos, parent)
+	local h = rng:NextNumber(10, 16)
+	vcyl("Tronco", h, 1.6, pos + Vector3.new(0, h / 2, 0), C.Wood, Enum.Material.Wood, parent)
+	ball("Copa", rng:NextNumber(9, 13), pos + Vector3.new(0, h + 2, 0),
+		Color3.fromRGB(60 + rng:NextInteger(0, 30), 120 + rng:NextInteger(0, 40), 50), Enum.Material.Grass, parent)
+end
+
+local function streetLight(pos, parent)
+	local pole = vcyl("Poste", 16, 0.8, pos + Vector3.new(0, 8, 0), Color3.fromRGB(40, 40, 40), Enum.Material.Metal, parent)
+	local lamp = part("Lampara", Vector3.new(2.4, 1, 2.4), CFrame.new(pos + Vector3.new(0, 16.4, 0)),
+		Color3.fromRGB(255, 230, 170), Enum.Material.SmoothPlastic, parent)
+	local light = Instance.new("PointLight")
+	light.Range = 40
+	light.Brightness = 1.5
+	light.Color = Color3.fromRGB(255, 210, 150)
+	light.Enabled = false
+	light.Parent = lamp
+	CollectionService:AddTag(lamp, "StreetLight")
+	return pole
+end
+
+-- Terreno y calles -------------------------------------------------------
+local ROADS_H = { -- z, x1, x2, ancho, nombre
+	{ -200, -1050, 880, 40, "Paseo de la Reforma" },
+	{ -540, -1250, 880, 30, "Av. Ejército Nacional" },
+	{ 260, -1250, 880, 32, "Eje 2 Sur" },
+	{ 620, -1250, 880, 32, "Av. Río Churubusco" },
+}
+local ROADS_V = { -- x, z1, z2, ancho, nombre
+	{ -240, -780, 980, 36, "Eje Central" },
+	{ 260, -780, 980, 36, "Av. Circunvalación" },
+	{ -700, -780, 980, 34, "Av. Insurgentes" },
+	{ 0, 90, 620, 30, "Av. 20 de Noviembre" },
+}
+
+local function buildGround()
+	local f = folder("Suelo")
+	for x = -1400, 1000, 600 do
+		for z = -900, 1100, 600 do
+			part("Banqueta", Vector3.new(600, 2, 600), CFrame.new(x + 300, -1, z + 300), C.Ground, Enum.Material.Pavement, f)
+		end
+	end
+end
+
+local function buildRoads()
+	local f = folder("Calles")
+	local lights = folder("Alumbrado")
+	local function road(cx, cz, sx, sz, name, horizontal)
+		local r = part(name, Vector3.new(sx, 0.4, sz), CFrame.new(cx, 0.2, cz), C.Road, Enum.Material.Asphalt, f)
+		if horizontal then
+			part("Linea", Vector3.new(sx, 0.05, 0.8), CFrame.new(cx, 0.425, cz), C.Line, Enum.Material.SmoothPlastic, f)
+			for x = cx - sx / 2 + 20, cx + sx / 2 - 20, 90 do
+				streetLight(Vector3.new(x, 0, cz - sz / 2 - 3), lights)
+			end
+		else
+			part("Linea", Vector3.new(0.8, 0.05, sz), CFrame.new(cx, 0.425, cz), C.Line, Enum.Material.SmoothPlastic, f)
+			for z = cz - sz / 2 + 20, cz + sz / 2 - 20, 90 do
+				streetLight(Vector3.new(cx - sx / 2 - 3, 0, z), lights)
+			end
+		end
+		reserve(cx, cz, sx, sz)
+		return r
+	end
+	for _, h in ipairs(ROADS_H) do
+		local len = h[3] - h[2]
+		road((h[2] + h[3]) / 2, h[1], len, h[4], h[5], true)
+	end
+	for _, v in ipairs(ROADS_V) do
+		local len = v[3] - v[2]
+		road(v[1], (v[2] + v[3]) / 2, v[4], len, v[5], false)
+	end
+	-- Letreros de calles en algunos cruces
+	for _, h in ipairs(ROADS_H) do
+		for _, v in ipairs(ROADS_V) do
+			if v[2] <= h[1] and v[3] >= h[1] and h[2] <= v[1] and h[3] >= v[1] then
+				local pos = Vector3.new(v[1] + v[4] / 2 + 4, 0, h[1] + h[4] / 2 + 4)
+				vcyl("PosteLetrero", 10, 0.5, pos + Vector3.new(0, 5, 0), Color3.fromRGB(40, 40, 40), Enum.Material.Metal, f)
+				local s = part("Letrero", Vector3.new(14, 2.4, 0.3), CFrame.new(pos + Vector3.new(0, 10, 0)),
+					Color3.fromRGB(20, 90, 50), Enum.Material.SmoothPlastic, f)
+				surfaceText(s, h[5], Color3.fromRGB(20, 90, 50), Color3.new(1, 1, 1), { Enum.NormalId.Front, Enum.NormalId.Back })
+			end
+		end
+	end
+end
+
+-- Monumentos -------------------------------------------------------------
+local function buildZocalo()
+	local f = folder("Zocalo")
+	part("Plancha", Vector3.new(180, 0.3, 180), CFrame.new(0, 0.15, 0), C.Plaza, Enum.Material.Slate, f)
+	reserve(0, 0, 180, 180)
+	-- Asta bandera monumental
+	vcyl("Base", 3, 14, Vector3.new(0, 1.5, 0), C.Stone, Enum.Material.Concrete, f)
+	vcyl("Asta", 90, 1.4, Vector3.new(0, 45, 0), Color3.fromRGB(200, 200, 205), Enum.Material.Metal, f)
+	local flagFolder = folder("Bandera", f)
+	local w, h = 14, 24
+	local baseCf = CFrame.new(0, 76, 0) * CFrame.Angles(0, math.rad(90), 0)
+	part("Verde", Vector3.new(w, h, 0.4), baseCf * CFrame.new(-(0.7 + w * 0.5), 0, 0), C.FlagGreen, Enum.Material.Fabric, flagFolder)
+	part("Blanco", Vector3.new(w, h, 0.4), baseCf * CFrame.new(-(0.7 + w * 1.5), 0, 0), C.FlagWhite, Enum.Material.Fabric, flagFolder)
+	part("Rojo", Vector3.new(w, h, 0.4), baseCf * CFrame.new(-(0.7 + w * 2.5), 0, 0), C.FlagRed, Enum.Material.Fabric, flagFolder)
+	part("Escudo", Vector3.new(5, 5, 0.6), baseCf * CFrame.new(-(0.7 + w * 1.5), 0, 0), Color3.fromRGB(130, 90, 40), Enum.Material.SmoothPlastic, flagFolder)
+	billboard(f.Asta, "Zócalo - Plaza de la Constitución", Color3.fromRGB(255, 240, 200), 50, 400)
+
+	-- Catedral Metropolitana (mira al sur, hacia el Zócalo)
+	local cat = folder("Catedral", f)
+	part("Nave", Vector3.new(90, 40, 60), CFrame.new(0, 20, -130), C.Stone, Enum.Material.Limestone, cat)
+	part("Fachada", Vector3.new(40, 52, 4), CFrame.new(0, 26, -98), Color3.fromRGB(185, 165, 140), Enum.Material.Limestone, cat)
+	part("Puerta", Vector3.new(10, 16, 1), CFrame.new(0, 8, -95.6), Color3.fromRGB(70, 45, 30), Enum.Material.Wood, cat)
+	for _, x in ipairs({ -36, 36 }) do
+		part("Torre", Vector3.new(18, 70, 18), CFrame.new(x, 35, -110), C.Stone, Enum.Material.Limestone, cat)
+		part("Campanario", Vector3.new(14, 14, 14), CFrame.new(x, 77, -110), Color3.fromRGB(165, 145, 120), Enum.Material.Limestone, cat)
+		ball("Cupula", 12, Vector3.new(x, 86, -110), Color3.fromRGB(150, 140, 125), Enum.Material.Limestone, cat)
+		ball("Cruz", 2, Vector3.new(x, 93, -110), C.Gold, Enum.Material.Metal, cat)
+	end
+	ball("CupulaCentral", 28, Vector3.new(0, 42, -140), Color3.fromRGB(200, 190, 170), Enum.Material.Limestone, cat)
+	reserve(0, -130, 90, 60)
+	billboard(cat.Nave, "Catedral Metropolitana", Color3.fromRGB(255, 240, 200), 40, 300)
+
+	-- Palacio Nacional (lado este)
+	local pal = folder("PalacioNacional", f)
+	part("Edificio", Vector3.new(70, 26, 180), CFrame.new(135, 13, 0), C.Tezontle, Enum.Material.Brick, pal)
+	part("Cornisa", Vector3.new(72, 2, 182), CFrame.new(135, 26.5, 0), C.Stone, Enum.Material.Limestone, pal)
+	part("Balcon", Vector3.new(3, 1, 120), CFrame.new(98.5, 14, 0), C.Stone, Enum.Material.Limestone, pal)
+	for z = -80, 80, 16 do
+		part("Ventana", Vector3.new(0.4, 7, 4), CFrame.new(99.8, 17, z), Color3.fromRGB(40, 35, 30), Enum.Material.SmoothPlastic, pal)
+	end
+	part("Campana", Vector3.new(8, 10, 8), CFrame.new(110, 31, 0), C.Stone, Enum.Material.Limestone, pal)
+	reserve(135, 0, 70, 180)
+	billboard(pal.Edificio, "Palacio Nacional", Color3.fromRGB(255, 240, 200), 20, 300)
+end
+
+local function buildCentroLandmarks()
+	local f = folder("CentroHistorico")
+	-- Torre Latinoamericana
+	local torre = part("TorreLatinoamericana", Vector3.new(30, 180, 30), CFrame.new(-180, 90, -120), C.Glass, Enum.Material.Glass, f)
+	for y = 10, 175, 12 do
+		part("Franja", Vector3.new(30.4, 1.2, 30.4), CFrame.new(-180, y, -120), Color3.fromRGB(150, 155, 160), Enum.Material.Metal, f)
+	end
+	vcyl("Antena", 40, 1.5, Vector3.new(-180, 200, -120), Color3.fromRGB(200, 200, 200), Enum.Material.Metal, f)
+	reserve(-180, -120, 30, 30)
+	billboard(torre, "Torre Latinoamericana", Color3.new(1, 1, 1), 100, 600)
+
+	-- Palacio de Bellas Artes
+	local ba = folder("BellasArtes", f)
+	part("Cuerpo", Vector3.new(70, 30, 50), CFrame.new(-330, 15, -120), C.Marble, Enum.Material.Marble, ba)
+	part("Escalinata", Vector3.new(40, 2, 8), CFrame.new(-330, 1, -91), C.Marble, Enum.Material.Marble, ba)
+	ball("CupulaCentral", 32, Vector3.new(-330, 36, -120), Color3.fromRGB(225, 130, 40), Enum.Material.Metal, ba)
+	ball("Remate", 5, Vector3.new(-330, 54, -120), C.Gold, Enum.Material.Metal, ba)
+	for _, x in ipairs({ -356, -304 }) do
+		ball("CupulaLateral", 14, Vector3.new(x, 32, -120), Color3.fromRGB(225, 130, 40), Enum.Material.Metal, ba)
+	end
+	reserve(-330, -120, 70, 58)
+	billboard(ba.Cuerpo, "Palacio de Bellas Artes", Color3.fromRGB(255, 240, 200), 40, 300)
+
+	-- Alameda Central
+	local al = folder("Alameda", f)
+	part("Pasto", Vector3.new(150, 0.4, 100), CFrame.new(-490, 0.2, -110), C.Grass, Enum.Material.Grass, al)
+	vcyl("Fuente", 2, 20, Vector3.new(-490, 1.2, -110), Color3.fromRGB(80, 160, 220), Enum.Material.Glass, al)
+	vcyl("Hemiciclo", 12, 6, Vector3.new(-490, 6, -150), C.Marble, Enum.Material.Marble, al)
+	for i = 1, 18 do
+		tree(Vector3.new(rng:NextNumber(-560, -420), 0, rng:NextNumber(-155, -65)), al)
+	end
+	reserve(-490, -110, 150, 100)
+end
+
+local function buildReforma()
+	local f = folder("Reforma")
+	-- Ángel de la Independencia en una glorieta sobre Reforma
+	local x, z = -880, -200
+	vcyl("Glorieta", 0.6, 44, Vector3.new(x, 0.5, z), C.Grass, Enum.Material.Grass, f)
+	vcyl("Pedestal", 8, 18, Vector3.new(x, 4, z), C.Stone, Enum.Material.Limestone, f)
+	vcyl("Columna", 90, 6, Vector3.new(x, 53, z), Color3.fromRGB(215, 205, 185), Enum.Material.Marble, f)
+	vcyl("Capitel", 4, 9, Vector3.new(x, 100, z), C.Gold, Enum.Material.Metal, f)
+	local angel = ball("Angel", 5, Vector3.new(x, 105, z), C.Gold, Enum.Material.Metal, f)
+	part("AlaIzq", Vector3.new(6, 4, 0.5), CFrame.new(x - 3, 107, z) * CFrame.Angles(0, 0, math.rad(25)), C.Gold, Enum.Material.Metal, f)
+	part("AlaDer", Vector3.new(6, 4, 0.5), CFrame.new(x + 3, 107, z) * CFrame.Angles(0, 0, math.rad(-25)), C.Gold, Enum.Material.Metal, f)
+	billboard(angel, "El Ángel de la Independencia", C.Gold, 8, 500)
+	-- Camellón arbolado
+	for tx = -1030, -280, 60 do
+		if math.abs(tx - x) > 40 then
+			tree(Vector3.new(tx, 0, -200 - 24), f)
+		end
+	end
+end
+
+local function buildChapultepec()
+	local f = folder("Chapultepec")
+	local cx, cz, sx, sz = -1155, -205, 190, 610
+	part("Bosque", Vector3.new(sx, 0.4, sz), CFrame.new(cx, 0.2, cz), C.Grass, Enum.Material.Grass, f)
+	reserve(cx, cz, sx, sz)
+	-- Cerro y castillo
+	ball("Cerro", 150, Vector3.new(-1170, -38, -330), Color3.fromRGB(95, 125, 70), Enum.Material.Grass, f)
+	local castle = part("Castillo", Vector3.new(60, 18, 36), CFrame.new(-1170, 45, -330), Color3.fromRGB(225, 215, 195), Enum.Material.Limestone, f)
+	part("Torre", Vector3.new(14, 30, 14), CFrame.new(-1150, 51, -330), Color3.fromRGB(225, 215, 195), Enum.Material.Limestone, f)
+	part("Bandera", Vector3.new(0.3, 4, 6), CFrame.new(-1150, 70, -327), C.FlagGreen, Enum.Material.Fabric, f)
+	billboard(castle, "Castillo de Chapultepec", Color3.fromRGB(255, 240, 200), 30, 500)
+	-- Lago
+	part("Lago", Vector3.new(70, 0.6, 110), CFrame.new(-1170, 0.3, -20), Color3.fromRGB(70, 140, 190), Enum.Material.Glass, f)
+	for i = 1, 60 do
+		local px, pz = rng:NextNumber(cx - sx / 2 + 6, cx + sx / 2 - 6), rng:NextNumber(cz - sz / 2 + 6, cz + sz / 2 - 6)
+		local nearHill = (Vector2.new(px, pz) - Vector2.new(-1170, -330)).Magnitude < 80
+		local inLake = math.abs(px + 1170) < 40 and math.abs(pz + 20) < 60
+		if not nearHill and not inLake then
+			tree(Vector3.new(px, 0, pz), f)
+		end
+	end
+end
+
+local function buildRoma()
+	local f = folder("RomaCondesa")
+	-- Parque México
+	local px, pz = -470, 440
+	vcyl("Parque", 0.4, 120, Vector3.new(px, 0.2, pz), C.Grass, Enum.Material.Grass, f)
+	vcyl("Foro", 1.5, 26, Vector3.new(px, 0.75, pz), C.Plaza, Enum.Material.Concrete, f)
+	for i = 1, 16 do -- árboles del parque
+		local a = rng:NextNumber(0, math.pi * 2)
+		local r = rng:NextNumber(20, 55)
+		tree(Vector3.new(px + math.cos(a) * r, 0, pz + math.sin(a) * r), f)
+	end
+	reserve(px, pz, 130, 130)
+	billboard(f.Foro, "Parque México (Condesa)", Color3.new(1, 1, 1), 12, 200)
+end
+
+local function buildCoyoacan()
+	local f = folder("Coyoacan")
+	part("Jardin", Vector3.new(160, 0.3, 120), CFrame.new(0, 0.15, 800), C.Plaza, Enum.Material.Cobblestone, f)
+	reserve(0, 800, 160, 120)
+	-- Kiosko
+	vcyl("Base", 2, 22, Vector3.new(0, 1, 800), C.Stone, Enum.Material.Concrete, f)
+	for i = 0, 5 do
+		local a = math.rad(i * 60)
+		vcyl("Columna", 12, 1, Vector3.new(math.cos(a) * 9, 8, 800 + math.sin(a) * 9), Color3.fromRGB(40, 120, 70), Enum.Material.Metal, f)
+	end
+	local roof = vcyl("Techo", 2, 24, Vector3.new(0, 15, 800), Color3.fromRGB(40, 120, 70), Enum.Material.Metal, f)
+	ball("Remate", 6, Vector3.new(0, 17, 800), Color3.fromRGB(40, 120, 70), Enum.Material.Metal, f)
+	billboard(roof, "Jardín Hidalgo - Coyoacán", Color3.fromRGB(255, 240, 200), 10, 250)
+	-- Parroquia
+	part("Parroquia", Vector3.new(40, 26, 50), CFrame.new(0, 13, 905), Color3.fromRGB(225, 190, 120), Enum.Material.Limestone, f)
+	part("Torre", Vector3.new(12, 44, 12), CFrame.new(-22, 22, 885), Color3.fromRGB(225, 190, 120), Enum.Material.Limestone, f)
+	reserve(0, 905, 52, 50)
+	-- La Casa Azul
+	local casa = part("CasaAzul", Vector3.new(40, 16, 30), CFrame.new(180, 8, 900), Color3.fromRGB(30, 80, 200), Enum.Material.Plaster, f)
+	part("Puerta", Vector3.new(6, 10, 0.5), CFrame.new(180, 5, 884.8), Color3.fromRGB(200, 40, 60), Enum.Material.Wood, f)
+	billboard(casa, "La Casa Azul", Color3.fromRGB(120, 180, 255), 12, 200)
+	reserve(180, 900, 40, 30)
+	for i = 1, 20 do
+		local tx, tz = rng:NextNumber(-75, 75), rng:NextNumber(745, 855)
+		if Vector2.new(tx, tz - 800).Magnitude > 20 and Vector2.new(tx - 60, tz - 780).Magnitude > 10 then
+			tree(Vector3.new(tx, 0, tz), f)
+		end
+	end
+end
+
+-- Edificios de servicio ----------------------------------------------------
+-- Cada uno se orienta con un CFrame; el frente (-Z local) mira a la calle.
+local function serviceBuilding(name, cf, size, color, signText, signBg, parent)
+	local f = folder(name, parent)
+	local body = part("Edificio", size, cf * CFrame.new(0, size.Y / 2, 0), color, Enum.Material.Concrete, f)
+	local sign = part("Letrero", Vector3.new(size.X * 0.8, 5, 0.6),
+		cf * CFrame.new(0, size.Y - 4, -size.Z / 2 - 0.4), signBg, Enum.Material.SmoothPlastic, f)
+	surfaceText(sign, signText, signBg, Color3.new(1, 1, 1))
+	part("Entrada", Vector3.new(8, 10, 0.4), cf * CFrame.new(0, 5, -size.Z / 2 - 0.2), Color3.fromRGB(60, 80, 100), Enum.Material.Glass, f)
+	local p = cf.Position
+	reserve(p.X, p.Z, math.max(size.X, size.Z), math.max(size.X, size.Z))
+	return f, body
+end
+
+local function facing(x, z, dirX, dirZ)
+	local pos = Vector3.new(x, 0, z)
+	return CFrame.lookAt(pos, pos + Vector3.new(dirX, 0, dirZ))
+end
+
+local function garage(map, kind, label, color, promptPos, spawnCf, parent)
+	local pad = part("Garaje_" .. kind, Vector3.new(16, 0.2, 24), spawnCf * CFrame.new(0, 0.5, 0) - Vector3.new(0, spawnCf.Position.Y, 0),
+		color, Enum.Material.SmoothPlastic, parent)
+	pad.CanCollide = false
+	pad.Transparency = 0.4
+	local post = part("Kiosco_" .. kind, Vector3.new(2, 6, 2), CFrame.new(promptPos + Vector3.new(0, 3, 0)), color, Enum.Material.SmoothPlastic, parent)
+	billboard(post, label, Color3.new(1, 1, 1), 5, 80)
+	local pr = prompt(post, "Sacar vehículo", label, 0.5)
+	table.insert(map.Garages, { Kind = kind, Prompt = pr, SpawnCFrame = spawnCf })
+end
+
+local function buildServices(map)
+	local f = folder("Servicios")
+	-- SSC (Policía)
+	serviceBuilding("SSC", facing(380, 100, 0, 1), Vector3.new(80, 24, 60), Color3.fromRGB(230, 230, 235),
+		"SSC - POLICÍA CDMX", Color3.fromRGB(20, 40, 110), f)
+	garage(map, "Patrulla", "Patrullas", Color3.fromRGB(20, 40, 110), Vector3.new(350, 0, 160),
+		CFrame.new(380, 3, 175) * CFrame.Angles(0, math.rad(90), 0), f)
+	-- Hospital
+	local _, hosp = serviceBuilding("Hospital", facing(130, 400, 1, 0), Vector3.new(80, 30, 60), Color3.fromRGB(245, 245, 245),
+		"HOSPITAL GENERAL", Color3.fromRGB(200, 30, 30), f)
+	part("Cruz1", Vector3.new(4, 14, 0.6), hosp.CFrame * CFrame.new(-20, 6, -30.4), Color3.fromRGB(200, 30, 30), Enum.Material.Neon, f)
+	part("Cruz2", Vector3.new(14, 4, 0.6), hosp.CFrame * CFrame.new(-20, 6, -30.4), Color3.fromRGB(200, 30, 30), Enum.Material.Neon, f)
+	garage(map, "Ambulancia", "Ambulancias", Color3.fromRGB(200, 30, 30), Vector3.new(190, 0, 360),
+		CFrame.new(215, 3, 400), f)
+	-- Base de taxis
+	serviceBuilding("BaseTaxis", facing(130, 540, 1, 0), Vector3.new(50, 14, 40), C.Pink,
+		"BASE DE TAXIS", Color3.fromRGB(240, 240, 240), f)
+	garage(map, "Taxi", "Taxis CDMX", C.Pink, Vector3.new(190, 0, 510), CFrame.new(215, 3, 545), f)
+	-- Renta de vochos junto al Zócalo
+	garage(map, "Vocho", "Renta de Vochos $100", Color3.fromRGB(80, 160, 90), Vector3.new(200, 0, -60),
+		CFrame.new(215, 3, -20), f)
+	reserve(215, -40, 50, 60)
+	reserve(205, 400, 40, 40)
+	reserve(205, 530, 40, 50)
+	reserve(370, 170, 50, 30)
+end
+
+local function buildJail(map)
+	local f = folder("Reclusorio")
+	local cx, cz, size, wallH = 620, -690, 150, 30
+	part("Patio", Vector3.new(size, 0.4, size), CFrame.new(cx, 0.2, cz), Color3.fromRGB(120, 120, 120), Enum.Material.Concrete, f)
+	local wallColor = Color3.fromRGB(110, 110, 115)
+	part("MuroN", Vector3.new(size, wallH, 4), CFrame.new(cx, wallH / 2, cz - size / 2), wallColor, Enum.Material.Concrete, f)
+	part("MuroS", Vector3.new(size, wallH, 4), CFrame.new(cx, wallH / 2, cz + size / 2), wallColor, Enum.Material.Concrete, f)
+	part("MuroE", Vector3.new(4, wallH, size), CFrame.new(cx + size / 2, wallH / 2, cz), wallColor, Enum.Material.Concrete, f)
+	part("MuroO", Vector3.new(4, wallH, size), CFrame.new(cx - size / 2, wallH / 2, cz), wallColor, Enum.Material.Concrete, f)
+	-- Techo invisible para que nadie escape saltando
+	local roof = part("TechoInvisible", Vector3.new(size, 2, size), CFrame.new(cx, wallH + 1, cz), wallColor, Enum.Material.Concrete, f)
+	roof.Transparency = 1
+	local sign = part("Letrero", Vector3.new(60, 8, 1), CFrame.new(cx, wallH - 6, cz + size / 2 + 2.6), Color3.fromRGB(30, 30, 30), Enum.Material.SmoothPlastic, f)
+	surfaceText(sign, "RECLUSORIO", Color3.fromRGB(30, 30, 30), Color3.fromRGB(255, 80, 80), { Enum.NormalId.Back })
+	for i = -2, 2 do
+		part("Celda", Vector3.new(1, 12, 20), CFrame.new(cx + i * 22 + 11, 6, cz - 50), Color3.fromRGB(70, 70, 70), Enum.Material.Metal, f)
+	end
+	reserve(cx, cz, size + 10, size + 10)
+	map.JailCenter = Vector3.new(cx, 4, cz)
+	map.JailRadius = 40
+end
+
+-- Comercios --------------------------------------------------------------
+local function taqueria(map, name, cf, parent)
+	local f = folder("Taqueria_" .. name, parent)
+	part("Local", Vector3.new(30, 14, 22), cf * CFrame.new(0, 7, 0), Color3.fromRGB(245, 150, 60), Enum.Material.Plaster, f)
+	local sign = part("Letrero", Vector3.new(26, 4, 0.6), cf * CFrame.new(0, 12, -11.4), Color3.fromRGB(200, 30, 60), Enum.Material.SmoothPlastic, f)
+	surfaceText(sign, "TAQUERÍA " .. string.upper(name), Color3.fromRGB(200, 30, 60), Color3.fromRGB(255, 240, 120))
+	local counter = part("Barra", Vector3.new(18, 4, 3), cf * CFrame.new(0, 2, -13), Color3.fromRGB(240, 240, 240), Enum.Material.Tile, f)
+	-- El trompo del pastor
+	vcyl("Trompo", 6, 3, (cf * CFrame.new(6, 7, -13)).Position, Color3.fromRGB(170, 70, 30), Enum.Material.SmoothPlastic, f)
+	ball("Pina", 2, (cf * CFrame.new(6, 10.6, -13)).Position, Color3.fromRGB(240, 200, 40), Enum.Material.SmoothPlastic, f)
+	local pr = prompt(counter, "Pedir comida", "Taquería " .. name)
+	table.insert(map.Shops, { ShopId = "Taqueria", Prompt = pr, Part = counter })
+	local p = cf.Position
+	reserve(p.X, p.Z, 34, 34)
+end
+
+local function tiendita(map, name, cf, parent)
+	local f = folder("Tiendita_" .. name, parent)
+	part("Local", Vector3.new(24, 12, 20), cf * CFrame.new(0, 6, 0), Color3.fromRGB(250, 220, 90), Enum.Material.Plaster, f)
+	local sign = part("Letrero", Vector3.new(22, 3.5, 0.6), cf * CFrame.new(0, 10, -10.4), Color3.fromRGB(200, 30, 30), Enum.Material.SmoothPlastic, f)
+	surfaceText(sign, string.upper(name), Color3.fromRGB(200, 30, 30), Color3.new(1, 1, 1))
+	local counter = part("Mostrador", Vector3.new(10, 4, 3), cf * CFrame.new(-4, 2, -12), Color3.fromRGB(150, 110, 70), Enum.Material.Wood, f)
+	local register = part("Caja", Vector3.new(2, 1.5, 1.5), cf * CFrame.new(4, 4.75, -12), Color3.fromRGB(60, 60, 60), Enum.Material.Metal, f)
+	part("BaseCaja", Vector3.new(4, 4, 3), cf * CFrame.new(4, 2, -12), Color3.fromRGB(150, 110, 70), Enum.Material.Wood, f)
+	local buy = prompt(counter, "Comprar", name)
+	table.insert(map.Shops, { ShopId = "Tiendita", Prompt = buy, Part = counter })
+	local rob = prompt(register, "Asaltar", "Caja registradora", 4, 8)
+	rob.KeyboardKeyCode = Enum.KeyCode.F
+	rob.UIOffset = Vector2.new(0, 60)
+	table.insert(map.Robbables, { Name = name, Prompt = rob, Part = register })
+	local p = cf.Position
+	reserve(p.X, p.Z, 28, 30)
+end
+
+local function puesto(map, name, pos, parent)
+	local f = folder("Puesto_" .. name, parent)
+	local cart = part("Carrito", Vector3.new(8, 4, 4), CFrame.new(pos + Vector3.new(0, 2, 0)), Color3.fromRGB(240, 240, 240), Enum.Material.Metal, f)
+	vcyl("Poste", 8, 0.4, pos + Vector3.new(0, 7, 0), Color3.fromRGB(60, 60, 60), Enum.Material.Metal, f)
+	vcyl("Sombrilla", 0.6, 12, pos + Vector3.new(0, 11, 0), rng:NextInteger(0, 1) == 0 and C.Pink or Color3.fromRGB(240, 120, 20), Enum.Material.Fabric, f)
+	local pr = prompt(cart, "Comprar", "Puesto " .. name)
+	table.insert(map.Shops, { ShopId = "Puesto", Prompt = pr, Part = cart })
+	reserve(pos.X, pos.Z, 14, 14)
+end
+
+local function metroStation(map, name, cf, parent)
+	local f = folder("Metro_" .. name, parent)
+	part("Acceso", Vector3.new(16, 9, 12), cf * CFrame.new(0, 4.5, 0), Color3.fromRGB(60, 60, 65), Enum.Material.Concrete, f)
+	part("Franja", Vector3.new(16.4, 1.5, 12.4), cf * CFrame.new(0, 8.25, 0), C.MetroOrange, Enum.Material.SmoothPlastic, f)
+	local door = part("Escaleras", Vector3.new(8, 7, 0.4), cf * CFrame.new(0, 3.5, -6.1), Color3.fromRGB(20, 20, 20), Enum.Material.SmoothPlastic, f)
+	vcyl("PosteM", 14, 0.6, (cf * CFrame.new(10, 7, -4)).Position, Color3.fromRGB(60, 60, 60), Enum.Material.Metal, f)
+	local logo = part("LogoM", Vector3.new(5, 5, 0.6), cf * CFrame.new(10, 15, -4), C.MetroOrange, Enum.Material.SmoothPlastic, f)
+	surfaceText(logo, "M", C.MetroOrange, Color3.new(1, 1, 1), { Enum.NormalId.Front, Enum.NormalId.Back })
+	billboard(f.Acceso, "Metro " .. name, Color3.fromRGB(255, 170, 60), 9, 150)
+	local pr = prompt(door, "Tomar el Metro ($" .. Config.METRO_FARE .. ")", "Metro " .. name)
+	table.insert(map.Stations, { Name = name, Prompt = pr, Part = door, Arrival = cf * CFrame.new(0, 4, -12) })
+	local p = cf.Position
+	reserve(p.X, p.Z, 22, 22)
+end
+
+local function buildCommerce(map)
+	local f = folder("Comercios")
+	-- Taquerías
+	taqueria(map, "El Güero", facing(-110, 170, 1, 0), f)
+	taqueria(map, "La Roma", facing(-600, 330, 0, -1), f)
+	taqueria(map, "Coyoacán", facing(-140, 720, 1, 0), f)
+	-- Tienditas (se pueden asaltar)
+	tiendita(map, "Miscelánea Don Pepe", facing(380, 380, -1, 0), f)
+	tiendita(map, "Abarrotes La Güera", facing(-600, 560, 0, -1), f)
+	tiendita(map, "Miscelánea La Esperanza", facing(500, -300, 0, 1), f)
+	tiendita(map, "Tiendita Polanco", facing(-900, -380, 0, 1), f)
+	-- Puestos callejeros
+	puesto(map, "del Zócalo", Vector3.new(-70, 0.3, 60), f)
+	puesto(map, "de la Catedral", Vector3.new(70, 0.3, 60), f)
+	puesto(map, "de la Alameda", Vector3.new(-490, 0, -45), f)
+	puesto(map, "de Coyoacán", Vector3.new(60, 0.3, 780), f)
+	puesto(map, "del Parque México", Vector3.new(-470, 0, 525), f)
+	-- Metro
+	metroStation(map, "Zócalo", facing(-70, -60, 0, 1), f)
+	metroStation(map, "Bellas Artes", facing(-330, -75, 0, 1), f)
+	metroStation(map, "Insurgentes", facing(-660, 300, 1, 0), f)
+	metroStation(map, "Chapultepec", facing(-1030, -150, 1, 0), f)
+	metroStation(map, "Polanco", facing(-860, -300, 0, 1), f)
+	metroStation(map, "Coyoacán", facing(110, 760, -1, 0), f)
+end
+
+-- Relleno de edificios por colonia ------------------------------------------
+local function districtStyle(x, z)
+	if x < -720 and z < -225 then
+		return "Polanco"
+	elseif x > -690 and x < -255 and z > 278 and z < 605 then
+		return "Roma"
+	elseif z > 636 then
+		return "Coyoacan"
+	elseif x > -690 and x < 700 and z < 278 then
+		return "Centro"
+	end
+	return "Generico"
+end
+
+local function genericBuilding(x, z, w, d, style, parent)
+	local h, color, material, bandColor
+	if style == "Polanco" then
+		h = rng:NextNumber(60, 150)
+		color = Color3.fromRGB(70 + rng:NextInteger(0, 40), 100 + rng:NextInteger(0, 40), 120 + rng:NextInteger(0, 40))
+		material = Enum.Material.Glass
+		bandColor = Color3.fromRGB(190, 195, 200)
+	elseif style == "Roma" then
+		h = rng:NextNumber(16, 36)
+		color = PASTELS[rng:NextInteger(1, #PASTELS)]
+		material = Enum.Material.Plaster
+		bandColor = Color3.fromRGB(50, 60, 70)
+	elseif style == "Coyoacan" then
+		h = rng:NextNumber(12, 20)
+		color = PASTELS[rng:NextInteger(1, #PASTELS)]
+		material = Enum.Material.Plaster
+		bandColor = Color3.fromRGB(60, 45, 35)
+	elseif style == "Centro" then
+		h = rng:NextNumber(22, 45)
+		color = CENTRO[rng:NextInteger(1, #CENTRO)]
+		material = Enum.Material.Limestone
+		bandColor = Color3.fromRGB(45, 40, 35)
+	else
+		h = rng:NextNumber(24, 70)
+		color = GENERIC[rng:NextInteger(1, #GENERIC)]
+		material = Enum.Material.Concrete
+		bandColor = Color3.fromRGB(55, 75, 95)
+	end
+	local m = Instance.new("Model")
+	m.Name = "Edificio"
+	part("Cuerpo", Vector3.new(w, h, d), CFrame.new(x, h / 2, z), color, material, m)
+	local bands = 0
+	for y = 7, h - 4, 10 do
+		part("Ventanas", Vector3.new(w + 0.3, 3, d + 0.3), CFrame.new(x, y, z), bandColor, Enum.Material.Glass, m)
+		bands = bands + 1
+		if bands >= 12 then
+			break
+		end
+	end
+	if style ~= "Polanco" and rng:NextNumber() < 0.4 then
+		-- Tinaco en la azotea, infaltable en la CDMX
+		vcyl("Tinaco", 4, 3.5, Vector3.new(x + w / 4, h + 2, z + d / 4), Color3.fromRGB(30, 30, 30), Enum.Material.Plastic, m)
+	end
+	m.Parent = parent
+end
+
+local function fillBuildings()
+	local f = folder("Edificios")
+	local step = 85
+	for x = -1240, 860, step do
+		for z = -770, 970, step do
+			if rng:NextNumber() < 0.8 then
+				local w, d = rng:NextNumber(30, 55), rng:NextNumber(30, 55)
+				local ox, oz = rng:NextNumber(-8, 8), rng:NextNumber(-8, 8)
+				local cx, cz = x + ox, z + oz
+				if isFree(cx, cz, w, d, 8) then
+					genericBuilding(cx, cz, w, d, districtStyle(cx, cz), f)
+					reserve(cx, cz, w, d)
+				end
+			end
+		end
+	end
+end
+
+-- Spawn ------------------------------------------------------------------
+local function buildSpawn(map)
+	local spawn = Instance.new("SpawnLocation")
+	spawn.Name = "SpawnZocalo"
+	spawn.Anchored = true
+	spawn.Neutral = true
+	spawn.Size = Vector3.new(14, 1, 14)
+	spawn.CFrame = CFrame.new(0, 0.5, 45)
+	spawn.Color = C.FlagGreen
+	spawn.Material = Enum.Material.SmoothPlastic
+	spawn.Duration = 3
+	spawn.Parent = root
+	map.Spawn = spawn
+	map.ReleaseCFrame = CFrame.new(0, 4, 45)
+end
+
+function MapBuilder.Build()
+	local existing = workspace:FindFirstChild("CDMX")
+	if existing then
+		existing:Destroy()
+	end
+	-- Quitamos el Baseplate y los spawns de la plantilla por defecto
+	for _, child in ipairs(workspace:GetChildren()) do
+		if child.Name == "Baseplate" or child:IsA("SpawnLocation") then
+			child:Destroy()
+		end
+	end
+	root = Instance.new("Folder")
+	root.Name = "CDMX"
+
+	local map = { Shops = {}, Robbables = {}, Stations = {}, Garages = {} }
+
+	buildGround()
+	buildRoads()
+	buildZocalo()
+	buildCentroLandmarks()
+	buildReforma()
+	buildChapultepec()
+	buildRoma()
+	buildCoyoacan()
+	buildServices(map)
+	buildJail(map)
+	buildCommerce(map)
+	buildSpawn(map)
+	fillBuildings()
+
+	root.Parent = workspace
+	return map
+end
+
+return MapBuilder
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000009"><Properties><string name="Name">Metro</string><ProtectedString name="Source"><![CDATA[-- Metro: viaja entre estaciones pagando el boleto.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Metro = {}
+
+local ctx
+local traveling = {}
+
+local function nearStation(player)
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return nil
+	end
+	for i, st in ipairs(ctx.Map.Stations) do
+		if (root.Position - st.Part.Position).Magnitude < 25 then
+			return i
+		end
+	end
+	return nil
+end
+
+local function onTravel(player, toIndex)
+	if traveling[player] or type(toIndex) ~= "number" then
+		return
+	end
+	local from = nearStation(player)
+	local dest = ctx.Map.Stations[toIndex]
+	if not from or not dest or from == toIndex then
+		return
+	end
+	if player:GetAttribute("JailedUntil") then
+		return
+	end
+	if not ctx.Economy.Charge(player, Config.METRO_FARE) then
+		ctx.Notify(player, "Te falta para el boleto ($" .. Config.METRO_FARE .. ").", "bad")
+		return
+	end
+	traveling[player] = true
+	ctx.Remotes.Fade:FireClient(player, "Próxima estación: " .. dest.Name)
+	task.wait(1.2)
+	local char = player.Character
+	if char then
+		char:PivotTo(dest.Arrival)
+	end
+	traveling[player] = nil
+end
+
+function Metro.Init(context)
+	ctx = context
+	local names = {}
+	for i, st in ipairs(ctx.Map.Stations) do
+		names[i] = st.Name
+		st.Prompt.Triggered:Connect(function(player)
+			ctx.Remotes.OpenMetro:FireClient(player, i, names)
+		end)
+	end
+	ctx.Remotes.MetroTravel.OnServerEvent:Connect(onTravel)
+end
+
+return Metro
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000A"><Properties><string name="Name">Shops</string><ProtectedString name="Source"><![CDATA[-- Shops: taquerías, puestos y tienditas. La comida se come y cura vida.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Shops = {}
+
+local ctx -- { Remotes, Economy, Notify, Map }
+local MAX_DISTANCE = 20
+local COMMISSION_RANGE = 80
+
+local function makeFood(item)
+	local tool = Instance.new("Tool")
+	tool.Name = item.Name
+	tool.ToolTip = "Haz clic para comer (+" .. item.Heal .. " vida)"
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = Vector3.new(1, 0.6, 1)
+	handle.Color = BrickColor.new(item.Color).Color
+	handle.Material = Enum.Material.SmoothPlastic
+	handle.CanCollide = false
+	handle.Massless = true
+	handle.Parent = tool
+	local eaten = false
+	tool.Activated:Connect(function()
+		if eaten then
+			return
+		end
+		local hum = tool.Parent and tool.Parent:FindFirstChildOfClass("Humanoid")
+		if hum and hum.Health > 0 then
+			eaten = true
+			hum.Health = math.min(hum.MaxHealth, hum.Health + item.Heal)
+			tool:Destroy()
+		end
+	end)
+	return tool
+end
+
+-- Paga comisión al trabajador de ese giro más cercano al local
+local function payCommission(shop, buyer, shopPart)
+	local jobId = Config.Shops[shop.ShopId].CommissionJob
+	if not jobId then
+		return
+	end
+	local best, bestDist = nil, COMMISSION_RANGE
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= buyer and p:GetAttribute("Job") == jobId and p.Character then
+			local root = p.Character:FindFirstChild("HumanoidRootPart")
+			if root then
+				local d = (root.Position - shopPart.Position).Magnitude
+				if d < bestDist then
+					best, bestDist = p, d
+				end
+			end
+		end
+	end
+	if best then
+		ctx.Economy.Add(best, Config.SALE_COMMISSION)
+		ctx.Notify(best, "Vendiste a " .. buyer.DisplayName .. " (+$" .. Config.SALE_COMMISSION .. " de comisión)", "money")
+	end
+end
+
+local function onBuy(player, shopIndex, itemId)
+	if type(shopIndex) ~= "number" or type(itemId) ~= "string" then
+		return
+	end
+	local shop = ctx.Map.Shops[shopIndex]
+	if not shop then
+		return
+	end
+	local item = Config.GetItem(shop.ShopId, itemId)
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not item or not root then
+		return
+	end
+	if (root.Position - shop.Part.Position).Magnitude > MAX_DISTANCE then
+		ctx.Notify(player, "Acércate al mostrador para comprar.", "info")
+		return
+	end
+	if not ctx.Economy.Charge(player, item.Price) then
+		ctx.Notify(player, "No te alcanza, joven. Cuesta $" .. item.Price, "bad")
+		return
+	end
+	makeFood(item).Parent = player.Backpack
+	ctx.Notify(player, "Compraste " .. item.Name .. " (-$" .. item.Price .. ")", "good")
+	payCommission(shop, player, shop.Part)
+end
+
+function Shops.Init(context)
+	ctx = context
+	for index, shop in ipairs(ctx.Map.Shops) do
+		shop.Prompt.Triggered:Connect(function(player)
+			ctx.Remotes.OpenShop:FireClient(player, index, shop.ShopId)
+		end)
+	end
+	ctx.Remotes.BuyItem.OnServerEvent:Connect(onBuy)
+end
+
+return Shops
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000B"><Properties><string name="Name">Vehicles</string><ProtectedString name="Source"><![CDATA[-- Vehicles: taxis, patrullas, ambulancias y vochos de renta.
+-- El conductor maneja desde el cliente (ver client/Driving.luau); aquí se
+-- construyen los autos, se controla quién maneja y se cobra el taxi.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local Vehicles = {}
+
+local ctx
+local owned = {} -- [player] = Model
+local carsFolder
+
+local function weldedPart(model, base, name, size, offset, color, material, collide)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.CFrame = base.CFrame * offset
+	p.Color = color
+	p.Material = material or Enum.Material.SmoothPlastic
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.CanCollide = collide or false
+	p.Massless = true
+	local w = Instance.new("WeldConstraint")
+	w.Part0 = base
+	w.Part1 = p
+	w.Parent = p
+	p.Parent = model
+	return p
+end
+
+local function sideText(part, text, color)
+	for _, face in ipairs({ Enum.NormalId.Left, Enum.NormalId.Right }) do
+		local sg = Instance.new("SurfaceGui")
+		sg.Face = face
+		sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		sg.PixelsPerStud = 30
+		local l = Instance.new("TextLabel")
+		l.Size = UDim2.fromScale(1, 1)
+		l.BackgroundTransparency = 1
+		l.TextScaled = true
+		l.Font = Enum.Font.GothamBlack
+		l.TextColor3 = color
+		l.Text = text
+		l.Parent = sg
+		sg.Parent = part
+	end
+end
+
+local function buildCar(kind, def, cf, owner)
+	local model = Instance.new("Model")
+	model.Name = def.Name .. " de " .. owner.DisplayName
+
+	local base = Instance.new("Part")
+	base.Name = "Base"
+	base.Size = Vector3.new(7, 1.2, 14)
+	base.CFrame = cf
+	base.Color = Color3.fromRGB(35, 35, 35)
+	base.Material = Enum.Material.Metal
+	base.Anchored = true
+	base.RootPriority = 127
+	-- Fricción casi nula: la velocidad la controla el script de manejo
+	base.CustomPhysicalProperties = PhysicalProperties.new(1, 0, 0, 100, 1)
+	base.Parent = model
+	model.PrimaryPart = base
+
+	local body = weldedPart(model, base, "Carroceria", Vector3.new(8, 2.4, 15), CFrame.new(0, 1.8, 0), def.Color, Enum.Material.SmoothPlastic, true)
+	-- Cabina abierta: techo + pilares, para que se vea quién maneja
+	weldedPart(model, base, "Techo", Vector3.new(7.6, 0.4, 7.8), CFrame.new(0, 7.4, 1), def.Accent, Enum.Material.SmoothPlastic, true)
+	for _, x in ipairs({ -3.6, 3.6 }) do
+		for _, z in ipairs({ -2.7, 4.7 }) do
+			weldedPart(model, base, "Pilar", Vector3.new(0.4, 4.2, 0.4), CFrame.new(x, 5.1, z), def.Accent)
+		end
+	end
+	local glass = weldedPart(model, base, "Parabrisas", Vector3.new(6.8, 3.6, 0.2), CFrame.new(0, 5.1, -2.7), Color3.fromRGB(150, 200, 230), Enum.Material.Glass)
+	glass.Transparency = 0.6
+	weldedPart(model, base, "FaroIzq", Vector3.new(1.4, 0.8, 0.3), CFrame.new(-2.8, 2.2, -7.55), Color3.fromRGB(255, 250, 220), Enum.Material.Neon)
+	weldedPart(model, base, "FaroDer", Vector3.new(1.4, 0.8, 0.3), CFrame.new(2.8, 2.2, -7.55), Color3.fromRGB(255, 250, 220), Enum.Material.Neon)
+	weldedPart(model, base, "CalaveraIzq", Vector3.new(1.4, 0.8, 0.3), CFrame.new(-2.8, 2.2, 7.55), Color3.fromRGB(200, 20, 20), Enum.Material.Neon)
+	weldedPart(model, base, "CalaveraDer", Vector3.new(1.4, 0.8, 0.3), CFrame.new(2.8, 2.2, 7.55), Color3.fromRGB(200, 20, 20), Enum.Material.Neon)
+
+	for _, x in ipairs({ -3.6, 3.6 }) do
+		for _, z in ipairs({ -4.6, 4.6 }) do
+			local wheel = weldedPart(model, base, "Llanta", Vector3.new(1.2, 3, 3), CFrame.new(x, 0.9, z), Color3.fromRGB(20, 20, 20), Enum.Material.Rubber)
+			wheel.Shape = Enum.PartType.Cylinder
+		end
+	end
+
+	if kind == "Taxi" then
+		local sign = weldedPart(model, base, "LetreroTaxi", Vector3.new(3, 1, 1.4), CFrame.new(0, 8.1, 1), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+		sideText(sign, "TAXI", Color3.fromRGB(200, 30, 120))
+		sideText(body, "CDMX", Color3.fromRGB(255, 255, 255))
+	elseif def.Siren then
+		weldedPart(model, base, "TorretaRoja", Vector3.new(2.4, 0.6, 1.2), CFrame.new(-1.3, 7.9, 0.4), Color3.fromRGB(255, 30, 30), Enum.Material.Neon)
+		weldedPart(model, base, "TorretaAzul", Vector3.new(2.4, 0.6, 1.2), CFrame.new(1.3, 7.9, 0.4),
+			kind == "Patrulla" and Color3.fromRGB(30, 80, 255) or Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+		sideText(body, kind == "Patrulla" and "POLICÍA" or "AMBULANCIA", def.Accent)
+	end
+
+	local seat = Instance.new("VehicleSeat")
+	seat.Name = "Conductor"
+	seat.Size = Vector3.new(2, 1, 2)
+	seat.CFrame = base.CFrame * CFrame.new(-1.6, 3.4, -0.4)
+	seat.Color = Color3.fromRGB(40, 40, 40)
+	seat.HeadsUpDisplay = false
+	seat.MaxSpeed = def.MaxSpeed
+	seat.Massless = true
+	seat:SetAttribute("CDMXCar", true)
+	seat:SetAttribute("CarMaxSpeed", def.MaxSpeed)
+	local sw = Instance.new("WeldConstraint")
+	sw.Part0 = base
+	sw.Part1 = seat
+	sw.Parent = seat
+	seat.Parent = model
+
+	local passengerSeats = {}
+	local spots = { CFrame.new(1.6, 3.4, -0.4), CFrame.new(-1.6, 3.4, 3.4), CFrame.new(1.6, 3.4, 3.4) }
+	for i = 1, math.min(def.Seats or 1, #spots) do
+		local ps = Instance.new("Seat")
+		ps.Name = "Pasajero" .. i
+		ps.Size = Vector3.new(2, 1, 2)
+		ps.CFrame = base.CFrame * spots[i]
+		ps.Color = Color3.fromRGB(40, 40, 40)
+		ps.Massless = true
+		local w = Instance.new("WeldConstraint")
+		w.Part0 = base
+		w.Part1 = ps
+		w.Parent = ps
+		ps.Parent = model
+		table.insert(passengerSeats, ps)
+	end
+
+	model:SetAttribute("Owner", owner.UserId)
+	model.Parent = carsFolder
+	return model, base, seat, passengerSeats
+end
+
+local function setupDriverSeat(model, base, seat, owner)
+	seat:GetPropertyChangedSignal("Occupant"):Connect(function()
+		local hum = seat.Occupant
+		if hum then
+			local player = Players:GetPlayerFromCharacter(hum.Parent)
+			if player ~= owner then
+				task.defer(function()
+					local weld = seat:FindFirstChild("SeatWeld")
+					if weld then
+						weld:Destroy()
+					end
+				end)
+				if player then
+					ctx.Notify(player, "Este vehículo es de " .. owner.DisplayName .. ".", "info")
+				end
+				return
+			end
+			base.Anchored = false
+			pcall(function()
+				base:SetNetworkOwner(player)
+			end)
+		else
+			base.AssemblyLinearVelocity = Vector3.zero
+			base.AssemblyAngularVelocity = Vector3.zero
+			base.Anchored = true
+		end
+	end)
+end
+
+-- Cobro de taxi por distancia recorrida
+local function setupTaxiFares(model, base, seats, owner)
+	for _, s in ipairs(seats) do
+		local rider, startPos
+		s:GetPropertyChangedSignal("Occupant"):Connect(function()
+			local hum = s.Occupant
+			if hum then
+				rider = Players:GetPlayerFromCharacter(hum.Parent)
+				startPos = base.Position
+				if rider and rider ~= owner then
+					ctx.Notify(rider, "Subiste al taxi de " .. owner.DisplayName .. ". Tarifa mínima $" .. Config.TAXI_MIN_FARE, "info")
+				end
+			elseif rider then
+				local passenger = rider
+				rider = nil
+				if passenger == owner or not passenger.Parent or not owner.Parent then
+					return
+				end
+				local dist = (base.Position - startPos).Magnitude
+				if dist < 30 then
+					return
+				end
+				local fare = math.max(Config.TAXI_MIN_FARE, math.floor(dist / 100 * Config.TAXI_FARE_PER_100_STUDS))
+				local paid = ctx.Economy.Transfer(passenger, owner, fare)
+				ctx.Notify(passenger, "Pagaste $" .. paid .. " de taxi. ¡Gracias por viajar!", "info")
+				ctx.Notify(owner, "Tu pasajero pagó $" .. paid .. ".", "money")
+			end
+		end)
+	end
+end
+
+local function onGarage(player, garage)
+	local def = Config.Vehicles[garage.Kind]
+	if not def then
+		return
+	end
+	if player:GetAttribute("JailedUntil") then
+		return
+	end
+	if def.Job and player:GetAttribute("Job") ~= def.Job then
+		local job = Config.GetJob(def.Job)
+		ctx.Notify(player, "Necesitas el trabajo de " .. job.Name .. " para usar este vehículo.", "bad")
+		return
+	end
+	if def.Price > 0 and not ctx.Economy.Charge(player, def.Price) then
+		ctx.Notify(player, "La renta cuesta $" .. def.Price .. ".", "bad")
+		return
+	end
+	if owned[player] then
+		owned[player]:Destroy()
+	end
+	local model, base, seat, seats = buildCar(garage.Kind, def, garage.SpawnCFrame, player)
+	owned[player] = model
+	setupDriverSeat(model, base, seat, player)
+	if garage.Kind == "Taxi" then
+		setupTaxiFares(model, base, seats, player)
+	end
+	ctx.Notify(player, "Tu " .. def.Name .. " está listo. Súbete al asiento del conductor (W/A/S/D).", "good")
+end
+
+function Vehicles.Init(context)
+	ctx = context
+	carsFolder = Instance.new("Folder")
+	carsFolder.Name = "Vehiculos"
+	carsFolder.Parent = workspace
+	for _, garage in ipairs(ctx.Map.Garages) do
+		garage.Prompt.Triggered:Connect(function(player)
+			onGarage(player, garage)
+		end)
+	end
+	Players.PlayerRemoving:Connect(function(player)
+		if owned[player] then
+			owned[player]:Destroy()
+			owned[player] = nil
+		end
+	end)
+end
+
+return Vehicles
+]]></ProtectedString></Properties></Item></Item></Item><Item class="StarterPlayer" referent="RBX00000012"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX00000011"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX00000010"><Properties><string name="Name">Client</string><ProtectedString name="Source"><![CDATA[-- CDMX Roleplay - punto de entrada del cliente.
+
+local UI = require(script.UI)
+local Driving = require(script.Driving)
+
+UI.Init()
+Driving.Init()
+]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX0000000E"><Properties><string name="Name">Driving</string><ProtectedString name="Source"><![CDATA[-- Driving: manejo arcade de los autos de la CDMX.
+-- El servidor da la propiedad de red al conductor, así que aquí movemos el auto.
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+local Driving = {}
+
+local ACCEL = 28
+local BRAKE = 45
+local TURN_RATE = math.rad(95) -- grados por segundo a velocidad completa
+
+local function approach(current, target, delta)
+	if current < target then
+		return math.min(current + delta, target)
+	end
+	return math.max(current - delta, target)
+end
+
+local function drive(humanoid, seat)
+	local speed = 0
+	local conn
+	conn = RunService.Heartbeat:Connect(function(dt)
+		if humanoid.SeatPart ~= seat or not seat.Parent then
+			conn:Disconnect()
+			return
+		end
+		local base = seat.Parent and seat.Parent.PrimaryPart
+		if not base or base.Anchored then
+			return
+		end
+		local maxSpeed = seat:GetAttribute("CarMaxSpeed") or 60
+		local throttle = seat.ThrottleFloat
+		local steer = seat.SteerFloat
+
+		local target = throttle * maxSpeed
+		if throttle < 0 then
+			target = throttle * maxSpeed * 0.4 -- reversa más lenta
+		end
+		local rate = (throttle == 0 or (target * speed) < 0) and BRAKE or ACCEL
+		speed = approach(speed, target, rate * dt)
+
+		local cf = base.CFrame
+		local look = Vector3.new(cf.LookVector.X, 0, cf.LookVector.Z)
+		if look.Magnitude < 0.1 then
+			return
+		end
+		look = look.Unit
+
+		-- Si se volteó, lo enderezamos
+		if cf.UpVector.Y < 0.6 then
+			base.CFrame = CFrame.lookAt(cf.Position + Vector3.new(0, 3, 0), cf.Position + Vector3.new(0, 3, 0) + look)
+			speed = 0
+		end
+
+		local vel = base.AssemblyLinearVelocity
+		base.AssemblyLinearVelocity = Vector3.new(look.X * speed, math.min(vel.Y, 20), look.Z * speed)
+
+		local grip = math.clamp(math.abs(speed) / 15, 0, 1)
+		local dir = speed >= 0 and 1 or -1
+		base.AssemblyAngularVelocity = Vector3.new(0, -steer * TURN_RATE * grip * dir, 0)
+	end)
+end
+
+local function onCharacter(char)
+	local humanoid = char:WaitForChild("Humanoid")
+	humanoid.Seated:Connect(function(active, seat)
+		if active and seat and seat:IsA("VehicleSeat") and seat:GetAttribute("CDMXCar") then
+			drive(humanoid, seat)
+		end
+	end)
+end
+
+function Driving.Init()
+	if player.Character then
+		task.spawn(onCharacter, player.Character)
+	end
+	player.CharacterAdded:Connect(onCharacter)
+end
+
+return Driving
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000000F"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[-- UI: interfaz del jugador construida por código.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+local player = Players.LocalPlayer
+
+local UI = {}
+
+local THEME = {
+	Bg = Color3.fromRGB(25, 25, 30),
+	Panel = Color3.fromRGB(35, 35, 42),
+	Row = Color3.fromRGB(48, 48, 58),
+	Text = Color3.fromRGB(245, 245, 245),
+	Muted = Color3.fromRGB(180, 180, 190),
+	Pink = Color3.fromRGB(235, 80, 150),
+	Green = Color3.fromRGB(0, 140, 90),
+	Red = Color3.fromRGB(206, 17, 38),
+	Orange = Color3.fromRGB(240, 120, 20),
+	Gold = Color3.fromRGB(240, 200, 60),
+}
+
+local KIND_COLORS = {
+	good = THEME.Green,
+	bad = THEME.Red,
+	money = Color3.fromRGB(30, 150, 60),
+	alert = Color3.fromRGB(180, 20, 40),
+	info = Color3.fromRGB(60, 70, 90),
+}
+
+local function new(className, props, children)
+	local obj = Instance.new(className)
+	for k, v in pairs(props or {}) do
+		obj[k] = v
+	end
+	for _, child in ipairs(children or {}) do
+		child.Parent = obj
+	end
+	return obj
+end
+
+local function corner(r)
+	return new("UICorner", { CornerRadius = UDim.new(0, r or 8) })
+end
+
+local function padding(p)
+	return new("UIPadding", {
+		PaddingTop = UDim.new(0, p), PaddingBottom = UDim.new(0, p),
+		PaddingLeft = UDim.new(0, p), PaddingRight = UDim.new(0, p),
+	})
+end
+
+local function formatMoney(n)
+	local s = tostring(math.floor(n))
+	local formatted = s:reverse():gsub("(%d%d%d)", "%1,"):reverse()
+	if formatted:sub(1, 1) == "," then
+		formatted = formatted:sub(2)
+	end
+	return "$" .. formatted
+end
+
+local function button(text, color, size)
+	return new("TextButton", {
+		Text = text,
+		Size = size or UDim2.fromOffset(110, 36),
+		BackgroundColor3 = color or THEME.Pink,
+		TextColor3 = THEME.Text,
+		Font = Enum.Font.GothamBold,
+		TextSize = 16,
+		AutoButtonColor = true,
+	}, { corner(8) })
+end
+
+-- Raíz -------------------------------------------------------------------
+local gui = new("ScreenGui", {
+	Name = "CDMX_HUD",
+	ResetOnSpawn = false,
+	IgnoreGuiInset = false,
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+})
+
+-- Barra superior: dinero y hora
+local topBar = new("Frame", {
+	Name = "TopBar",
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -12, 0, 12),
+	Size = UDim2.fromOffset(220, 74),
+	BackgroundColor3 = THEME.Bg,
+	BackgroundTransparency = 0.15,
+	Parent = gui,
+}, { corner(10), padding(8) })
+local moneyLabel = new("TextLabel", {
+	Size = UDim2.new(1, 0, 0, 32),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.GothamBlack,
+	TextColor3 = Color3.fromRGB(120, 230, 140),
+	TextScaled = true,
+	TextXAlignment = Enum.TextXAlignment.Right,
+	Text = "$0",
+	Parent = topBar,
+})
+local infoLabel = new("TextLabel", {
+	Position = UDim2.fromOffset(0, 36),
+	Size = UDim2.new(1, 0, 0, 22),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.GothamMedium,
+	TextColor3 = THEME.Muted,
+	TextScaled = true,
+	TextXAlignment = Enum.TextXAlignment.Right,
+	Text = "",
+	Parent = topBar,
+})
+-- Franja tricolor
+local stripe = new("Frame", {
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, -8, 1, 8),
+	Size = UDim2.new(1, 16, 0, 4),
+	BackgroundTransparency = 1,
+	Parent = topBar,
+}, { new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal }) })
+for _, c in ipairs({ THEME.Green, Color3.new(1, 1, 1), THEME.Red }) do
+	new("Frame", { Size = UDim2.new(1 / 3, 0, 1, 0), BackgroundColor3 = c, BorderSizePixel = 0, Parent = stripe })
+end
+
+-- Estado (se busca / reclusorio)
+local statusLabel = new("TextLabel", {
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -12, 0, 96),
+	Size = UDim2.fromOffset(220, 34),
+	BackgroundColor3 = THEME.Red,
+	Font = Enum.Font.GothamBlack,
+	TextColor3 = THEME.Text,
+	TextSize = 18,
+	Visible = false,
+	Parent = gui,
+}, { corner(8) })
+
+-- Botón de trabajos
+local jobsButton = button("TRABAJOS [J]", THEME.Pink, UDim2.fromOffset(150, 44))
+jobsButton.AnchorPoint = Vector2.new(0, 1)
+jobsButton.Position = UDim2.new(0, 12, 1, -12)
+jobsButton.Parent = gui
+
+-- Notificaciones
+local notifyHolder = new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 12),
+	Size = UDim2.new(0, 460, 0, 300),
+	BackgroundTransparency = 1,
+	Parent = gui,
+}, {
+	new("UIListLayout", {
+		Padding = UDim.new(0, 6),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}),
+	new("UISizeConstraint", { MaxSize = Vector2.new(460, 300) }),
+})
+
+-- Fundido para el Metro
+local fade = new("Frame", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundColor3 = Color3.new(0, 0, 0),
+	BackgroundTransparency = 1,
+	Visible = false,
+	ZIndex = 50,
+	Parent = gui,
+})
+local fadeText = new("TextLabel", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.GothamBlack,
+	TextColor3 = THEME.Orange,
+	TextSize = 32,
+	TextTransparency = 1,
+	ZIndex = 51,
+	Parent = fade,
+})
+
+-- Panel genérico ------------------------------------------------------------
+local panel = new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.new(0.9, 0, 0.75, 0),
+	BackgroundColor3 = THEME.Panel,
+	Visible = false,
+	ZIndex = 10,
+	Parent = gui,
+}, {
+	corner(12),
+	padding(12),
+	new("UISizeConstraint", { MaxSize = Vector2.new(560, 520) }),
+})
+local panelTitle = new("TextLabel", {
+	Size = UDim2.new(1, -50, 0, 36),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.GothamBlack,
+	TextColor3 = THEME.Text,
+	TextSize = 24,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	ZIndex = 11,
+	Parent = panel,
+})
+local closeBtn = button("X", THEME.Red, UDim2.fromOffset(36, 36))
+closeBtn.AnchorPoint = Vector2.new(1, 0)
+closeBtn.Position = UDim2.new(1, 0, 0, 0)
+closeBtn.ZIndex = 11
+closeBtn.Parent = panel
+local list = new("ScrollingFrame", {
+	Position = UDim2.fromOffset(0, 46),
+	Size = UDim2.new(1, 0, 1, -46),
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	ScrollBarThickness = 6,
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	CanvasSize = UDim2.new(),
+	ZIndex = 11,
+	Parent = panel,
+}, { new("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }) })
+
+local function closePanel()
+	panel.Visible = false
+end
+closeBtn.MouseButton1Click:Connect(closePanel)
+
+local function openPanel(title)
+	for _, c in ipairs(list:GetChildren()) do
+		if not c:IsA("UIListLayout") then
+			c:Destroy()
+		end
+	end
+	panelTitle.Text = title
+	panel.Visible = true
+	list.CanvasPosition = Vector2.zero
+end
+
+-- Fila: título, subtítulo, botón
+local function addRow(order, title, subtitle, accent, btnText, btnColor, onClick)
+	local row = new("Frame", {
+		LayoutOrder = order,
+		Size = UDim2.new(1, -8, 0, 72),
+		BackgroundColor3 = THEME.Row,
+		ZIndex = 12,
+		Parent = list,
+	}, { corner(8) })
+	new("Frame", { Size = UDim2.new(0, 6, 1, 0), BackgroundColor3 = accent or THEME.Pink, BorderSizePixel = 0, ZIndex = 13, Parent = row }, { corner(3) })
+	new("TextLabel", {
+		Position = UDim2.fromOffset(16, 8),
+		Size = UDim2.new(1, -150, 0, 24),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		TextColor3 = THEME.Text,
+		TextSize = 18,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		Text = title,
+		ZIndex = 13,
+		Parent = row,
+	})
+	new("TextLabel", {
+		Position = UDim2.fromOffset(16, 32),
+		Size = UDim2.new(1, -150, 0, 34),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.Gotham,
+		TextColor3 = THEME.Muted,
+		TextSize = 13,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Text = subtitle,
+		ZIndex = 13,
+		Parent = row,
+	})
+	local b = button(btnText, btnColor or THEME.Green, UDim2.fromOffset(116, 38))
+	b.AnchorPoint = Vector2.new(1, 0.5)
+	b.Position = UDim2.new(1, -10, 0.5, 0)
+	b.ZIndex = 13
+	b.Parent = row
+	b.MouseButton1Click:Connect(onClick)
+	return row
+end
+
+-- Pantallas ------------------------------------------------------------------
+local function showJobs()
+	openPanel("Bolsa de trabajo CDMX")
+	local current = player:GetAttribute("Job")
+	for i, job in ipairs(Config.Jobs) do
+		local isCurrent = job.Id == current
+		local salary = job.Salary > 0 and ("$" .. job.Salary .. "/quincena · ") or ""
+		addRow(i, job.Name, salary .. job.Description, BrickColor.new(job.Color).Color,
+			isCurrent and "Actual" or "Elegir", isCurrent and THEME.Row or THEME.Green, function()
+				if not isCurrent then
+					Remotes.ChangeJob:FireServer(job.Id)
+					closePanel()
+				end
+			end)
+	end
+end
+
+local function showShop(shopIndex, shopId)
+	local shop = Config.Shops[shopId]
+	if not shop then
+		return
+	end
+	openPanel(shop.Name)
+	for i, item in ipairs(shop.Items) do
+		addRow(i, item.Name, "Recupera " .. item.Heal .. " de vida", BrickColor.new(item.Color).Color,
+			"$" .. item.Price, THEME.Green, function()
+				Remotes.BuyItem:FireServer(shopIndex, item.Id)
+			end)
+	end
+end
+
+local function showMetro(currentIndex, names)
+	openPanel("Metro - ¿A dónde vas? (boleto $" .. Config.METRO_FARE .. ")")
+	local order = 0
+	for i, name in ipairs(names) do
+		if i ~= currentIndex then
+			order = order + 1
+			addRow(order, name, "Línea CDMX", THEME.Orange, "Viajar", THEME.Orange, function()
+				Remotes.MetroTravel:FireServer(i)
+				closePanel()
+			end)
+		end
+	end
+end
+
+-- Notificaciones -----------------------------------------------------------
+local notifyCount = 0
+local function notify(text, kind)
+	notifyCount = notifyCount + 1
+	local card = new("TextLabel", {
+		LayoutOrder = notifyCount,
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundColor3 = KIND_COLORS[kind] or KIND_COLORS.info,
+		BackgroundTransparency = 0.1,
+		Font = Enum.Font.GothamBold,
+		TextColor3 = THEME.Text,
+		TextSize = 16,
+		TextWrapped = true,
+		Text = text,
+		Parent = notifyHolder,
+	}, { corner(8), padding(10) })
+	local children = 0
+	for _, c in ipairs(notifyHolder:GetChildren()) do
+		if c:IsA("TextLabel") then
+			children = children + 1
+		end
+	end
+	if children > 4 then
+		-- Borra la más vieja
+		local oldest
+		for _, c in ipairs(notifyHolder:GetChildren()) do
+			if c:IsA("TextLabel") and (not oldest or c.LayoutOrder < oldest.LayoutOrder) then
+				oldest = c
+			end
+		end
+		if oldest then
+			oldest:Destroy()
+		end
+	end
+	task.delay(4.5, function()
+		if card.Parent then
+			local info = TweenInfo.new(0.4)
+			TweenService:Create(card, info, { BackgroundTransparency = 1, TextTransparency = 1 }):Play()
+			task.wait(0.45)
+			card:Destroy()
+		end
+	end)
+end
+
+local function doFade(text)
+	fade.Visible = true
+	fadeText.Text = "🚇  " .. (text or "")
+	local info = TweenInfo.new(0.5)
+	TweenService:Create(fade, info, { BackgroundTransparency = 0 }):Play()
+	TweenService:Create(fadeText, info, { TextTransparency = 0 }):Play()
+	task.wait(1.4)
+	TweenService:Create(fade, info, { BackgroundTransparency = 1 }):Play()
+	TweenService:Create(fadeText, info, { TextTransparency = 1 }):Play()
+	task.wait(0.5)
+	fade.Visible = false
+end
+
+-- Actualización del HUD ------------------------------------------------------
+local function bindMoney()
+	local leaderstats = player:WaitForChild("leaderstats")
+	local pesos = leaderstats:WaitForChild("Pesos")
+	local function update()
+		moneyLabel.Text = formatMoney(pesos.Value) .. " MXN"
+	end
+	pesos.Changed:Connect(update)
+	update()
+end
+
+local function updateInfo()
+	local t = Lighting.ClockTime
+	local h = math.floor(t)
+	local m = math.floor((t - h) * 60)
+	local job = Config.GetJob(player:GetAttribute("Job") or "Ciudadano")
+	infoLabel.Text = string.format("%02d:%02d · %s", h, m, job and job.Name or "")
+
+	local now = workspace:GetServerTimeNow()
+	local jailed = player:GetAttribute("JailedUntil")
+	local wantedUntil = player:GetAttribute("WantedUntil")
+	if jailed then
+		statusLabel.Visible = true
+		statusLabel.BackgroundColor3 = THEME.Orange
+		statusLabel.Text = "RECLUSORIO: " .. math.max(0, math.ceil(jailed - now)) .. "s"
+	elseif wantedUntil then
+		local left = math.max(0, math.ceil(wantedUntil - now))
+		statusLabel.Visible = true
+		statusLabel.BackgroundColor3 = THEME.Red
+		statusLabel.Text = string.format("¡SE BUSCA! %d:%02d", math.floor(left / 60), left % 60)
+	else
+		statusLabel.Visible = false
+	end
+end
+
+function UI.Init()
+	gui.Parent = player:WaitForChild("PlayerGui")
+
+	jobsButton.MouseButton1Click:Connect(function()
+		if panel.Visible and panelTitle.Text == "Bolsa de trabajo CDMX" then
+			closePanel()
+		else
+			showJobs()
+		end
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.J then
+			if panel.Visible then
+				closePanel()
+			else
+				showJobs()
+			end
+		end
+	end)
+
+	Remotes.Notify.OnClientEvent:Connect(notify)
+	Remotes.OpenShop.OnClientEvent:Connect(showShop)
+	Remotes.OpenMetro.OnClientEvent:Connect(showMetro)
+	Remotes.Fade.OnClientEvent:Connect(doFade)
+
+	task.spawn(bindMoney)
+	task.spawn(function()
+		while true do
+			updateInfo()
+			task.wait(0.5)
+		end
+	end)
+end
+
+return UI
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="Teams" referent="RBX00000013"><Properties><string name="Name">Teams</string></Properties></Item><Item class="Lighting" referent="RBX00000014"><Properties><string name="Name">Lighting</string><float name="ClockTime">10</float><float name="Brightness">2</float><bool name="GlobalShadows">true</bool></Properties></Item></roblox>
