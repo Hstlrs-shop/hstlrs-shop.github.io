@@ -8,7 +8,7 @@ Tienda online de ropa streetwear preparada para **dropshipping**. Web estática 
 - Ficha de producto con colores, tallas, guía de tallas y fecha de entrega estimada
 - Carrito persistente (se guarda en el navegador) con barra de envío gratis
 - Códigos de descuento (`HSTLR10`)
-- Pago con el checkout de Shopify (tienda `0n1xxz-jc.myshopify.com`, en MXN); alternativa por WhatsApp o email
+- Pago con el checkout de Shopify (tienda `hsltrs.myshopify.com`, en MXN); alternativa por WhatsApp o email
 - Seguimiento de pedidos (vía 17TRACK), FAQ de envíos y devoluciones, textos legales
 - Newsletter con código de bienvenida y diseño adaptado a móvil
 
@@ -42,18 +42,16 @@ Ajusta los plazos de `shipping` en `config.js` a los reales de tu proveedor y re
 
 Abre `index.html` en el navegador, o ejecuta `python3 -m http.server` y entra en http://localhost:8000.
 
-## Estado de la tienda en Shopify (`0n1xxz-jc.myshopify.com`)
+## Estado de la tienda en Shopify (`hsltrs.myshopify.com`)
 
-Ya configurado:
-- 11 productos activos con fotos por color, precios en MXN y precio anterior tachado
-- Colecciones automáticas: Hoodies, Camisetas, Pantalones, Accesorios
-- Cupón `HSTLR10` (10 %, todos los clientes, sin caducidad)
-- Envíos (los que trae la tienda): estándar $150, gratis desde $1,050, exprés $195, internacional $360
+Revisión del 04/11/2026:
+- ✅ Plan Basic contratado, tienda abierta (sin contraseña), Shop Pay / Apple Pay / Google Pay disponibles
+- ✅ Cupón `HSTLR10` (10 %, todos los clientes, sin caducidad)
+- ✅ Envíos: estándar $150, gratis desde $1,050, exprés $195, internacional $360
+- ℹ️ Los 11 productos de ejemplo están **archivados**: la web los oculta (`archived: true` en `products.js`) y muestra el Drop 01 como portada.
 
-Pendiente en el panel de Shopify (no se puede hacer desde la web):
-1. **Contratar un plan** (la tienda está en prueba y no puede cobrar).
-2. **Pagos** → Configuración → Pagos: activar Shopify Payments (RFC, CLABE y datos fiscales) y, si quieres, PayPal y pagos en efectivo (OXXO) con un proveedor como Mercado Pago o Conekta.
-3. **Políticas** → pegar los textos de [`docs/politicas-shopify.md`](docs/politicas-shopify.md).
-4. **Quitar la contraseña** de la tienda online al lanzar (Tienda online → Preferencias).
-5. **Proveedor**: instalar DSers, CJ Dropshipping o Printful y vincular cada producto.
-6. Cambiar en `assets/js/config.js` el email y el WhatsApp reales.
+Pendiente:
+1. **Drop 01**: las 6 playeras siguen en borrador, sin fotos y con stock 0. Sube fotos, confirma precio y stock y actívalas (ver sección "Drop 01").
+2. **Políticas** → solo existe la de privacidad. Pega reembolso, envío y términos de [`docs/politicas-shopify.md`](docs/politicas-shopify.md).
+3. **WhatsApp**: pon tu número en `assets/js/config.js` para que aparezca el botón.
+4. **Proveedor**: instala la app de tu proveedor (DSers, CJ Dropshipping, Printful…) y vincula cada playera.

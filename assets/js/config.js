@@ -6,7 +6,7 @@ window.STORE_CONFIG = {
   name: "HSTLRS",
   currency: "MXN",            // Debe coincidir con la moneda de tu tienda Shopify
   locale: "es-MX",
-  contactEmail: "hola@hstlrs.com",
+  contactEmail: "fragaaitss@icloud.com",
   whatsapp: "520000000000",  // Tu WhatsApp: 52 + 10 dígitos. Mientras sea 52000... el botón flotante no aparece
 
   shipping: {
@@ -31,5 +31,5 @@ window.STORE_CONFIG = {
    *                el campo shopifyVariants de cada producto en products.js).
    */
   checkoutMode: "shopify",
-  shopifyDomain: "0n1xxz-jc.myshopify.com",
+  shopifyDomain: "hsltrs.myshopify.com",
 };

@@ -16,7 +16,7 @@ Tienes **30 días naturales** desde que recibes tu pedido para solicitar una dev
 - Debes incluir tu número de pedido.
 
 **Cómo solicitarla**
-Escríbenos a hola@hstlrs.com ✏️ con tu número de pedido y el motivo. Te responderemos en un máximo de 48 horas con la dirección y las instrucciones de devolución.
+Escríbenos a fragaaitss@icloud.com con tu número de pedido y el motivo. Te responderemos en un máximo de 48 horas con la dirección y las instrucciones de devolución.
 
 **Productos defectuosos o incorrectos**
 Si recibes un producto dañado, defectuoso o diferente al que pediste, avísanos en los primeros 7 días con fotos del producto. Te enviaremos uno nuevo o te devolveremos el importe íntegro sin costo para ti.
@@ -61,7 +61,7 @@ Los plazos de entrega y las condiciones de devolución se describen en nuestra P
 Estos términos no limitan los derechos que te otorga la Ley Federal de Protección al Consumidor.
 
 **Contacto**
-hola@hstlrs.com ✏️
+fragaaitss@icloud.com
 
 ---
 

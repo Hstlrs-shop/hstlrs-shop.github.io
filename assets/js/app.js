@@ -2,7 +2,8 @@
   "use strict";
 
   const CFG = window.STORE_CONFIG;
-  const PRODUCTS = window.PRODUCTS;
+  // Solo se muestran los productos activos (los archivados en Shopify no se pueden comprar).
+  const PRODUCTS = window.PRODUCTS.filter((p) => !p.archived);
   const CART_KEY = "hstlrs_cart_v1";
   const COUPON_KEY = "hstlrs_coupon_v1";
 
@@ -112,6 +113,23 @@
     const b = PRODUCTS.find((p) => p.shape === "pants");
     if (a) $("[data-hero-a]").innerHTML = productArt(a, 1);
     if (b) $("[data-hero-b]").innerHTML = productArt(b, 0);
+
+    // Sin catálogo a la venta: la portada lleva al Drop 01.
+    if (!PRODUCTS.length) {
+      const up = window.UPCOMING || [];
+      const tee = (u) => productArt({ id: u.id, name: u.name, shape: "tee", image: u.image, colors: [u.color] });
+      const ua = up.find((u) => u.featured) || up[0];
+      const ub = ua && (up.find((u) => u.color.hex !== ua.color.hex) || up[1]);
+      if (ua) $("[data-hero-a]").innerHTML = tee(ua);
+      if (ub) $("[data-hero-b]").innerHTML = tee(ub);
+      $$(".hero__badge").forEach((el) => (el.hidden = true));
+      const cta = $(".hero__cta .btn--primary");
+      cta.href = "#drop-01";
+      cta.textContent = "Ver el Drop 01";
+      $("#tienda").hidden = true;
+      $$("[data-filter-link]").forEach((el) => (el.hidden = true));
+      $$('a[href="#tienda"]').forEach((el) => (el.href = "#drop-01"));
+    }
   }
 
   /* ---------- Catálogo ---------- */

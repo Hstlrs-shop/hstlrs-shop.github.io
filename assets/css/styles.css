@@ -113,9 +113,7 @@ h2 { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.6rem); letter-
 .drop { background: var(--ink); color: #fff; padding: 72px 0; }
 .drop__lead { color: #b9b9bf; max-width: 52ch; margin: 12px 0 0; }
 .drop__lead strong { color: #fff; }
-.drop__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.drop-card__media { max-height: 340px; }
-.drop-card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: var(--radius); overflow: hidden; }
+.drop__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }.drop-card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: var(--radius); overflow: hidden; }
 .drop-card--featured { border-color: var(--accent); }
 .drop-card__media { position: relative; aspect-ratio: 1; }
 .drop-card__media svg, .drop-card__media img { width: 100%; height: 100%; object-fit: cover; }

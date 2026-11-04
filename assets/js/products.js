@@ -16,6 +16,7 @@
 window.PRODUCTS = [
   {
     id: "hoodie-hustle-oversize",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Hoodie Hustle Oversize",
     category: "hoodies",
     price: 899,
@@ -48,6 +49,7 @@ window.PRODUCTS = [
   },
   {
     id: "hoodie-zip-grind",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Hoodie Zip Grind",
     category: "hoodies",
     price: 999,
@@ -73,6 +75,7 @@ window.PRODUCTS = [
   },
   {
     id: "tee-basic-heavy",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Camiseta Heavy Basic",
     category: "camisetas",
     price: 449,
@@ -107,6 +110,7 @@ window.PRODUCTS = [
   },
   {
     id: "tee-no-days-off",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Camiseta No Days Off",
     category: "camisetas",
     price: 529,
@@ -131,6 +135,7 @@ window.PRODUCTS = [
   },
   {
     id: "tee-longsleeve-core",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Manga Larga Core",
     category: "camisetas",
     price: 599,
@@ -155,6 +160,7 @@ window.PRODUCTS = [
   },
   {
     id: "pants-cargo-urban",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Cargo Urban",
     category: "pantalones",
     price: 1099,
@@ -180,6 +186,7 @@ window.PRODUCTS = [
   },
   {
     id: "pants-jogger-fleece",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Jogger Fleece",
     category: "pantalones",
     price: 799,
@@ -210,6 +217,7 @@ window.PRODUCTS = [
   },
   {
     id: "cap-dad-logo",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Gorra Dad Logo",
     category: "accesorios",
     price: 399,
@@ -229,6 +237,7 @@ window.PRODUCTS = [
   },
   {
     id: "beanie-rib",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Gorro Rib Knit",
     category: "accesorios",
     price: 339,
@@ -248,6 +257,7 @@ window.PRODUCTS = [
   },
   {
     id: "bag-crossbody",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Bandolera Hustle",
     category: "accesorios",
     price: 499,
@@ -266,6 +276,7 @@ window.PRODUCTS = [
   },
   {
     id: "socks-pack",
+    archived: true, // Archivado en Shopify el 04/11/2026. Quita esta línea si lo reactivas.
     name: "Pack 3 Calcetines",
     category: "accesorios",
     price: 299,
