@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nau para refaccionarias</title>
+  <meta name="description" content="Recibe solicitudes de cotización de talleres cercanos y publica tu catálogo.">
+  <link rel="stylesheet" href="/app/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="logo" aria-hidden="true"></span>nau <span class="muted small" style="font-weight:500">refaccionarias</span></a>
+    <nav id="nav" class="nav">
+      <button data-view="nuevas" class="active">Solicitudes</button>
+      <button data-view="enviadas">Cotizadas</button>
+      <button data-view="ganadas">Ventas</button>
+      <button data-view="catalogo">Catálogo</button>
+      <button data-view="perfil">Perfil</button>
+    </nav>
+    <div id="who" class="who"></div>
+  </header>
+
+  <main id="app" class="main"><div class="empty">Cargando…</div></main>
+
+  <dialog id="modal">
+    <form id="modal-form" method="dialog">
+      <h2 id="modal-title"></h2>
+      <div id="modal-body"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="modal-cancel">Cancelar</button>
+        <button type="submit" class="btn primary" id="modal-ok">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <datalist id="municipios">
+    <option value="Querétaro"><option value="Corregidora"><option value="El Marqués"><option value="Huimilpan">
+    <option value="Pedro Escobedo"><option value="San Juan del Río"><option value="Tequisquiapan"><option value="Colón">
+    <option value="Ezequiel Montes"><option value="Amealco de Bonfil"><option value="Cadereyta de Montes"><option value="Celaya">
+  </datalist>
+  <script src="proveedor.js"></script>
+</body>
+</html>

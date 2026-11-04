@@ -1,6 +1,6 @@
 # Nau
 
-SaaS de gestión logística para talleres mecánicos en México. Incluye órdenes de trabajo, refacciones, compras a proveedores, planificación de mecánicos y bahías, y un asistente con IA que responde dudas usando los datos de cada taller. Se cobra como suscripción mensual con Mercado Pago.
+SaaS de gestión logística para talleres mecánicos en México. Incluye órdenes de trabajo, refacciones, compras a proveedores, planificación de mecánicos y bahías, un asistente con IA que responde dudas usando los datos de cada taller y un mercado de refacciones con refaccionarias cercanas. Se cobra como suscripción mensual con Mercado Pago.
 
 ## Qué incluye
 
@@ -10,6 +10,7 @@ SaaS de gestión logística para talleres mecánicos en México. Incluye órdene
 | Demo | `/demo/` | La app con datos de ejemplo guardados en el navegador, sin registrarse |
 | Registro / acceso | `/cuenta.html` | Crear un taller (prueba gratis) o iniciar sesión |
 | App | `/app/` | La herramienta del taller, con los datos en el servidor y compartidos por todo el equipo |
+| Portal de refaccionarias | `/proveedor/` | Solicitudes de talleres cercanos, cotizaciones, ventas, catálogo e importación CSV |
 | Administración | `/admin.html` | Para ti: talleres, quién paga, ingreso mensual estimado, uso de la IA y activación manual |
 
 ### Funciones de la app
@@ -19,7 +20,21 @@ SaaS de gestión logística para talleres mecánicos en México. Incluye órdene
 - **Compras sugeridas** por proveedor. Al recibirlas se actualiza el stock y se avisa qué órdenes pueden seguir.
 - **Planificación**: bahías, carga de cada mecánico, cola por prioridad y auto-asignación.
 - **Asistente IA** (botón "Asistente", abajo a la derecha). Responde sobre los datos del taller ("¿qué está atrasado?", "¿qué refacciones pido hoy?") y sobre cómo usar Nau. Solo consulta información: no modifica datos.
-- **Cuenta**: usuarios del taller (dueño y equipo), suscripción, cambio de plan y cancelación.
+- **Refacciones** (mercado):
+  - *Buscador*: busca en tu inventario y en los catálogos de refaccionarias cercanas, con precio, existencia y distancia. Filtra por año de compatibilidad ("Versa 2012-2019" no aparece si buscas 2022) y no distingue acentos. **Buscar con IA** entiende jerga y faltas ("pastias" → balatas) y sugiere qué confirmar antes de comprar.
+  - *Cotizaciones*: el taller pide cotización a todas las refaccionarias dentro de 5, 10, 20 o 50 km, o a una en concreto desde el buscador; también desde Compras con el botón "Cotizar". Las refaccionarias responden con precio por pieza, marca, costo de envío y tiempo de entrega. El taller compara y compra.
+  - *Al comprar*: el contacto de cada parte se comparte con la otra (con enlace a WhatsApp) y en el taller se crea la orden de compra (y las refacciones que no existían en el inventario). Al recibirla, el stock se suma como en cualquier compra.
+  - *Pago*: lo acuerdan directamente el taller y la refaccionaria. Nau no cobra comisión por ahora.
+- **Cuenta**: usuarios del taller (dueño y equipo), suscripción, cambio de plan, cancelación y ubicación del taller.
+
+### Refaccionarias
+
+Se registran gratis en `/cuenta.html#refaccionaria` con su WhatsApp y municipio. En su portal:
+
+- Ven las solicitudes de talleres dentro de su radio de entrega (con ubicación exacta) o de su municipio (si no la han configurado), y las que les piden directamente.
+- Cotizan pieza por pieza; pueden corregir o retirar una cotización mientras el taller no decide.
+- Publican su catálogo a mano o importando un CSV desde Excel (plantilla incluida; columnas `codigo, nombre, marca, categoria, numero_parte, compatibilidad, precio, existencia`; acepta comas o punto y coma).
+- La página se actualiza sola cada 30 segundos y avisa cuando llega una solicitud nueva.
 
 ### Planes (configurables en `.env`)
 
@@ -97,12 +112,15 @@ docker run -d -p 3000:3000 -v nau-data:/data --env-file .env nau
 - **Facturas CFDI 4.0**: muchos talleres te pedirán factura de la suscripción. Mercado Pago cobra, pero no factura por ti. Puedes emitirlas desde el portal del SAT o con un PAC (Facturama, Facturapi, etc.). Los precios por defecto se plantean con IVA incluido.
 - **Aviso de privacidad y términos y condiciones**, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares. Vas a guardar datos de clientes de los talleres y los envías a un proveedor de IA (Anthropic) para responder consultas: menciónalo en el aviso.
 - **Correo saliente**: no hay envío de emails. Para recuperar una contraseña, el dueño la cambia desde Ajustes; si el dueño la olvida, cámbiala tú.
+- **Refaccionarias en la red**: el mercado solo sirve si hay refaccionarias registradas cerca de tus talleres. Antes de vender esta función, registra a las de tu zona (son gratis para ellas) y ayúdalas a subir su catálogo.
+- **Avisos fuera de la app**: hoy las solicitudes y respuestas se ven al abrir Nau. Para que lleguen al celular hace falta integrar WhatsApp Business API o correo.
 
 ## Detalles técnicos
 
 - `server/`: servidor HTTP con Node (`node:http`, `node:sqlite`, `node:crypto`). La única dependencia es el SDK oficial de Anthropic (`@anthropic-ai/sdk`).
   - Contraseñas con scrypt, sesiones con cookie HttpOnly, protección CSRF por encabezado y límite de intentos de acceso.
   - Cada taller tiene sus datos separados y el servidor aplica los límites de cada plan.
-  - El asistente está en `server/assistant.js`: instrucciones, resumen de datos y transmisión de la respuesta (SSE).
+  - El asistente está en `server/assistant.js`: instrucciones, resumen de datos y transmisión de la respuesta (SSE), además de la interpretación de búsquedas de refacciones (salida JSON con esquema).
+  - El mercado está en `server/market.js`: perfiles con ubicación (distancia en línea recta), catálogos con búsqueda de texto completo (SQLite FTS5), solicitudes y cotizaciones.
 - Los datos de cada taller se guardan como un documento con número de versión. Si dos personas guardan a la vez, la segunda recibe la versión más reciente y debe repetir su último cambio. La app consulta cambios cada 15 segundos.
-- `test/`: pruebas del API, del flujo de suscripción contra un Mercado Pago simulado y del asistente contra una API de Anthropic simulada.
+- `test/`: pruebas del API, del mercado de refacciones, del flujo de suscripción contra un Mercado Pago simulado y del asistente contra una API de Anthropic simulada.

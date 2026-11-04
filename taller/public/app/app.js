@@ -470,7 +470,7 @@ const VIEWS = {
       const total = sugg[sid].reduce((t, it) => t + it.qty * (byId(S.parts, it.partId)?.cost || 0), 0);
       return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
           <div><b>${esc(s?.name || 'Sin proveedor')}</b><div class="muted small">${s ? `Entrega en ~${s.leadDays} días · ${esc(s.phone)}` : 'Asigna un proveedor a la refacción'}</div></div>
-          ${s ? `<button class="btn sm primary" data-gen-po="${sid}">Generar OC</button>` : ''}</div>
+          <span style="white-space:nowrap">${MODE === 'cloud' ? `<button class="btn sm" data-rfq-sugg="${sid}" title="Pedir precio a refaccionarias cercanas">Cotizar</button> ` : ''}${s ? `<button class="btn sm primary" data-gen-po="${sid}">Generar OC</button>` : ''}</span></div>
         <table style="margin-top:8px"><tbody>${sugg[sid].map((it) => {
           const p = byId(S.parts, it.partId);
           return `<tr><td>${esc(p.name)}<div class="muted small">stock ${p.stock} · mín ${p.min}${it.forOrders ? ` · reservado ${it.forOrders}` : ''}</div></td><td class="num"><b>${it.qty}</b> u.</td></tr>`;
@@ -503,6 +503,7 @@ const VIEWS = {
     return `
       <h1>Ajustes</h1><p class="sub">${MODE === 'cloud' ? 'Cuenta, equipo, instalaciones, proveedores y datos.' : 'Equipo, instalaciones, proveedores y datos.'}</p>
       ${MODE === 'cloud' ? accountSection() : ''}
+      ${MODE === 'cloud' ? `<div class="grid two" style="margin-bottom:16px">${locationCard()}</div>` : ''}
       <div class="grid two">
         ${section('Mecánicos', 'mechanics', S.mechanics, (m) => `<b>${esc(m.name)}</b> <span class="muted small">${esc(m.specialty)}</span>`)}
         ${section('Bahías / puestos', 'bays', S.bays, (b) => esc(b.name))}
@@ -831,6 +832,9 @@ const BIND = {
   compras(app) {
     const sugg = purchaseSuggestions();
     $('#new-po', app).onclick = () => poModal();
+    $$('[data-rfq-sugg]', app).forEach((b) => b.onclick = () => rfqModal({
+      items: sugg[b.dataset.rfqSugg].map(({ partId, qty }) => ({ name: byId(S.parts, partId).name, qty, ref: partId })),
+    }));
     $$('[data-gen-po]', app).forEach((b) => b.onclick = () => poModal(b.dataset.genPo, sugg[b.dataset.genPo].map(({ partId, qty }) => ({ partId, qty }))));
     $$('[data-receive]', app).forEach((b) => b.onclick = () => receivePurchase(byId(S.purchases, b.dataset.receive)));
     $$('[data-cancel-po]', app).forEach((b) => b.onclick = () => {
@@ -838,7 +842,7 @@ const BIND = {
     });
   },
   ajustes(app) {
-    if (MODE === 'cloud') bindAccount(app);
+    if (MODE === 'cloud') { bindAccount(app); bindLocationCard(); }
     $$('[data-add]', app).forEach((b) => b.onclick = () => entityModal(b.dataset.add));
     $$('[data-edit]', app).forEach((b) => b.onclick = () => { const [k, id] = b.dataset.edit.split(':'); entityModal(k, byId(S[k], id)); });
     $$('[data-del]', app).forEach((b) => b.onclick = () => {
@@ -1044,6 +1048,7 @@ async function init() {
   }
   $('#app').innerHTML = '<div class="empty">Cargando tu taller…</div>';
   try { await refreshMe(); } catch { return; }
+  if (cloud.me.tenant.kind === 'refaccionaria') { location.href = '/proveedor/'; return; }
   CURRENCY = cloud.me.billing.currency;
   const params = new URLSearchParams(location.search);
   if (params.get('preapproval_id')) {
@@ -1054,6 +1059,8 @@ async function init() {
   if ([...params.keys()].length) history.replaceState(null, '', '/app/');
   await pullState();
   initAssistant();
+  loadRfqs();
+  setInterval(() => { if (!document.hidden) loadRfqs(); }, 60000);
   if (!S.orders.length && !S.parts.length && !S.mechanics.length) {
     toast('¡Bienvenido! Empieza en Ajustes: carga tus mecánicos, bahías y proveedores, o prueba con datos de ejemplo.');
   }
@@ -1062,4 +1069,5 @@ async function init() {
   window.addEventListener('beforeunload', (e) => { if (cloud.dirty || cloud.saving) { e.preventDefault(); e.returnValue = ''; } });
 }
 
-init();
+// market.js se carga después de este archivo; se arranca cuando ambos están listos.
+document.addEventListener('DOMContentLoaded', init);

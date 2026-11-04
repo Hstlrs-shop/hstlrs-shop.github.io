@@ -144,3 +144,11 @@ label.field input, label.field select { display: block; width: 100%; margin-top:
 .wa-fab { position: fixed; right: 16px; bottom: 16px; background: #1fa855; color: #fff; font-weight: 700; padding: 12px 18px; border-radius: 999px; text-decoration: none; box-shadow: 0 6px 20px rgba(0,0,0,.2); z-index: 20; }
 .wa-fab[hidden] { display: none; }
 @media (max-width: 860px) { .ai-section { grid-template-columns: 1fr; } }
+
+/* Registro: taller o refaccionaria */
+.kind-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.kind-pick label { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--border); border-radius: 10px; padding: 10px; cursor: pointer; font-size: 14px; line-height: 1.35; }
+.kind-pick label:has(input:checked) { border-color: var(--primary); background: var(--accent-bg); }
+.kind-pick input { margin-top: 3px; }
+.kind-pick small { color: var(--muted); }
+.supplier-cta { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; border: 1px dashed var(--border); border-radius: var(--radius); padding: 18px 22px; }

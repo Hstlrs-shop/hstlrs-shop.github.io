@@ -9,6 +9,7 @@ const { openDb } = require('./db');
 const { PLANS, TRIAL_PLAN, publicPlans } = require('./plans');
 const MP = require('./mercadopago');
 const AI = require('./assistant');
+const { registerMarket } = require('./market');
 
 const DAY = 86400000;
 const SESSION_DAYS = 30;
@@ -132,7 +133,8 @@ function createApp(db) {
     return {
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
       tenant: {
-        id: t.id, name: t.name, plan: t.plan, status: t.status,
+        id: t.id, name: t.name, plan: t.plan, status: t.status, kind: t.kind,
+        hasLocation: Number.isFinite(t.lat) || Boolean(t.municipio),
         trialEndsAt: t.trial_ends_at, currentPeriodEnd: t.current_period_end, graceUntil: t.grace_until,
         hasSubscription: Boolean(t.mp_preapproval_id) && t.status === 'active',
         payerEmail: t.mp_payer_email,
@@ -193,7 +195,13 @@ function createApp(db) {
 
   route('POST', '/api/auth/register', ({ body, req, res }) => {
     rateLimit(`reg:${clientIp(req)}`, 20, 60 * 60000);
-    const workshop = str(body.workshop, 'nombre del taller', { min: 2, max: 80 });
+    const kind = body.kind === 'refaccionaria' ? 'refaccionaria' : 'taller';
+    const workshop = str(body.workshop, kind === 'taller' ? 'nombre del taller' : 'nombre de la refaccionaria', { min: 2, max: 80 });
+    const whatsapp = String(body.whatsapp || '').replace(/\D/g, '').slice(0, 15) || null;
+    const municipio = body.municipio ? str(body.municipio, 'municipio', { max: 80 }) : null;
+    if (kind === 'refaccionaria' && (!whatsapp || whatsapp.length < 10 || !municipio)) {
+      throw new HttpError(400, 'Indica el WhatsApp (10 dígitos) y el municipio de la refaccionaria.');
+    }
     const name = str(body.name, 'tu nombre', { max: 80 });
     const mail = email(body.email);
     const pw = password(body.password);
@@ -203,8 +211,11 @@ function createApp(db) {
     const t = now();
     db.exec('BEGIN');
     try {
-      db.prepare('INSERT INTO tenants (id, name, plan, status, trial_ends_at, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-        .run(tenantId, workshop, TRIAL_PLAN, 'trial', t + config.trialDays * DAY, t);
+      // Las refaccionarias usan Nau gratis: reciben solicitudes de talleres y publican su catálogo.
+      db.prepare(`INSERT INTO tenants (id, name, plan, status, trial_ends_at, created_at, kind, whatsapp, municipio, radius_km, delivers)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(tenantId, workshop, kind === 'taller' ? TRIAL_PLAN : 'proveedor', kind === 'taller' ? 'trial' : 'active',
+          kind === 'taller' ? t + config.trialDays * DAY : null, t, kind, whatsapp, municipio, kind === 'taller' ? null : 10, kind === 'taller' ? null : 1);
       db.prepare('INSERT INTO users (id, tenant_id, name, email, pass, role, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
         .run(userId, tenantId, name, mail, hashPassword(pw), 'owner', t);
       db.prepare('INSERT INTO tenant_state (tenant_id, version, data, updated_at) VALUES (?, 1, ?, ?)')
@@ -295,10 +306,27 @@ function createApp(db) {
     return { ok: true };
   });
 
+  const ai = {
+    consume(t) {
+      const info = aiInfo(t);
+      if (info.remaining <= 0) {
+        throw new HttpError(429, t.status === 'trial'
+          ? `Usaste las ${info.limit} consultas de IA de la prueba gratis. Elige un plan para seguir usándolas.`
+          : `Tu taller usó las ${info.limit} consultas de IA de este mes. Se renuevan el día 1; con un plan superior tienes más.`);
+      }
+      q.aiCount.run(t.id, monthKey());
+    },
+    addUsage(t, u) {
+      if (u) q.aiTokens.run(u.input_tokens || 0, u.cache_read_input_tokens || 0, u.cache_creation_input_tokens || 0, u.output_tokens || 0, t.id, monthKey());
+    },
+  };
+  registerMarket({ db, route, HttpError, str, now, access, rateLimit, AI, ai, aiPerMinute: config.ai.perMinute });
+
   /* asistente de IA */
   route('POST', '/api/ai/chat', async ({ user, body, req, res }) => {
     if (!AI.enabled()) throw new HttpError(503, 'El asistente de IA no está activado en este servidor.');
     const t = q.tenant.get(user.tenant_id);
+    if (t.kind !== 'taller') throw new HttpError(403, 'El asistente es para talleres.');
     if (!access(t).canWrite) throw new HttpError(402, 'El asistente está disponible con una suscripción activa.');
     const question = str(body.question, 'pregunta', { max: 2000 });
     const info = aiInfo(t);
@@ -325,6 +353,7 @@ function createApp(db) {
   /* suscripción */
   route('POST', '/api/billing/checkout', async ({ user, body }) => {
     requireOwner(user);
+    if (q.tenant.get(user.tenant_id).kind !== 'taller') throw new HttpError(400, 'Las cuentas de refaccionaria son gratuitas.');
     const plan = PLANS[body.plan];
     if (!plan) throw new HttpError(400, 'Plan desconocido.');
     const t = q.tenant.get(user.tenant_id);
@@ -392,7 +421,12 @@ function createApp(db) {
       (SELECT email FROM users u WHERE u.tenant_id = t.id AND u.role = 'owner' ORDER BY created_at LIMIT 1) AS owner_email,
       (SELECT messages FROM ai_usage a WHERE a.tenant_id = t.id AND a.month = strftime('%Y-%m', 'now')) AS ai_messages,
       s.updated_at AS last_activity FROM tenants t LEFT JOIN tenant_state s ON s.tenant_id = t.id ORDER BY t.created_at DESC`).all();
-    return { tenants: rows.map((t) => ({ ...t, access: access(t) })), plans: PLANS, currency: config.currency };
+    const since = now() - 30 * DAY;
+    const market = {
+      rfqs30: db.prepare('SELECT COUNT(*) AS n FROM rfqs WHERE created_at > ?').get(since).n,
+      accepted30: db.prepare("SELECT COUNT(*) AS n FROM rfqs WHERE created_at > ? AND status = 'adjudicada'").get(since).n,
+    };
+    return { tenants: rows.map((t) => ({ ...t, access: access(t) })), plans: PLANS, currency: config.currency, market };
   });
   route('POST', /^\/api\/admin\/tenants\/([\w-]+)$/, ({ user, params, body }) => {
     requireAdmin(user);

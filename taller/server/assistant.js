@@ -201,4 +201,66 @@ async function streamAnswer({ res, question, history, snapshot, userName, onUsag
   }
 }
 
-module.exports = { enabled, buildSnapshot, cleanHistory, streamAnswer, SYSTEM_GUIDE, MODEL };
+/* ---------- interpretación de búsquedas de refacciones ---------- */
+const PART_GUIDE = `Ayudas al buscador de refacciones de Nau, usado por talleres mecánicos en México. Recibes lo que alguien escribió al buscar una refacción, a veces con faltas, abreviaturas o jerga, y opcionalmente el vehículo.
+
+Devuelve:
+- pieza: el nombre estándar de la refacción como se vende en refaccionarias de México (ej. "Balatas delanteras", "Bomba de agua", "Kit de distribución").
+- categoria: una de Frenos, Motor, Suspensión, Dirección, Transmisión, Eléctrico, Encendido, Enfriamiento, Filtros, Lubricantes, Escape, Carrocería, Iluminación, Clima, Otro.
+- vehiculo: marca, modelo, año y motor si se mencionan o se deducen sin duda; cadena vacía si no hay.
+- sinonimos: otros nombres con los que se conoce la misma pieza en México y Latinoamérica (ej. balatas, pastillas de freno). Máximo 6.
+- terminos: de 2 a 6 búsquedas cortas para encontrarla en catálogos: el nombre estándar, sinónimos y, si aplica, el nombre con el modelo del vehículo. No incluyas el año en los términos.
+- preguntas: datos que el taller debe confirmar antes de pedirla para no comprar la equivocada (posición delantera o trasera, motor, transmisión, con o sin ABS, número de VIN). Máximo 3; lista vacía si no hace falta.
+- nota: una frase útil y breve (por ejemplo, si conviene cambiar piezas en juego) o cadena vacía.
+
+No inventes números de parte ni compatibilidades que no puedas asegurar.`;
+
+const PART_SCHEMA = {
+  type: 'object',
+  properties: {
+    pieza: { type: 'string' },
+    categoria: { type: 'string' },
+    vehiculo: { type: 'string' },
+    sinonimos: { type: 'array', items: { type: 'string' } },
+    terminos: { type: 'array', items: { type: 'string' } },
+    preguntas: { type: 'array', items: { type: 'string' } },
+    nota: { type: 'string' },
+  },
+  required: ['pieza', 'categoria', 'vehiculo', 'sinonimos', 'terminos', 'preguntas', 'nota'],
+  additionalProperties: false,
+};
+
+async function interpretPartQuery(text, vehicle) {
+  let msg;
+  try {
+    msg = await getClient().beta.messages.create({
+      model: MODEL,
+      max_tokens: 2000,
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: PART_SCHEMA } },
+      system: [{ type: 'text', text: PART_GUIDE, cache_control: { type: 'ephemeral' } }],
+      messages: [{ role: 'user', content: `Búsqueda: ${text}${vehicle ? `\nVehículo: ${vehicle}` : ''}` }],
+    });
+  } catch (err) {
+    if (err instanceof Anthropic.RateLimitError) throw Object.assign(new Error('rate'), { userMessage: 'La IA está recibiendo muchas consultas. Intenta en unos segundos.' });
+    if (err instanceof Anthropic.APIError) console.error(`IA (buscador): error ${err.status}:`, err.message);
+    else console.error('IA (buscador):', err);
+    throw err;
+  }
+  if (msg.stop_reason === 'refusal') throw Object.assign(new Error('refusal'), { userMessage: 'No pude interpretar esa búsqueda.' });
+  const block = msg.content.find((b) => b.type === 'text');
+  let result;
+  try { result = JSON.parse(block?.text || ''); } catch { throw Object.assign(new Error('parse'), { userMessage: 'No pude interpretar esa búsqueda. Intenta con otras palabras.' }); }
+  const list = (a, n) => (Array.isArray(a) ? a.map((x) => String(x).trim()).filter(Boolean).slice(0, n) : []);
+  return {
+    usage: msg.usage,
+    result: {
+      pieza: String(result.pieza || '').slice(0, 120), categoria: String(result.categoria || '').slice(0, 40),
+      vehiculo: String(result.vehiculo || '').slice(0, 120), sinonimos: list(result.sinonimos, 6),
+      terminos: list(result.terminos, 6), preguntas: list(result.preguntas, 3), nota: String(result.nota || '').slice(0, 300),
+    },
+  };
+}
+
+module.exports = { enabled, buildSnapshot, cleanHistory, streamAnswer, interpretPartQuery, SYSTEM_GUIDE, MODEL };

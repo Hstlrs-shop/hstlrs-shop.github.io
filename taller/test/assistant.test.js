@@ -10,7 +10,15 @@ const fake = http.createServer((req, res) => {
   let raw = '';
   req.on('data', (c) => { raw += c; });
   req.on('end', () => {
-    requests.push({ url: req.url, headers: req.headers, body: JSON.parse(raw) });
+    const body = JSON.parse(raw);
+    requests.push({ url: req.url, headers: req.headers, body });
+    if (!body.stream) { // búsqueda con IA (respuesta JSON estructurada)
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ id: 'msg_2', type: 'message', role: 'assistant', model: body.model, stop_reason: 'end_turn',
+        usage: { input_tokens: 50, output_tokens: 40 },
+        content: [{ type: 'text', text: JSON.stringify({ pieza: 'Balatas delanteras', categoria: 'Frenos', vehiculo: 'Nissan Versa 2019',
+          sinonimos: ['pastillas de freno'], terminos: ['balatas delanteras', 'pastillas de freno', 'balatas versa'], preguntas: ['¿Con o sin ABS?'], nota: '' }) }] }));
+    }
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
     const ev = (type, data) => res.write(`event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`);
     ev('message_start', { message: { id: 'msg_1', type: 'message', role: 'assistant', model: 'claude-opus-5-5', content: [], stop_reason: null, usage: { input_tokens: 120, output_tokens: 0, cache_read_input_tokens: 900, cache_creation_input_tokens: 300 } } });
@@ -115,4 +123,22 @@ test('sin sesión o sin pregunta se rechaza', async () => {
   assert.equal((await call('POST', '/api/ai/chat', { question: 'x' })).status, 401);
   cookie = saved;
   assert.equal((await call('POST', '/api/ai/chat', { question: '' })).status, 400);
+});
+
+test('búsqueda de refacciones con IA (salida estructurada)', async () => {
+  // la prueba gratis de este archivo tiene 2 consultas y ya se usaron: se amplía el límite activando un plan
+  db.prepare("UPDATE tenants SET status = 'active', plan = 'basico'").run();
+  const r = await call('POST', '/api/parts/interpret', { q: 'pastias versa', vehicle: '2019' });
+  assert.equal(r.status, 200);
+  const out = await r.json();
+  assert.equal(out.pieza, 'Balatas delanteras');
+  assert.deepEqual(out.terminos, ['balatas delanteras', 'pastillas de freno', 'balatas versa']);
+  const req = requests.at(-1).body;
+  assert.equal(req.stream, undefined);
+  assert.equal(req.model, 'claude-opus-5-5');
+  assert.equal(req.output_config.format.type, 'json_schema');
+  assert.equal(req.output_config.format.schema.additionalProperties, false);
+  assert.equal(req.fallbacks, 'default');
+  assert.match(req.messages[0].content, /Búsqueda: pastias versa\nVehículo: 2019/);
+  assert.equal(db.prepare('SELECT messages FROM ai_usage').get().messages, 3, 'cuenta como consulta de IA');
 });

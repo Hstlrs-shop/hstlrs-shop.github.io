@@ -22,16 +22,18 @@
       return;
     }
     const fmt = (n) => n.toLocaleString('es-MX', { style: 'currency', currency: r.currency, maximumFractionDigits: 0 });
-    const paying = r.tenants.filter((t) => t.status === 'active');
+    const paying = r.tenants.filter((t) => t.status === 'active' && t.kind !== 'refaccionaria');
     const mrr = paying.reduce((s, t) => s + (r.plans[t.plan]?.price || 0), 0);
     document.getElementById('kpis').innerHTML = `
-      <div>Talleres<b>${r.tenants.length}</b></div>
+      <div>Talleres<b>${r.tenants.filter((t) => t.kind !== 'refaccionaria').length}</b></div>
+      <div>Refaccionarias<b>${r.tenants.filter((t) => t.kind === 'refaccionaria').length}</b></div>
       <div>Pagando<b>${paying.length}</b></div>
       <div>En prueba<b>${r.tenants.filter((t) => t.status === 'trial' && t.access.canWrite).length}</b></div>
+      <div>Cotizaciones (30 días)<b>${r.market.rfqs30}</b><span class="small muted">${r.market.accepted30} compradas</span></div>
       <div>Ingreso mensual estimado<b>${fmt(mrr)}</b></div>`;
     const planOpts = Object.values(r.plans).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
     document.getElementById('rows').innerHTML = r.tenants.map((t) => `<tr data-id="${t.id}">
-      <td><b>${esc(t.name)}</b><br><span class="muted small">alta ${d(t.created_at)}</span></td>
+      <td><b>${esc(t.name)}</b><br><span class="muted small">${t.kind === 'refaccionaria' ? '🏪 Refaccionaria' : '🔧 Taller'} · ${esc(t.municipio || 'sin ubicación')} · alta ${d(t.created_at)}</span></td>
       <td>${esc(t.owner_email)}</td><td>${t.users}</td>
       <td>${esc(r.plans[t.plan]?.name || t.plan)}<br><span class="badge ${t.access.canWrite ? 'ok' : 'danger'}">${STATUS[t.status] || t.status}${t.mp_preapproval_id ? ' · MP' : ''}</span></td>
       <td>${d(t.status === 'trial' ? t.trial_ends_at : t.current_period_end)}</td>

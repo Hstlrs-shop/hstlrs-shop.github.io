@@ -25,15 +25,27 @@
 
       <form id="registro" hidden>
         <div class="form-error" role="alert"></div>
-        <label class="field">Nombre del taller<input name="workshop" required maxlength="80" placeholder="Ej.: Taller Mecánico San Martín"></label>
+        <div class="kind-pick" role="radiogroup" aria-label="Tipo de negocio">
+          <label><input type="radio" name="kind" value="taller" checked> <span><b>Tengo un taller</b><br><small>14 días gratis</small></span></label>
+          <label><input type="radio" name="kind" value="refaccionaria"> <span><b>Tengo una refaccionaria</b><br><small>Gratis para siempre</small></span></label>
+        </div>
+        <label class="field"><span id="biz-label">Nombre del taller</span><input name="workshop" required maxlength="80" placeholder="Ej.: Taller Mecánico San Martín"></label>
+        <div id="supplier-fields" hidden>
+          <label class="field">WhatsApp del mostrador (10 dígitos)<input name="whatsapp" type="tel" inputmode="numeric" maxlength="15" placeholder="442 123 4567"></label>
+          <label class="field">Municipio<input name="municipio" list="municipios" maxlength="80" placeholder="Querétaro"></label>
+        </div>
         <label class="field">Tu nombre<input name="name" required maxlength="80" autocomplete="name"></label>
         <label class="field">Email<input name="email" type="email" required autocomplete="email"></label>
         <label class="field">Contraseña (mín. 8 caracteres)<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
         <button class="btn primary" type="submit">Empezar prueba gratis</button>
-        <p class="muted small center"><span class="js-trial">14</span> días gratis, sin tarjeta.</p>
+        <p class="muted small center" id="reg-note"><span class="js-trial">14</span> días gratis, sin tarjeta.</p>
       </form>
     </div>
   </div>
+  <datalist id="municipios">
+    <option value="Querétaro"><option value="Corregidora"><option value="El Marqués"><option value="Huimilpan">
+    <option value="Pedro Escobedo"><option value="San Juan del Río"><option value="Tequisquiapan"><option value="Colón">
+  </datalist>
   <script src="/cuenta.js"></script>
 </body>
 </html>
