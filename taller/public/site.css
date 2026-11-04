@@ -152,3 +152,12 @@ label.field input, label.field select { display: block; width: 100%; margin-top:
 .kind-pick input { margin-top: 3px; }
 .kind-pick small { color: var(--muted); }
 .supplier-cta { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; border: 1px dashed var(--border); border-radius: var(--radius); padding: 18px 22px; }
+
+/* Admin: prospectos */
+.p-toolbar, .p-form { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; align-items: center; }
+.p-form input { flex: 1 1 180px; }
+.p-toolbar input, .p-toolbar select, .p-form input, .admin textarea { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.admin textarea { width: 100%; min-height: 34px; font-size: 13px; resize: vertical; }
+.badge.warn { background: #fff4d1; color: #9a6700; }
+.btn.wa { background: #1fa855; border-color: #1fa855; color: #fff; }
+.p-form[hidden] { display: none; }

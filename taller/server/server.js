@@ -10,6 +10,7 @@ const { PLANS, TRIAL_PLAN, publicPlans } = require('./plans');
 const MP = require('./mercadopago');
 const AI = require('./assistant');
 const { registerMarket } = require('./market');
+const { registerProspects } = require('./prospects');
 
 const DAY = 86400000;
 const SESSION_DAYS = 30;
@@ -190,6 +191,8 @@ function createApp(db) {
   const routes = [];
   const route = (method, pattern, handler, opts = {}) => routes.push({ method, pattern, handler, ...opts });
   const requireOwner = (user) => { if (user.role !== 'owner') throw new HttpError(403, 'Solo el dueño de la cuenta puede hacer esto.'); };
+  const requireAdmin = (user) => { if (!config.adminEmails.includes(user.email)) throw new HttpError(403, 'Acceso restringido.'); };
+  const linkInvite = registerProspects({ db, route, HttpError, str, now, requireAdmin, appUrl: config.appUrl });
 
   route('GET', '/api/plans', () => publicPlans(), { auth: false });
 
@@ -222,6 +225,7 @@ function createApp(db) {
         .run(tenantId, JSON.stringify(emptyState()), t);
       db.exec('COMMIT');
     } catch (e) { db.exec('ROLLBACK'); throw e; }
+    if (kind === 'refaccionaria') linkInvite(body.invite, tenantId);
     startSession(res, userId);
     return me(q.userById.get(userId));
   }, { auth: false });
@@ -414,7 +418,7 @@ function createApp(db) {
   }, { auth: false, csrf: false });
 
   /* administración (dueños del servicio) */
-  const requireAdmin = (user) => { if (!config.adminEmails.includes(user.email)) throw new HttpError(403, 'Acceso restringido.'); };
+
   route('GET', '/api/admin/tenants', ({ user }) => {
     requireAdmin(user);
     const rows = db.prepare(`SELECT t.*, (SELECT COUNT(*) FROM users u WHERE u.tenant_id = t.id) AS users,

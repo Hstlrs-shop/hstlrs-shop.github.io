@@ -112,7 +112,7 @@ docker run -d -p 3000:3000 -v nau-data:/data --env-file .env nau
 - **Facturas CFDI 4.0**: muchos talleres te pedirán factura de la suscripción. Mercado Pago cobra, pero no factura por ti. Puedes emitirlas desde el portal del SAT o con un PAC (Facturama, Facturapi, etc.). Los precios por defecto se plantean con IVA incluido.
 - **Aviso de privacidad y términos y condiciones**, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares. Vas a guardar datos de clientes de los talleres y los envías a un proveedor de IA (Anthropic) para responder consultas: menciónalo en el aviso.
 - **Correo saliente**: no hay envío de emails. Para recuperar una contraseña, el dueño la cambia desde Ajustes; si el dueño la olvida, cámbiala tú.
-- **Refaccionarias en la red**: el mercado solo sirve si hay refaccionarias registradas cerca de tus talleres. Antes de vender esta función, registra a las de tu zona (son gratis para ellas) y ayúdalas a subir su catálogo.
+- **Refaccionarias en la red**: el mercado solo sirve si hay refaccionarias registradas cerca de tus talleres. Antes de vender esta función, invita a las de tu zona desde `/admin.html` → **Refaccionarias por invitar**. Ahí importas una lista (CSV `nombre, telefono, municipio, direccion, fuente, notas`), les escribes por WhatsApp con el mensaje y su enlace personal ya preparados, y llevas el seguimiento (por contactar, contactada, interesada, registrada). Al registrarse con su enlace quedan marcadas como registradas. Nunca se publican en Nau sin que ellas mismas se den de alta.
 - **Avisos fuera de la app**: hoy las solicitudes y respuestas se ven al abrir Nau. Para que lleguen al celular hace falta integrar WhatsApp Business API o correo.
 
 ## Detalles técnicos

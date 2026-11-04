@@ -19,7 +19,32 @@
       <thead><tr><th>Negocio</th><th>Dueño</th><th>Usuarios</th><th>Plan / estado</th><th>Vence</th><th>Última actividad</th><th>IA (mes)</th><th>Acción manual</th></tr></thead>
       <tbody id="rows"><tr><td colspan="8" class="muted">Cargando…</td></tr></tbody>
     </table></div>
+
+    <h1 style="margin-top:40px">Refaccionarias por invitar</h1>
+    <p class="muted small">Lista de refaccionarias reales de tu zona. Invítalas por WhatsApp con su enlace personal: cuando se registren con él, aquí aparecerán como <b>Registrada</b>. No se publican en Nau hasta que ellas mismas se dan de alta.</p>
+    <div id="p-kpis" class="kpis"></div>
+    <div class="p-toolbar">
+      <input id="p-sender" placeholder="Tu nombre para el mensaje" maxlength="60">
+      <select id="p-filter"><option value="">Todas</option><option value="por_contactar">Por contactar</option><option value="contactado">Contactadas</option><option value="interesado">Interesadas</option><option value="registrado">Registradas</option><option value="no_interesado">No interesadas</option></select>
+      <label class="btn">⬆ Importar CSV<input type="file" id="p-csv" accept=".csv,text/csv" hidden></label>
+      <button class="btn" id="p-add">+ Agregar</button>
+    </div>
+    <form id="p-form" class="p-form" hidden>
+      <input name="name" placeholder="Nombre de la refaccionaria" required maxlength="120">
+      <input name="phone" placeholder="Teléfono / WhatsApp" maxlength="20">
+      <input name="municipio" placeholder="Municipio" maxlength="80" list="municipios">
+      <input name="address" placeholder="Dirección" maxlength="200">
+      <input name="source" placeholder="Fuente (URL, visita, recomendación)" maxlength="300">
+      <button class="btn primary" type="submit">Guardar</button>
+    </form>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Refaccionaria</th><th>Contacto</th><th>Estado</th><th>Notas</th><th></th></tr></thead>
+      <tbody id="p-rows"><tr><td colspan="5" class="muted">Cargando…</td></tr></tbody>
+    </table></div>
+    <p class="muted small">CSV con columnas <code>nombre, telefono, municipio, direccion, fuente, notas</code> (acepta comas o punto y coma).</p>
   </main>
+  <datalist id="municipios"><option value="Querétaro"><option value="Corregidora"><option value="El Marqués"><option value="San Juan del Río"><option value="Huimilpan"><option value="Pedro Escobedo"><option value="Tequisquiapan"><option value="Colón"></datalist>
   <script src="/admin.js"></script>
+  <script src="/admin-prospects.js"></script>
 </body>
 </html>

@@ -20,6 +20,16 @@
   };
   document.querySelectorAll('input[name=kind]').forEach((r) => r.addEventListener('change', () => setKind(r.value)));
   if (location.hash === '#refaccionaria') { setKind('refaccionaria'); show('registro'); } else show(location.hash === '#registro' ? 'registro' : 'login');
+  // Enlace de invitación: /cuenta.html?inv=CODIGO&nombre=...&municipio=...&whatsapp=...#refaccionaria
+  const qs = new URLSearchParams(location.search);
+  const invite = qs.get('inv') || '';
+  if (invite) {
+    setKind('refaccionaria'); show('registro');
+    if (qs.get('nombre')) forms.registro.workshop.value = qs.get('nombre');
+    if (qs.get('municipio')) forms.registro.municipio.value = qs.get('municipio');
+    if (qs.get('whatsapp')) forms.registro.whatsapp.value = qs.get('whatsapp');
+    forms.registro.name.focus();
+  }
 
   // Si ya hay sesión, ir directo a la app.
   const home = (me) => (me?.tenant?.kind === 'refaccionaria' ? '/proveedor/' : '/app/');
@@ -37,7 +47,7 @@
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'nau' },
-        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        body: JSON.stringify({ ...Object.fromEntries(new FormData(form)), invite }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.error || 'No se pudo completar. Intenta de nuevo.');
