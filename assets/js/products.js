@@ -6,6 +6,7 @@
  *  - price:       precio de venta al público
  *  - compareAt:   precio "antes" (opcional, muestra el descuento)
  *  - image:       URL de la foto del proveedor (opcional). Si no hay, se dibuja una ilustración.
+ *  - images:      (opcional) una foto por color: { "Negro": "https://...", "Arena": "https://..." }
  *  - shape:       ilustración por defecto: hoodie | tee | pants | cap | bag | beanie | socks
  *  - colors:      lista de { name, hex }
  *  - sizes:       tallas disponibles

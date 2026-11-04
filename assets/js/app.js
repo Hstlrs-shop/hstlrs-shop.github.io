@@ -26,7 +26,7 @@
 
   /* ---------- Ilustraciones SVG por tipo de prenda ---------- */
   const SHAPES = {
-    hoodie: `<path d="M70 40c8-10 52-10 60 0l34 22 16 46-24 10-10-26v88H54V82l-10 26-24-10 16-46Z"/><path d="M72 46c-4-30 60-30 56 0l-8 18c-10 8-30 8-40 0Z" fill="rgba(0,0,0,.22)"/><path d="M92 64v26M108 64v26" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"/><rect x="74" y="122" width="52" height="26" rx="6" fill="rgba(0,0,0,.18)"/>`,
+    hoodie: `<path d="M70 40c8-10 52-10 60 0l30 20c8 6 12 14 14 24l12 70-24 6-16-64v88H54V96l-16 64-24-6 12-70c2-10 6-18 14-24Z"/><path d="M72 46c-4-30 60-30 56 0l-8 18c-10 8-30 8-40 0Z"/><path d="M72 46c-4-30 60-30 56 0l-8 18c-10 8-30 8-40 0Z" fill="rgba(0,0,0,.22)"/><path d="M92 64v26M108 64v26" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"/><rect x="74" y="122" width="52" height="26" rx="6" fill="rgba(0,0,0,.18)"/>`,
     tee: `<path d="M72 38c10 12 46 12 56 0l38 20 16 34-28 12-8-16v92H54V88l-8 16-28-12 16-34Z"/><path d="M80 40c6 10 34 10 40 0" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="4"/>`,
     pants: `<path d="M62 30h76l10 160h-36l-12-110-12 110H52Z"/><rect x="62" y="30" width="76" height="12" fill="rgba(0,0,0,.2)"/><rect x="56" y="100" width="18" height="24" rx="3" fill="rgba(0,0,0,.18)"/><rect x="126" y="100" width="18" height="24" rx="3" fill="rgba(0,0,0,.18)"/>`,
     cap: `<path d="M44 118c0-40 26-62 56-62s56 22 56 62Z"/><path d="M40 118h120c14 0 20 8 20 14H54c-8 0-14-6-14-14Z" fill="rgba(0,0,0,.25)"/><circle cx="100" cy="56" r="5" fill="rgba(0,0,0,.25)"/>`,
@@ -42,13 +42,30 @@
     return lum > 0.6 ? "#e6e2da" : "#f1efe9";
   };
 
+  const isDark = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 < 0.55;
+  };
+
   function productArt(product, colorIndex = 0) {
-    if (product.image) {
-      return `<img src="${esc(product.image)}" alt="${esc(product.name)}" loading="lazy">`;
-    }
     const color = product.colors[colorIndex] || product.colors[0];
-    return `<svg viewBox="0 0 200 200" role="img" aria-label="${esc(product.name)} en ${esc(color.name)}" style="background:${lighten(color.hex)};color:${color.hex}"><g fill="${color.hex}">${SHAPES[product.shape] || SHAPES.tee}</g></svg>`;
+    const photo = product.images?.[color.name] || product.image;
+    if (photo) {
+      return `<img src="${esc(photo)}" alt="${esc(product.name)} en ${esc(color.name)}" loading="lazy">`;
+    }
+    const bg = lighten(color.hex);
+    const mark = ["hoodie", "tee"].includes(product.shape)
+      ? `<text x="100" y="${product.shape === "hoodie" ? 106 : 100}" text-anchor="middle" font-family="Archivo Black, Arial Black, sans-serif" font-size="13" letter-spacing="1" fill="${isDark(color.hex) ? "rgba(255,255,255,.85)" : "rgba(14,14,16,.8)"}">HSTLRS</text>`
+      : "";
+    const gid = `g${product.id}${colorIndex}`.replace(/[^a-z0-9]/gi, "");
+    return `<svg viewBox="0 0 200 200" role="img" aria-label="${esc(product.name)} en ${esc(color.name)}" style="background:${bg}">
+      <defs><radialGradient id="${gid}" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+      <rect width="200" height="200" fill="url(#${gid})"/>
+      <ellipse cx="100" cy="192" rx="62" ry="5" fill="rgba(0,0,0,.08)"/>
+      <g fill="${color.hex}" color="${color.hex}">${SHAPES[product.shape] || SHAPES.tee}</g>${mark}
+    </svg>`;
   }
+  window.HSTLRS_ART = productArt;
 
   const discountPct = (p) => (p.compareAt ? Math.round((1 - p.price / p.compareAt) * 100) : 0);
 
@@ -212,6 +229,7 @@
               <li>↩️ Devolución gratuita en 30 días</li>
               <li>🔒 Pago seguro y cifrado</li>
             </ul>
+            <button class="link pm__share" data-share>Compartir producto</button>
             <details class="pm__details">
               <summary>Composición y cuidados</summary>
               <ul>${p.details.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>
@@ -226,6 +244,11 @@
       if (t.dataset.pickColor) { sel.color = +t.dataset.pickColor; draw(); }
       else if (t.dataset.pickSize) { sel.size = t.dataset.pickSize; draw(); }
       else if (t.dataset.qty) { sel.qty = Math.max(1, Math.min(10, sel.qty + +t.dataset.qty)); draw(); }
+      else if (t.hasAttribute("data-share")) {
+        const url = location.href;
+        if (navigator.share) navigator.share({ title: p.name, url }).catch(() => {});
+        else navigator.clipboard?.writeText(url).then(() => toast("Enlace copiado ✓"), () => toast(url));
+      }
       else if (t.hasAttribute("data-size-guide")) { openInfo("Guía de tallas", SIZE_GUIDE); }
       else if (t.hasAttribute("data-add-current")) {
         if (!sel.size) {
@@ -240,12 +263,17 @@
 
     draw();
     productModal.showModal();
+    history.replaceState(null, "", `#producto/${p.id}`);
   }
 
   function openInfo(title, html) {
     $("[data-info-body]").innerHTML = `<h2>${esc(title)}</h2>${html}`;
     infoModal.showModal();
   }
+
+  productModal.addEventListener("close", () => {
+    if (location.hash.startsWith("#producto/")) history.replaceState(null, "", "#tienda");
+  });
 
   $$("dialog").forEach((d) => {
     d.addEventListener("click", (e) => {
@@ -544,4 +572,17 @@
   fillConfigText();
   renderGrid();
   renderCart();
+
+  if (CFG.whatsapp && !/^\d{2}0+$/.test(CFG.whatsapp)) {
+    const wa = $("[data-whatsapp]");
+    wa.href = `https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent(`Hola ${CFG.name}, tengo una pregunta`)}`;
+    wa.hidden = false;
+  }
+
+  const openFromHash = () => {
+    const m = location.hash.match(/^#producto\/(.+)$/);
+    if (m && !productModal.open) openProduct(decodeURIComponent(m[1]));
+  };
+  window.addEventListener("hashchange", openFromHash);
+  openFromHash();
 })();

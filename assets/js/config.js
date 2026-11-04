@@ -7,11 +7,11 @@ window.STORE_CONFIG = {
   currency: "MXN",            // Debe coincidir con la moneda de tu tienda Shopify
   locale: "es-MX",
   contactEmail: "hola@hstlrs.com",
-  whatsapp: "520000000000",    // Número con prefijo de país, sin "+" ni espacios
+  whatsapp: "520000000000",  // Tu WhatsApp: 52 + 10 dígitos. Mientras sea 52000... el botón flotante no aparece
 
   shipping: {
-    cost: 149,                // Coste del envío estándar
-    freeFrom: 999,            // Envío gratis a partir de este importe
+    cost: 150,                // Igual que la tarifa "Estándar" de Shopify
+    freeFrom: 1050,           // Igual que el envío gratis configurado en Shopify
     processingDays: [1, 3],   // Días que tarda el proveedor en preparar el pedido
     deliveryDays: [5, 10],    // Días de tránsito del envío
   },
