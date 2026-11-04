@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tu cuenta — TallerFlow</title>
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <a class="brand" href="/"><span class="logo">⚙</span> TallerFlow</a>
+      <div class="tabs" role="tablist">
+        <button type="button" data-tab="login" class="active">Entrar</button>
+        <button type="button" data-tab="registro">Crear cuenta</button>
+      </div>
+
+      <form id="login" autocomplete="on">
+        <div class="form-error" role="alert"></div>
+        <label class="field">Email<input name="email" type="email" required autocomplete="email"></label>
+        <label class="field">Contraseña<input name="password" type="password" required autocomplete="current-password"></label>
+        <button class="btn primary" type="submit">Entrar</button>
+        <p class="muted small center">¿Olvidaste tu contraseña? Pide al dueño de tu taller que te asigne una nueva desde Ajustes.</p>
+      </form>
+
+      <form id="registro" hidden>
+        <div class="form-error" role="alert"></div>
+        <label class="field">Nombre del taller<input name="workshop" required maxlength="80" placeholder="Ej.: Taller Mecánico San Martín"></label>
+        <label class="field">Tu nombre<input name="name" required maxlength="80" autocomplete="name"></label>
+        <label class="field">Email<input name="email" type="email" required autocomplete="email"></label>
+        <label class="field">Contraseña (mín. 8 caracteres)<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+        <button class="btn primary" type="submit">Empezar prueba gratis</button>
+        <p class="muted small center"><span class="js-trial">14</span> días gratis, sin tarjeta.</p>
+      </form>
+    </div>
+  </div>
+  <script src="/cuenta.js"></script>
+</body>
+</html>

@@ -196,3 +196,19 @@ dialog form { padding: 20px; }
   .two { grid-template-columns: 1fr; }
   .toasts { left: 16px; right: 16px; }
 }
+
+/* SaaS: encabezado, avisos y selector de plan */
+a.brand { color: inherit; text-decoration: none; }
+.who { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; font-size: 14px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+.banner { padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--info-bg); }
+.banner.warn { background: var(--warn-bg); }
+.banner.danger { background: var(--danger-bg); }
+.banner a { color: var(--primary); font-weight: 600; }
+.plan-pick { display: grid; gap: 8px; margin-bottom: 12px; }
+.plan-opt { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.plan-opt:has(input:checked) { border-color: var(--primary); background: var(--info-bg); }
+.plan-opt input { width: auto; margin-top: 4px; }
+.plan-opt .price { font-size: 18px; font-weight: 700; }
+.btn:disabled { opacity: .6; cursor: wait; }
+a.btn { text-decoration: none; display: inline-block; }
+@media (max-width: 720px) { .who { margin-left: 0; flex-direction: row; gap: 8px; align-items: baseline; } }

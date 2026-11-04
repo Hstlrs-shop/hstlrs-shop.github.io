@@ -28,7 +28,8 @@ const isoLocal = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
 const today = () => isoLocal(new Date());
 const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return isoLocal(d); };
 const fmtDate = (iso) => iso ? new Date(iso + 'T12:00:00').toLocaleDateString('es', { day: '2-digit', month: 'short' }) : '—';
-const money = (n) => (n || 0).toLocaleString('es', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+let CURRENCY = 'USD';
+const money = (n) => (n || 0).toLocaleString('es', { style: 'currency', currency: CURRENCY, maximumFractionDigits: 0 });
 const statusName = (id) => STATUSES.find((s) => s.id === id)?.name || id;
 const byId = (arr, id) => arr.find((x) => x.id === id);
 
@@ -94,20 +95,103 @@ function seed() {
   return { suppliers: sup, parts, mechanics: mech, bays, orders, purchases, seq: { order: 108, purchase: 502 } };
 }
 
+/* ---------- persistencia: local (demo) o nube (cuenta) ---------- */
+// En /app/ los datos viven en el servidor; en /demo/ o abriendo el archivo, en este navegador.
+const MODE = location.pathname.startsWith('/app') ? 'cloud' : 'local';
+const cloud = { me: null, version: 0, timer: null, saving: false, dirty: false };
+
 function load() {
+  if (MODE === 'cloud') return emptyData();
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) return JSON.parse(raw);
   } catch (e) { /* almacenamiento no disponible */ }
   return seed();
 }
+function emptyData() {
+  return { suppliers: [], parts: [], mechanics: [], bays: [], orders: [], purchases: [], seq: { order: 1, purchase: 1 } };
+}
 let S = load();
 let view = 'panel';
 const ui = { search: '', lowOnly: false, mech: '' };
 
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignorar */ }
+  if (MODE === 'local') {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignorar */ }
+  } else if (!cloud.me?.access.canWrite) {
+    toast('Tu suscripción no está activa: los cambios no se guardan. Elige un plan en Ajustes.');
+    pullState();
+    return;
+  } else {
+    cloud.dirty = true;
+    clearTimeout(cloud.timer);
+    cloud.timer = setTimeout(pushState, 400);
+  }
   render();
+}
+
+async function api(method, url, body) {
+  const res = await fetch(url, {
+    method,
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'tallerflow' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (res.status === 401 && !url.startsWith('/api/auth')) { location.href = '/cuenta.html'; throw new Error(json.error); }
+  if (!res.ok) { const e = new Error(json.error || 'Error de conexión'); e.status = res.status; e.body = json; throw e; }
+  return json;
+}
+
+async function pushState() {
+  if (cloud.saving) { cloud.timer = setTimeout(pushState, 300); return; }
+  cloud.saving = true;
+  cloud.dirty = false;
+  try {
+    const r = await api('PUT', '/api/state', { version: cloud.version, data: S });
+    cloud.version = r.version;
+  } catch (e) {
+    if (e.status === 409) {
+      S = e.body.data; cloud.version = e.body.version;
+      toast('Otra persona del taller cambió los datos a la vez. Se cargó lo más reciente; revisa tu último cambio.');
+      render();
+    } else if (e.status === 402 || e.status === 403) {
+      toast(e.message);
+      await pullState();
+    } else {
+      cloud.dirty = true;
+      toast('Sin conexión con el servidor. Reintentando…');
+      cloud.timer = setTimeout(pushState, 4000);
+    }
+  } finally { cloud.saving = false; }
+}
+
+async function pullState() {
+  const r = await api('GET', '/api/state');
+  S = r.data; cloud.version = r.version;
+  render();
+}
+
+async function refreshMe() {
+  cloud.me = await api('GET', '/api/me');
+  const who = $('#who');
+  if (who) who.innerHTML = `<span>${esc(cloud.me.tenant.name)}</span><span class="muted small">${esc(cloud.me.user.name)}</span>`;
+}
+
+function accessBanner() {
+  if (MODE === 'local') {
+    return location.pathname.startsWith('/demo')
+      ? '<div class="banner info"><span>Estás viendo la <b>demo</b> con datos de ejemplo (se guardan solo en este navegador). <a href="/cuenta.html#registro">Crea tu cuenta gratis</a> para usarla en tu taller.</span></div>'
+      : '';
+  }
+  const a = cloud.me?.access;
+  if (!a) return '';
+  const go = '<button class="btn sm primary" data-goto-plan>Elegir plan</button>';
+  if (a.reason === 'trial') return `<div class="banner ${a.daysLeft <= 3 ? 'warn' : 'info'}"><span>Prueba gratis: te quedan <b>${a.daysLeft} día${a.daysLeft === 1 ? '' : 's'}</b>.</span> ${cloud.me.user.role === 'owner' ? go : ''}</div>`;
+  if (a.reason === 'past_due') return `<div class="banner warn"><span>No pudimos cobrar tu suscripción. Actualiza tu medio de pago en Mercado Pago (quedan ${a.daysLeft} días).</span> ${go}</div>`;
+  if (a.reason === 'canceled') return `<div class="banner warn"><span>Tu suscripción está cancelada; tienes acceso ${a.daysLeft} días más.</span> ${go}</div>`;
+  if (!a.canWrite) return `<div class="banner danger"><span>Tu ${a.reason === 'trial_expired' ? 'prueba gratis terminó' : 'suscripción no está activa'}. Puedes ver tus datos, pero no modificarlos.</span> ${cloud.me.user.role === 'owner' ? go : '<span>Pide al dueño de la cuenta que elija un plan.</span>'}</div>`;
+  return '';
 }
 
 /* ---------- lógica logística ---------- */
@@ -223,8 +307,9 @@ function autoAssign() {
 function render() {
   $$('#nav button').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
   const app = $('#app');
-  app.innerHTML = VIEWS[view]();
+  app.innerHTML = accessBanner() + VIEWS[view]();
   BIND[view]?.(app);
+  $$('[data-goto-plan]', app).forEach((b) => b.onclick = () => (cloud.me?.user.role === 'owner' ? planModal() : null));
 }
 
 const orderTag = (o) => `<b>#${o.number}</b> <span class="plate">${esc(o.plate)}</span>`;
@@ -415,16 +500,17 @@ const VIEWS = {
       <button class="btn sm" data-add="${kind}">+ Añadir</button></div>
       <ul class="list">${items.map((x) => `<li><span>${fmt(x)}</span><span style="white-space:nowrap"><button class="btn sm" data-edit="${kind}:${x.id}">Editar</button> <button class="btn sm danger" data-del="${kind}:${x.id}">✕</button></span></li>`).join('') || '<div class="empty">Vacío</div>'}</ul></div>`;
     return `
-      <h1>Ajustes</h1><p class="sub">Equipo, instalaciones, proveedores y datos.</p>
+      <h1>Ajustes</h1><p class="sub">${MODE === 'cloud' ? 'Cuenta, equipo, instalaciones, proveedores y datos.' : 'Equipo, instalaciones, proveedores y datos.'}</p>
+      ${MODE === 'cloud' ? accountSection() : ''}
       <div class="grid two">
         ${section('Mecánicos', 'mechanics', S.mechanics, (m) => `<b>${esc(m.name)}</b> <span class="muted small">${esc(m.specialty)}</span>`)}
         ${section('Bahías / puestos', 'bays', S.bays, (b) => esc(b.name))}
         ${section('Proveedores', 'suppliers', S.suppliers, (s) => `<b>${esc(s.name)}</b><br><span class="muted small">${esc(s.phone)} · ${esc(s.email)} · ${s.leadDays} días</span>`)}
         <div class="card"><h2>Datos</h2>
-          <p class="muted small">Los datos se guardan en este navegador. Exporta una copia de seguridad con regularidad.</p>
+          <p class="muted small">${MODE === 'cloud' ? 'Tus datos se guardan en la nube y los ve todo tu equipo. Puedes descargar una copia cuando quieras.' : 'Los datos se guardan en este navegador. Exporta una copia de seguridad con regularidad.'}</p>
           <div class="toolbar"><button class="btn" id="export">⬇ Exportar JSON</button>
           <label class="btn">⬆ Importar JSON<input type="file" id="import" accept="application/json" hidden></label>
-          <button class="btn danger" id="reset">Restaurar datos de ejemplo</button></div></div>
+          <button class="btn danger" id="reset">${MODE === 'cloud' ? 'Cargar datos de ejemplo' : 'Restaurar datos de ejemplo'}</button></div></div>
       </div>`;
   },
 };
@@ -596,6 +682,112 @@ function entityModal(kind, item) {
   });
 }
 
+/* ---------- cuenta y suscripción (modo nube) ---------- */
+const STATUS_TXT = { trial: ['Prueba gratis', 'info'], active: ['Activa', 'ok'], past_due: ['Pago pendiente', 'warn'], canceled: ['Cancelada', 'danger'] };
+const fmtMs = (ms) => (ms ? new Date(ms).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' }) : '—');
+
+function accountSection() {
+  const m = cloud.me;
+  if (!m) return '';
+  const owner = m.user.role === 'owner';
+  const t = m.tenant;
+  const [stTxt, stCls] = STATUS_TXT[t.status] || [t.status, ''];
+  const detail = t.status === 'trial' ? `La prueba termina el ${fmtMs(t.trialEndsAt)}.`
+    : t.status === 'active' ? (t.currentPeriodEnd ? `${t.hasSubscription ? 'Próximo cobro' : 'Activa hasta'}: ${fmtMs(t.currentPeriodEnd)}.` : '')
+      : t.status === 'canceled' ? `Acceso hasta el ${fmtMs(t.currentPeriodEnd)}.` : `Plazo para regularizar: ${fmtMs(t.graceUntil)}.`;
+  return `<div class="grid two" style="margin-bottom:16px">
+    <div class="card"><h2>Suscripción</h2>
+      <p><b>${esc(t.name)}</b> · Plan ${esc(m.limits.name)} <span class="badge ${stCls}">${stTxt}</span></p>
+      <p class="muted small">${detail} Límite: ${m.limits.maxUsers} usuarios, ${m.limits.maxBays ?? 'sin límite de'} bahías.</p>
+      ${owner ? `<div class="toolbar"><button class="btn primary" data-goto-plan>${t.status === 'active' ? 'Cambiar de plan' : 'Elegir plan y pagar'}</button>
+        ${t.status === 'active' ? '<button class="btn danger" id="cancel-sub">Cancelar suscripción</button>' : ''}</div>
+        ${m.billing.simulated ? '<p class="small badge warn">Modo de prueba: los pagos se simulan</p>' : '<p class="muted small">Cobro mensual automático con Mercado Pago. Puedes cancelar cuando quieras.</p>'}`
+    : '<p class="muted small">Solo el dueño de la cuenta puede gestionar la suscripción.</p>'}
+    </div>
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Usuarios del taller</h2>
+      ${owner ? '<button class="btn sm" id="add-user">+ Invitar</button>' : ''}</div>
+      <div id="users-list" class="muted small">Cargando…</div>
+      <div class="toolbar" style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+        <span class="small">Sesión: <b>${esc(m.user.name)}</b> (${esc(m.user.email)})</span>
+        <button class="btn sm" id="my-password">Cambiar contraseña</button>
+        <button class="btn sm" id="logout">Cerrar sesión</button>
+        ${m.isAdmin ? '<a class="btn sm" href="/admin.html">Panel de administración</a>' : ''}</div>
+    </div></div>`;
+}
+
+async function loadUsers() {
+  const box = $('#users-list');
+  if (!box) return;
+  try {
+    const r = await api('GET', '/api/users');
+    const owner = cloud.me.user.role === 'owner';
+    box.className = '';
+    box.innerHTML = `<ul class="list">${r.users.map((u) => `<li><span><b>${esc(u.name)}</b> <span class="badge">${u.role === 'owner' ? 'Dueño' : 'Equipo'}</span><br><span class="muted small">${esc(u.email)}</span></span>
+      ${owner && u.id !== cloud.me.user.id ? `<span style="white-space:nowrap"><button class="btn sm" data-reset-pw="${u.id}">Nueva clave</button> <button class="btn sm danger" data-del-user="${u.id}">✕</button></span>` : ''}</li>`).join('')}</ul>
+      <p class="muted small">${r.users.length} de ${r.max} usuarios de tu plan.</p>`;
+    $$('[data-del-user]', box).forEach((b) => b.onclick = async () => {
+      if (!confirm('¿Quitar el acceso a este usuario?')) return;
+      try { await api('DELETE', `/api/users/${b.dataset.delUser}`); loadUsers(); } catch (e) { toast(e.message); }
+    });
+    $$('[data-reset-pw]', box).forEach((b) => b.onclick = () => openModal('Nueva contraseña', field('Contraseña nueva (mín. 8 caracteres)', 'password', '', 'text', 'required minlength="8"'), (d) => {
+      api('POST', `/api/users/${b.dataset.resetPw}/password`, d).then(() => toast('Contraseña actualizada. Compártela con la persona.')).catch((e) => toast(e.message));
+    }));
+  } catch (e) { box.textContent = e.message; }
+}
+
+function asyncModal(fn) {
+  // Mantiene el modal abierto mientras se espera al servidor.
+  return (d, form) => {
+    const ok = $('#modal-ok');
+    ok.disabled = true;
+    fn(d, form).then(() => $('#modal').close()).catch((e) => toast(e.message)).finally(() => { ok.disabled = false; });
+    return false;
+  };
+}
+
+async function planModal() {
+  let info;
+  try { info = await api('GET', '/api/plans'); } catch (e) { return toast(e.message); }
+  const m = cloud.me;
+  const current = m.tenant.status === 'active' ? m.tenant.plan : '';
+  const fmt = (n) => n.toLocaleString('es', { style: 'currency', currency: info.currency, maximumFractionDigits: 0 });
+  const needsPayer = !m.tenant.hasSubscription && !m.billing.simulated;
+  openModal('Elige tu plan', `
+    <div class="plan-pick">${info.plans.map((p) => `<label class="plan-opt">
+      <input type="radio" name="plan" value="${p.id}" ${p.id === (current || 'profesional') ? 'checked' : ''}>
+      <span><b>${esc(p.name)}</b> ${p.id === current ? '<span class="badge ok">Actual</span>' : ''}<br>
+      <span class="price">${fmt(p.price)}</span><span class="muted small"> / mes</span>
+      <span class="muted small" style="display:block">${p.features.map(esc).join(' · ')}</span></span></label>`).join('')}</div>
+    ${needsPayer ? field('Email de tu cuenta de Mercado Pago', 'payerEmail', m.tenant.payerEmail || m.user.email, 'email', 'required') + '<p class="muted small">Te llevaremos a Mercado Pago para autorizar el cobro mensual. Debe ser el email con el que entras a Mercado Pago.</p>' : ''}
+    ${m.tenant.hasSubscription ? '<p class="muted small">El nuevo importe se aplicará desde el próximo cobro.</p>' : ''}`,
+  asyncModal(async (d) => {
+    const r = await api('POST', '/api/billing/checkout', d);
+    location.href = r.url;
+  }), m.tenant.hasSubscription ? 'Cambiar plan' : 'Continuar al pago');
+}
+
+function bindAccount(app) {
+  loadUsers();
+  $('#add-user', app)?.addEventListener('click', () => openModal('Invitar a un usuario', `
+    <div class="row2">${field('Nombre', 'name', '', 'text', 'required')}${field('Email', 'email', '', 'email', 'required')}</div>
+    <div class="row2">${field('Contraseña inicial (mín. 8)', 'password', '', 'text', 'required minlength="8"')}
+    ${selectField('Rol', 'role', [['staff', 'Equipo (opera el taller)'], ['owner', 'Dueño (también gestiona pagos y usuarios)']], 'staff')}</div>
+    <p class="muted small">Comparte el email y la contraseña con la persona; podrá cambiarla al entrar.</p>`,
+  asyncModal(async (d) => { await api('POST', '/api/users', d); toast('Usuario creado.'); loadUsers(); }), 'Crear usuario'));
+  $('#my-password', app)?.addEventListener('click', () => openModal('Cambiar mi contraseña',
+    field('Contraseña actual', 'current', '', 'password', 'required') + field('Contraseña nueva (mín. 8)', 'next', '', 'password', 'required minlength="8"'),
+    asyncModal(async (d) => { await api('POST', '/api/me/password', d); toast('Contraseña cambiada.'); })));
+  $('#logout', app)?.addEventListener('click', async () => {
+    if (cloud.dirty || cloud.saving) await pushState();
+    await api('POST', '/api/auth/logout', {});
+    location.href = '/';
+  });
+  $('#cancel-sub', app)?.addEventListener('click', async () => {
+    if (!confirm('¿Cancelar la suscripción? No se harán más cobros. Mantendrás el acceso hasta el fin del período pagado.')) return;
+    try { cloud.me = await api('POST', '/api/billing/cancel', {}); toast('Suscripción cancelada.'); render(); } catch (e) { toast(e.message); }
+  });
+}
+
 /* ---------- eventos por vista ---------- */
 function bindSearch(app) {
   const s = $('#search', app);
@@ -644,6 +836,7 @@ const BIND = {
     });
   },
   ajustes(app) {
+    if (MODE === 'cloud') bindAccount(app);
     $$('[data-add]', app).forEach((b) => b.onclick = () => entityModal(b.dataset.add));
     $$('[data-edit]', app).forEach((b) => b.onclick = () => { const [k, id] = b.dataset.edit.split(':'); entityModal(k, byId(S[k], id)); });
     $$('[data-del]', app).forEach((b) => b.onclick = () => {
@@ -680,4 +873,40 @@ $('#nav').addEventListener('click', (e) => {
   render();
 });
 
-render();
+async function pollState() {
+  const busy = cloud.dirty || cloud.saving || $('#modal').open || ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+  if (busy || document.hidden) return;
+  try {
+    const { version } = await api('GET', '/api/state/version');
+    if (version > cloud.version) await pullState();
+  } catch { /* sin conexión: se reintenta en el próximo ciclo */ }
+}
+
+async function init() {
+  if (MODE === 'local') {
+    render();
+    if (location.protocol.startsWith('http')) {
+      fetch('/api/plans').then((r) => r.json()).then((p) => { CURRENCY = p.currency; render(); }).catch(() => {});
+    }
+    return;
+  }
+  $('#app').innerHTML = '<div class="empty">Cargando tu taller…</div>';
+  try { await refreshMe(); } catch { return; }
+  CURRENCY = cloud.me.billing.currency;
+  const params = new URLSearchParams(location.search);
+  if (params.get('preapproval_id')) {
+    try { cloud.me = await api('POST', '/api/billing/sync', { preapprovalId: params.get('preapproval_id') }); } catch (e) { toast(e.message); }
+    toast(cloud.me.tenant.status === 'active' ? '¡Suscripción activa! Gracias por confiar en TallerFlow.' : 'Recibimos tu autorización. La activaremos en cuanto Mercado Pago lo confirme.');
+  } else if (params.get('pago') === 'simulado') toast('Pago simulado: suscripción activada (modo de prueba).');
+  else if (params.get('plan') === 'actualizado') toast('Plan actualizado.');
+  if ([...params.keys()].length) history.replaceState(null, '', '/app/');
+  await pullState();
+  if (!S.orders.length && !S.parts.length && !S.mechanics.length) {
+    toast('¡Bienvenido! Empieza en Ajustes: carga tus mecánicos, bahías y proveedores, o prueba con datos de ejemplo.');
+  }
+  setInterval(pollState, 15000);
+  setInterval(() => refreshMe().catch(() => {}), 5 * 60000);
+  window.addEventListener('beforeunload', (e) => { if (cloud.dirty || cloud.saving) { e.preventDefault(); e.returnValue = ''; } });
+}
+
+init();
