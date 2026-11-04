@@ -31,9 +31,11 @@ local function notifyJob(jobId, text, kind)
 	end
 end
 
-function Crime.SetWanted(player)
+function Crime.SetWanted(player, seconds)
+	local untilTime = os.time() + (seconds or Config.WANTED_DURATION)
+	local current = player:GetAttribute("WantedUntil")
 	player:SetAttribute("Wanted", true)
-	player:SetAttribute("WantedUntil", os.time() + Config.WANTED_DURATION)
+	player:SetAttribute("WantedUntil", math.max(current or 0, untilTime))
 end
 
 function Crime.ClearWanted(player)

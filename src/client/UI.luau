@@ -424,6 +424,22 @@ local function updateInfo()
 	end
 end
 
+-- API para otros módulos del cliente ----------------------------------------------
+UI.Gui = gui
+UI.Theme = THEME
+UI.New = new
+UI.Corner = corner
+UI.Padding = padding
+UI.Button = button
+UI.FormatMoney = formatMoney
+UI.OpenPanel = openPanel
+UI.ClosePanel = closePanel
+UI.AddRow = addRow
+UI.Notify = notify
+UI.IsPanelOpen = function()
+	return panel.Visible
+end
+
 function UI.Init()
 	gui.Parent = player:WaitForChild("PlayerGui")
 

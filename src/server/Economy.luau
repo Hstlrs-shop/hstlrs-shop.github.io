@@ -20,7 +20,35 @@ do
 	end
 end
 
-local loaded = {} -- [player] = true cuando sus datos ya cargaron
+local loaded = {} -- [player] = true cuando sus datos cargaron bien (solo entonces se guardan)
+local dataByPlayer = {} -- [player] = { Cars = {}, Story = {}, Title = nil }
+
+local function defaultData()
+	return {
+		Cars = {}, -- { { Id = "Tsuro", Paint = 1 }, ... }
+		Story = { Chapter = 1, Step = 1, Path = nil, Done = false },
+		Title = nil,
+	}
+end
+
+-- Datos del jugador (autos, historia...). Siempre devuelve una tabla.
+function Economy.GetData(player)
+	local d = dataByPlayer[player]
+	if not d then
+		d = defaultData()
+		dataByPlayer[player] = d
+	end
+	return d
+end
+
+-- Espera a que terminen de cargar los datos del jugador (máx. 15 s)
+function Economy.WaitForData(player)
+	local t = 0
+	while player.Parent and not (player:FindFirstChild("leaderstats") and player:GetAttribute("DataReady")) and t < 15 do
+		t = t + task.wait(0.1)
+	end
+	return Economy.GetData(player)
+end
 
 local function key(player)
 	return "player_" .. player.UserId
@@ -70,8 +98,9 @@ local function save(player)
 		return
 	end
 	local amount = Economy.Get(player)
+	local d = Economy.GetData(player)
 	local ok, err = pcall(function()
-		store:SetAsync(key(player), { Money = amount }, { player.UserId })
+		store:SetAsync(key(player), { Money = amount, Cars = d.Cars, Story = d.Story, Title = d.Title }, { player.UserId })
 	end)
 	if not ok then
 		warn("[CDMX] No se pudo guardar a", player.Name, err)
@@ -92,8 +121,21 @@ local function onPlayerAdded(player)
 			return store:GetAsync(key(player))
 		end)
 		if ok then
-			if type(data) == "table" and type(data.Money) == "number" then
-				pesos.Value = data.Money
+			local d = Economy.GetData(player)
+			if type(data) == "table" then
+				if type(data.Money) == "number" then
+					pesos.Value = data.Money
+				end
+				if type(data.Cars) == "table" then
+					d.Cars = data.Cars
+				end
+				if type(data.Story) == "table" and type(data.Story.Chapter) == "number" then
+					d.Story = data.Story
+				end
+				if type(data.Title) == "string" then
+					d.Title = data.Title
+					player:SetAttribute("Title", data.Title)
+				end
 			end
 			loaded[player] = true
 		else
@@ -101,6 +143,8 @@ local function onPlayerAdded(player)
 			warn("[CDMX] No se pudieron cargar los datos de", player.Name, data)
 		end
 	end
+	Economy.GetData(player)
+	player:SetAttribute("DataReady", true)
 end
 
 function Economy.Init()
@@ -111,6 +155,7 @@ function Economy.Init()
 	Players.PlayerRemoving:Connect(function(player)
 		save(player)
 		loaded[player] = nil
+		dataByPlayer[player] = nil
 	end)
 	game:BindToClose(function()
 		for _, p in ipairs(Players:GetPlayers()) do

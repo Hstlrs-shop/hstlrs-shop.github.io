@@ -59,6 +59,9 @@ local function giveHandcuffs(player)
 		ctx.Crime.TryArrest(player)
 	end)
 	tool.Parent = player.Backpack
+	if ctx.Combat then
+		ctx.Combat.Give(player, "Taser")
+	end
 end
 
 local function giveMedkit(player)
@@ -96,7 +99,8 @@ local function clearJobTools(player)
 	for _, c in ipairs(containers) do
 		if c then
 			for _, t in ipairs(c:GetChildren()) do
-				if t:IsA("Tool") and t:GetAttribute("JobTool") then
+				local policeGear = t:GetAttribute("PoliceOnly") and player:GetAttribute("Job") ~= "Policia"
+				if t:IsA("Tool") and (t:GetAttribute("JobTool") or policeGear) then
 					t:Destroy()
 				end
 			end

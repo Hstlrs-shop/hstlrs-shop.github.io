@@ -31,7 +31,53 @@ Roblox sin assets externos.
 | Taxista | $100 | Saca un taxi rosa; los pasajeros pagan por distancia al bajarse |
 | Taquero | $110 | Comisión por cada venta en la taquería donde esté |
 | Vendedor ambulante | $80 | Comisión por cada venta en el puesto donde esté |
+| Repartidor | $70 | Moto de reparto: recoge en taquerías y entrega en domicilios (+$60 o más) |
+| Microbusero | $90 | Maneja el micro de la Ruta 2 Zócalo – Chapultepec ($25 por parada) |
 | Ratero | $0 | Asalta tienditas (tecla `F`), queda **SE BUSCA** 3 min |
+
+**Historia: "Llegada a la ciudad"** (5 capítulos, se guarda el progreso)
+
+Llegas de provincia con una maleta. Doña Lupe te da chamba en su taquería, el
+Profe te enseña la ciudad en Metro y El Chino te presenta al barrio, hasta que
+**Los Tlacuaches** empiezan a cobrarle "piso" a Doña Lupe. Ahí eliges:
+
+- **Camino honrado:** te das de alta en la SSC con el Comandante Ramírez.
+- **Camino chueco:** te armas con El Tuerto en el tianguis y te haces ratero.
+
+Los dos caminos llevan a la bodega de Los Tlacuaches y al final a la mansión de
+**El Patrón** en Polanco. Al terminar ganas un título ("Héroe del barrio" o
+"Leyenda de la calle"). Los personajes muestran diálogos con opciones; el
+rastreador y un haz de luz en el mapa (GPS) marcan cada objetivo.
+
+**Armas** (estilo realista sin sangre: chispas y números de daño)
+
+| Dónde | Qué venden |
+|---|---|
+| Armería del Centro (cualquiera) | Bat, Pistola 9 mm, Revólver .38, Escopeta |
+| El Tuerto, tianguis de la Doctores (rateros) | Pistola, Subfusil, Rifle de asalto |
+| Armería de la SSC (policías, gratis) | Macana, Taser, Pistola, Rifle SSC |
+
+- Clic dispara, `R` recarga. El servidor valida cada disparo.
+- **Zonas seguras** (Zócalo, Hospital, Reclusorio): nadie recibe daño.
+- Los policías solo pueden lastimar a jugadores buscados; el **taser** los paraliza.
+- Si atacas a alguien sin ser policía, quedas **SE BUSCA**.
+- Al caer reapareces en el Hospital General y pagas $100 de consulta. Si un
+  policía abate a un buscado, este despierta en el Reclusorio.
+- Los enemigos de las misiones tienen IA: se cubren, se acercan y disparan.
+
+**Autos** (Agencia Reforma, junto a Reforma; se guardan en tu garage)
+
+Nombres de parodia inspirados en los modelos más chilangos: Volkswagon Vochito,
+Nizzan Tsuro, Chebrolet Avio, Kya Rion, Nizzan Versu, Volkswagon Jeta,
+Hondo Civik, Toyoda Hilox, Forb Lobo, Chebrolet Suburbia, BMV Serie 3,
+Merceditas Clase C, Lamborjini Uracán y la moto Itáliko FT-150. Cada uno tiene su
+carrocería (sedán, compacto, pickup, camioneta, deportivo, moto), velocidad,
+plazas y 12 colores. Desde el **teléfono** (`P`) pides cualquiera de tus autos al
+estacionamiento más cercano.
+
+> Por qué parodias: las marcas reales están registradas y Roblox puede retirar
+> juegos que las usan sin licencia. Los nombres se cambian en
+> `src/shared/Cars.luau` si algún día consigues permiso.
 
 **Economía**
 - Dinero en pesos (`$ MXN`), se guarda con DataStore.
@@ -52,9 +98,11 @@ Roblox sin assets externos.
 ### Versión demostrable
 
 **1. Demo en el navegador (sin Roblox):** `demo/index.html` es una versión 3D de un
-jugador del mismo mapa y sistemas, con NPCs que hacen de clientes, heridos,
+jugador del mismo mapa y sistemas: la historia completa, la agencia, las armas,
+los enemigos y todos los trabajos, con NPCs que hacen de clientes, heridos,
 pasajeros, rateros y policías. Ábrelo en cualquier navegador moderno (tiene
-controles táctiles para celular).
+controles táctiles para celular). Controles: `WASD` moverse, `E` interactuar,
+`J` trabajos, `P` teléfono, `Q` cambiar de arma, `F` o clic para disparar, `R` recargar.
 
 **2. Lugar listo para Roblox Studio:** `CDMX-Roleplay.rbxlx` ya contiene todos los
 scripts. Ábrelo con doble clic en Roblox Studio y presiona **Play**; no necesitas
@@ -88,7 +136,10 @@ El proyecto usa [Rojo](https://rojo.space) para sincronizar el código con Studi
 
 ```
 default.project.json        Mapa de Rojo
-src/shared/Config.luau       Sueldos, precios, trabajos, vehículos (¡edita aquí!)
+src/shared/Config.luau       Sueldos, precios, trabajos, zonas seguras (¡edita aquí!)
+src/shared/Cars.luau         Catálogo de autos y vehículos de trabajo
+src/shared/Weapons.luau      Armas y armerías
+src/shared/Story.luau        Historia, diálogos, enemigos, rutas de reparto y micro
 src/server/init.server.luau  Arranque del servidor y RemoteEvents
 src/server/MapBuilder.luau   Genera la ciudad
 src/server/Economy.luau      Dinero y guardado
@@ -96,16 +147,22 @@ src/server/Jobs.luau         Trabajos, equipos, herramientas, sueldo, etiquetas
 src/server/Crime.luau        Asaltos, búsqueda, arrestos y reclusorio
 src/server/Shops.luau        Tiendas y comida
 src/server/Metro.luau        Viajes en Metro
-src/server/Vehicles.luau     Autos y cobro de taxi
+src/server/Vehicles.luau     Carrocerías, agencia, garage y cobro de taxi
+src/server/Combat.luau       Disparos, daño, taser, zonas seguras y hospital
+src/server/Missions.luau     Historia, NPCs, enemigos con IA y misiones de trabajo
 src/server/DayNight.luau     Ciclo día/noche y alumbrado
 src/client/UI.luau           Interfaz (dinero, menús, notificaciones)
 src/client/Driving.luau      Manejo de autos
+src/client/Gameplay.luau     Teléfono, diálogos, rastreador y GPS, agencia, armerías
+src/client/WeaponsClient.luau  Disparo, recarga, munición y efectos
 tools/build_place.py         Genera CDMX-Roleplay.rbxlx sin Rojo
 demo/index.html              Demo jugable en el navegador
 ```
 
 ### Ideas para seguir
 - Casas/departamentos que se puedan comprar.
-- Tianguis, Mercado de Sonora y Xochimilco con trajineras.
+- Mercado de Sonora y Xochimilco con trajineras.
+- Sonidos (disparos, sirenas, el "súbale" del micro): requieren subir audios propios a Roblox.
+- Más capítulos de la historia y misiones secundarias por colonia.
 - Comandos de chat de rol (`/me`, `/do`, `/radio` para la policía).
 - Ropa y uniformes por trabajo (aprovechando la tienda de ropa 😉).

@@ -58,6 +58,20 @@ Config.Jobs = {
 		Description = "Quédate junto a un puesto: ganas comisión por cada elote, guajolota o churro vendido.",
 	},
 	{
+		Id = "Repartidor",
+		Name = "Repartidor",
+		Salary = 70,
+		Color = "Neon orange",
+		Description = "Saca tu moto junto a la Taquería El Güero y entrega pedidos por la ciudad (+$60 por entrega).",
+	},
+	{
+		Id = "Microbusero",
+		Name = "Microbusero",
+		Salary = 90,
+		Color = "Sea green",
+		Description = "Maneja el micro de la Ruta 2 (Zócalo – Chapultepec). Ganas $25 por cada parada.",
+	},
+	{
 		Id = "Ladron",
 		Name = "Ratero",
 		Salary = 0,
@@ -107,12 +121,7 @@ Config.SALE_COMMISSION = 10
 Config.METRO_FARE = 5
 
 -- Vehículos ------------------------------------------------------------------
-Config.Vehicles = {
-	Taxi = { Name = "Taxi", Job = "Taxista", Price = 0, MaxSpeed = 70, Color = Color3.fromRGB(235, 80, 150), Accent = Color3.fromRGB(245, 245, 245), Seats = 3 },
-	Patrulla = { Name = "Patrulla", Job = "Policia", Price = 0, MaxSpeed = 85, Color = Color3.fromRGB(240, 240, 245), Accent = Color3.fromRGB(20, 40, 110), Seats = 1, Siren = true },
-	Ambulancia = { Name = "Ambulancia", Job = "Paramedico", Price = 0, MaxSpeed = 80, Color = Color3.fromRGB(245, 245, 245), Accent = Color3.fromRGB(200, 30, 30), Seats = 1, Siren = true },
-	Vocho = { Name = "Vocho (renta)", Job = nil, Price = 100, MaxSpeed = 55, Color = Color3.fromRGB(80, 160, 90), Accent = Color3.fromRGB(230, 230, 230), Seats = 1 },
-}
+-- El catálogo y los vehículos de trabajo están en Shared/Cars.luau
 Config.TAXI_MIN_FARE = 15
 Config.TAXI_FARE_PER_100_STUDS = 8
 
@@ -124,6 +133,21 @@ Config.WANTED_DURATION = 180
 Config.ARREST_REWARD = 250
 Config.ARREST_RANGE = 10
 Config.JAIL_TIME = 60
+
+-- Combate -------------------------------------------------------------------
+-- Las armas están en Shared/Weapons.luau
+Config.HOSPITAL_FEE = 100 -- lo que cobra el hospital al reaparecer
+Config.ASSAULT_WANTED = 120 -- segundos de búsqueda por atacar a alguien
+Config.SAFE_ZONES = { -- aquí nadie recibe daño
+	{ Name = "Zócalo", Center = Vector3.new(0, 0, 20), Radius = 95 },
+	{ Name = "Hospital", Center = Vector3.new(160, 0, 400), Radius = 60 },
+	{ Name = "Reclusorio", Center = Vector3.new(620, 0, -690), Radius = 95 },
+}
+
+-- Trabajos con misiones repetibles -----------------------------------------
+Config.DELIVERY_PAY = 60
+Config.DELIVERY_BONUS_PER_100 = 4
+Config.BUS_STOP_PAY = 25
 
 -- Paramédicos ----------------------------------------------------------------
 Config.HEAL_AMOUNT = 50

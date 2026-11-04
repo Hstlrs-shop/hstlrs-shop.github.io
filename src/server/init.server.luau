@@ -13,12 +13,22 @@ local Shops = require(script.Shops)
 local Metro = require(script.Metro)
 local Vehicles = require(script.Vehicles)
 local DayNight = require(script.DayNight)
+local Combat = require(script.Combat)
+local Missions = require(script.Missions)
 
 -- Remotes ----------------------------------------------------------------
 local remotesFolder = Instance.new("Folder")
 remotesFolder.Name = "Remotes"
 local Remotes = {}
-for _, name in ipairs({ "Notify", "ChangeJob", "OpenShop", "BuyItem", "OpenMetro", "MetroTravel", "Fade" }) do
+for _, name in ipairs({
+	"Notify", "ChangeJob", "OpenShop", "BuyItem", "OpenMetro", "MetroTravel", "Fade",
+	-- autos
+	"OpenDealership", "BuyCar", "SpawnOwnedCar", "GarageUpdate", "Waypoint",
+	-- armas
+	"Shoot", "Reload", "ShotFx", "OpenWeaponShop", "BuyWeapon",
+	-- historia y misiones
+	"Objective", "Dialog", "DialogDone", "Sync",
+}) do
 	local r = Instance.new("RemoteEvent")
 	r.Name = name
 	r.Parent = remotesFolder
@@ -28,6 +38,14 @@ remotesFolder.Parent = ReplicatedStorage
 
 local function Notify(player, text, kind)
 	Remotes.Notify:FireClient(player, text, kind or "info")
+end
+
+local function NotifyJob(jobId, text, kind)
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p:GetAttribute("Job") == jobId then
+			Notify(p, text, kind)
+		end
+	end
 end
 
 -- Mundo ------------------------------------------------------------------
@@ -40,10 +58,14 @@ local ctx = {
 	Remotes = Remotes,
 	Economy = Economy,
 	Notify = Notify,
+	NotifyJob = NotifyJob,
 	Map = map,
 }
 ctx.Crime = Crime
 ctx.Jobs = Jobs
+ctx.Combat = Combat
+ctx.Missions = Missions
+ctx.Vehicles = Vehicles
 
 Economy.Init()
 Jobs.Init(ctx)
@@ -51,6 +73,8 @@ Crime.Init(ctx)
 Shops.Init(ctx)
 Metro.Init(ctx)
 Vehicles.Init(ctx)
+Combat.Init(ctx)
+Missions.Init(ctx)
 DayNight.Init()
 
 Players.PlayerAdded:Connect(function(player)

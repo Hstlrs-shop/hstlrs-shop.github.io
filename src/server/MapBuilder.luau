@@ -6,6 +6,7 @@ local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Story = require(ReplicatedStorage.Shared.Story)
 
 local MapBuilder = {}
 
@@ -640,6 +641,126 @@ local function fillBuildings()
 	end
 end
 
+-- Expansión: agencia, armerías, historia, bases y estacionamientos ---------------
+local function crate(pos, size, parent)
+	part("Caja", size, CFrame.new(pos + Vector3.new(0, size.Y / 2, 0)), Color3.fromRGB(150, 110, 65), Enum.Material.WoodPlanks, parent)
+end
+
+local function buildExpansion(map)
+	local f = folder("Expansion")
+
+	-- Agencia Reforma (autos) — frente hacia Reforma
+	local ag = folder("AgenciaReforma", f)
+	part("Showroom", Vector3.new(80, 20, 40), CFrame.new(-560, 10, -290), Color3.fromRGB(235, 235, 240), Enum.Material.SmoothPlastic, ag)
+	part("Vitrina", Vector3.new(70, 14, 0.4), CFrame.new(-560, 8, -269.7), C.Glass, Enum.Material.Glass, ag)
+	local sign = part("Letrero", Vector3.new(50, 5, 0.6), CFrame.new(-560, 17.5, -269.5), Color3.fromRGB(20, 20, 25), Enum.Material.SmoothPlastic, ag)
+	surfaceText(sign, "AGENCIA REFORMA · AUTOS", Color3.fromRGB(20, 20, 25), Color3.fromRGB(240, 200, 60), { Enum.NormalId.Back })
+	local counter = part("Mostrador", Vector3.new(10, 4, 3), CFrame.new(-560, 2, -264), Color3.fromRGB(240, 200, 60), Enum.Material.SmoothPlastic, ag)
+	billboard(counter, "Agencia Reforma", Color3.fromRGB(240, 200, 60), 6, 120)
+	map.Dealership = counter
+	map.DealershipPrompt = prompt(counter, "Ver autos", "Agencia Reforma")
+	map.DealershipSpawn = CFrame.new(-560, 3, -210) * CFrame.Angles(0, math.rad(90), 0)
+	map.ShowroomSpots = {}
+	for i, x in ipairs({ -590, -570, -550, -530 }) do
+		map.ShowroomSpots[i] = CFrame.new(x, 1.2, -245) * CFrame.Angles(0, math.rad(90), 0)
+	end
+	part("Piso", Vector3.new(90, 0.2, 45), CFrame.new(-560, 0.5, -247), Color3.fromRGB(60, 60, 66), Enum.Material.Granite, ag)
+	reserve(-560, -268, 92, 90)
+
+	-- Armerías
+	map.WeaponShops = {}
+	local arm = folder("ArmeriaCentro", f)
+	part("Local", Vector3.new(30, 14, 24), CFrame.new(-120, 7, -300), Color3.fromRGB(70, 75, 70), Enum.Material.Concrete, arm)
+	local armSign = part("Letrero", Vector3.new(26, 4, 0.6), CFrame.new(-120, 12, -287.6), Color3.fromRGB(30, 30, 30), Enum.Material.SmoothPlastic, arm)
+	surfaceText(armSign, "ARMERÍA DEL CENTRO", Color3.fromRGB(30, 30, 30), Color3.fromRGB(230, 60, 50), { Enum.NormalId.Back })
+	local armCounter = part("Mostrador", Vector3.new(14, 4, 3), CFrame.new(-120, 2, -286), Color3.fromRGB(110, 80, 50), Enum.Material.Wood, arm)
+	table.insert(map.WeaponShops, { ShopId = "Armeria", Part = armCounter, Prompt = prompt(armCounter, "Comprar armas", "Armería del Centro") })
+	reserve(-120, -295, 36, 36)
+
+	local sscKiosk = part("ArmeriaSSC", Vector3.new(4, 6, 3), CFrame.new(410, 3, 142), Color3.fromRGB(20, 40, 110), Enum.Material.SmoothPlastic, f)
+	billboard(sscKiosk, "Armería SSC", Color3.fromRGB(150, 180, 255), 5, 80)
+	table.insert(map.WeaponShops, { ShopId = "SSC", Part = sscKiosk, Prompt = prompt(sscKiosk, "Equiparse", "Armería de la SSC") })
+
+	-- Tianguis de la Doctores (mercado negro con El Tuerto)
+	local tg = folder("Tianguis", f)
+	local tarps = { C.Pink, Color3.fromRGB(240, 120, 20), Color3.fromRGB(40, 120, 200), Color3.fromRGB(220, 200, 40), Color3.fromRGB(120, 60, 160), Color3.fromRGB(40, 150, 90) }
+	for i = 0, 5 do
+		local x = 420 + (i % 3) * 25
+		local z = 565 + math.floor(i / 3) * 18
+		part("Mesa", Vector3.new(10, 3, 5), CFrame.new(x, 1.5, z), Color3.fromRGB(120, 90, 60), Enum.Material.Wood, tg)
+		part("Lona", Vector3.new(14, 0.3, 10), CFrame.new(x, 9, z), tarps[i + 1], Enum.Material.Fabric, tg)
+		for _, dx in ipairs({ -6, 6 }) do
+			vcyl("Poste", 9, 0.4, Vector3.new(x + dx, 4.5, z), Color3.fromRGB(60, 60, 60), Enum.Material.Metal, tg)
+		end
+	end
+	local blackStall = part("PuestoTuerto", Vector3.new(8, 3, 4), CFrame.new(445, 1.5, 540), Color3.fromRGB(50, 40, 35), Enum.Material.Wood, tg)
+	part("LonaNegra", Vector3.new(12, 0.3, 8), CFrame.new(445, 9, 540), Color3.fromRGB(25, 25, 25), Enum.Material.Fabric, tg)
+	billboard(blackStall, "Tianguis de la Doctores", Color3.fromRGB(255, 220, 120), 12, 150)
+	table.insert(map.WeaponShops, { ShopId = "Tianguis", Part = blackStall, Prompt = prompt(blackStall, "Ver mercancía", "El Tuerto") })
+	reserve(445, 565, 80, 65)
+
+	-- Bodega de Los Tlacuaches (Colonia Doctores)
+	local bd = folder("BodegaTlacuaches", f)
+	local wallC = Color3.fromRGB(120, 115, 105)
+	part("Piso", Vector3.new(60, 0.3, 50), CFrame.new(520, 0.15, 470), Color3.fromRGB(90, 90, 92), Enum.Material.Concrete, bd)
+	part("MuroN", Vector3.new(60, 18, 2), CFrame.new(520, 9, 445), wallC, Enum.Material.Concrete, bd)
+	part("MuroS", Vector3.new(60, 18, 2), CFrame.new(520, 9, 495), wallC, Enum.Material.Concrete, bd)
+	part("MuroE", Vector3.new(2, 18, 50), CFrame.new(550, 9, 470), wallC, Enum.Material.Concrete, bd)
+	part("MuroO1", Vector3.new(2, 18, 15), CFrame.new(490, 9, 452.5), wallC, Enum.Material.Concrete, bd)
+	part("MuroO2", Vector3.new(2, 18, 15), CFrame.new(490, 9, 487.5), wallC, Enum.Material.Concrete, bd)
+	local bsign = part("Letrero", Vector3.new(24, 4, 0.6), CFrame.new(520, 14, 444), Color3.fromRGB(40, 40, 40), Enum.Material.SmoothPlastic, bd)
+	surfaceText(bsign, "BODEGA 13", Color3.fromRGB(40, 40, 40), Color3.fromRGB(240, 240, 240), { Enum.NormalId.Front, Enum.NormalId.Back })
+	for _, pos in ipairs({ Vector3.new(515, 0, 465), Vector3.new(528, 0, 476), Vector3.new(542, 0, 468), Vector3.new(503, 0, 474) }) do
+		crate(pos, Vector3.new(5, 5, 5), bd)
+	end
+	reserve(520, 470, 70, 60)
+
+	-- Mansión de El Patrón (Polanco)
+	local mn = folder("MansionPatron", f)
+	part("Jardin", Vector3.new(80, 0.3, 70), CFrame.new(-960, 0.15, -440), C.Grass, Enum.Material.Grass, mn)
+	local wc = Color3.fromRGB(230, 225, 210)
+	part("MuroO", Vector3.new(2, 10, 70), CFrame.new(-1000, 5, -440), wc, Enum.Material.Plaster, mn)
+	part("MuroE", Vector3.new(2, 10, 70), CFrame.new(-920, 5, -440), wc, Enum.Material.Plaster, mn)
+	part("MuroS1", Vector3.new(32, 10, 2), CFrame.new(-984, 5, -405), wc, Enum.Material.Plaster, mn)
+	part("MuroS2", Vector3.new(32, 10, 2), CFrame.new(-936, 5, -405), wc, Enum.Material.Plaster, mn)
+	part("Casa", Vector3.new(60, 26, 22), CFrame.new(-960, 13, -490), C.Marble, Enum.Material.Marble, mn)
+	part("Ventanal", Vector3.new(50, 12, 0.4), CFrame.new(-960, 14, -478.8), C.Glass, Enum.Material.Glass, mn)
+	vcyl("Fuente", 2, 12, Vector3.new(-960, 1, -432), Color3.fromRGB(80, 160, 220), Enum.Material.Glass, mn)
+	for _, pos in ipairs({ Vector3.new(-975, 0, -440), Vector3.new(-945, 0, -440), Vector3.new(-960, 0, -415) }) do
+		part("Jardinera", Vector3.new(8, 3, 3), CFrame.new(pos + Vector3.new(0, 1.5, 0)), Color3.fromRGB(150, 130, 110), Enum.Material.Brick, mn)
+	end
+	billboard(mn.Casa, "Mansión de El Patrón", Color3.fromRGB(255, 120, 120), 18, 200)
+	reserve(-960, -455, 90, 105)
+
+	-- Nuevas bases de trabajo
+	garage(map, "Reparto", "Motos de reparto", Color3.fromRGB(235, 110, 30), Vector3.new(-60, 0, 205), CFrame.new(-60, 3, 222), f)
+	garage(map, "Micro", "Base de micros · Ruta 2", Color3.fromRGB(70, 150, 90), Vector3.new(300, 0, -100), CFrame.new(305, 3, -130), f)
+	reserve(-60, 214, 26, 34)
+	reserve(305, -120, 26, 50)
+
+	-- Estacionamientos públicos (aquí aparecen tus autos)
+	local r90 = CFrame.Angles(0, math.rad(90), 0)
+	map.ParkingSpots = {
+		CFrame.new(215, 3, -20),
+		CFrame.new(-560, 3, -210) * r90,
+		CFrame.new(-692, 3, 380),
+		CFrame.new(40, 3, 620) * r90,
+		CFrame.new(-860, 3, -540) * r90,
+		CFrame.new(-1020, 3, -200) * r90,
+		CFrame.new(268, 3, 450),
+		CFrame.new(-232, 3, 100),
+	}
+
+	-- Reservamos los puntos de la historia para que no les caiga un edificio encima
+	for _, npc in pairs(Story.Npcs) do
+		reserve(npc.Pos.X, npc.Pos.Z, 16, 16)
+	end
+	for _, addr in ipairs(Story.DeliveryAddresses) do
+		reserve(addr.Pos.X, addr.Pos.Z, 18, 18)
+	end
+	map.HospitalCFrame = CFrame.new(185, 4, 430)
+end
+
 -- Spawn ------------------------------------------------------------------
 local function buildSpawn(map)
 	local spawn = Instance.new("SpawnLocation")
@@ -683,10 +804,12 @@ function MapBuilder.Build()
 	buildServices(map)
 	buildJail(map)
 	buildCommerce(map)
+	buildExpansion(map)
 	buildSpawn(map)
 	fillBuildings()
 
 	root.Parent = workspace
+	map.Root = root
 	return map
 end
 
