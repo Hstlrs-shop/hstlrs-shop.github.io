@@ -2,6 +2,8 @@
 
 Tienda online de ropa streetwear preparada para **dropshipping**. Web estática (HTML + CSS + JS, sin dependencias): se puede publicar gratis en GitHub Pages, Netlify o Vercel.
 
+**Modelo de negocio:** impresión bajo demanda con **Printful** conectado a Shopify. Cada pedido se produce y se envía automáticamente, sin inventario. Pasos y estado en [`docs/dropshipping-printful.md`](docs/dropshipping-printful.md). Archivos de impresión en `assets/print/`.
+
 ## Qué incluye
 
 - Catálogo con filtros por categoría, búsqueda y ordenación

@@ -29,7 +29,7 @@ Una vez recibida y revisada la devolución, el reembolso se emite al mismo méto
 ## Política de envío
 
 **Plazos**
-Preparamos tu pedido en **1 a 3 días hábiles** ✏️. Después, el envío tarda entre **5 y 10 días hábiles** ✏️ según tu ubicación. Los plazos son estimados y pueden ampliarse en temporadas de alta demanda.
+Cada prenda se hace **bajo pedido**: la producimos en **2 a 5 días hábiles** ✏️. Después, el envío tarda entre **3 y 10 días hábiles** ✏️ según tu ubicación. Los plazos son estimados y pueden ampliarse en temporadas de alta demanda.
 
 **Costos en México**
 - Envío estándar: $150 MXN.
@@ -40,7 +40,7 @@ Preparamos tu pedido en **1 a 3 días hábiles** ✏️. Después, el envío tar
 Enviamos a Estados Unidos, Canadá, España y otros países por $360 MXN. Los impuestos o aranceles de importación del país de destino corren por cuenta del cliente.
 
 **Seguimiento**
-Cuando tu pedido salga del almacén recibirás un correo con el número de seguimiento. Trabajamos con varios almacenes para ofrecerte el mejor precio, por lo que un pedido con varios productos puede llegar en paquetes separados sin costo adicional.
+Cuando tu pedido salga del taller recibirás un correo con el número de seguimiento. Si pides varias piezas, pueden llegar en paquetes separados sin costo adicional.
 
 ---
 

@@ -12,8 +12,8 @@ window.STORE_CONFIG = {
   shipping: {
     cost: 150,                // Igual que la tarifa "Estándar" de Shopify
     freeFrom: 1050,           // Igual que el envío gratis configurado en Shopify
-    processingDays: [1, 3],   // Días que tarda el proveedor en preparar el pedido
-    deliveryDays: [5, 10],    // Días de tránsito del envío
+    processingDays: [2, 5],   // Producción bajo pedido en Printful (impresión/bordado)
+    deliveryDays: [3, 10],    // Tránsito dentro de México (confírmalo con tus pedidos de prueba)
   },
 
   // Códigos de descuento. En modo "shopify" el código también debe existir en
