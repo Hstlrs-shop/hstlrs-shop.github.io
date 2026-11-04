@@ -31,7 +31,7 @@ const parseRef = (s) => { const [tenantId, planId] = String(s || '').split('|');
 
 function createSubscription({ tenantId, plan, payerEmail, backUrl }) {
   return call('POST', '/preapproval', {
-    reason: `TallerFlow - Plan ${plan.name}`,
+    reason: `Nau - Plan ${plan.name}`,
     external_reference: ref(tenantId, plan.id),
     payer_email: payerEmail,
     back_url: backUrl,
@@ -51,7 +51,7 @@ const getAuthorizedPayment = (id) => call('GET', `/authorized_payments/${encodeU
 
 function changePlan(id, tenantId, plan) {
   return updateSubscription(id, {
-    reason: `TallerFlow - Plan ${plan.name}`,
+    reason: `Nau - Plan ${plan.name}`,
     external_reference: ref(tenantId, plan.id),
     auto_recurring: { transaction_amount: plan.price, currency_id: config.currency },
   });

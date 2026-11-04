@@ -1,5 +1,5 @@
 'use strict';
-/* TallerFlow SaaS — servidor HTTP sin dependencias externas (Node >= 22.5). */
+/* Nau SaaS — servidor HTTP sin dependencias externas (Node >= 22.5). */
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -375,7 +375,7 @@ function createApp(db) {
     if (!r) throw new HttpError(404, 'No encontrado.');
     const params = typeof r.pattern === 'string' ? [] : url.pathname.match(r.pattern).slice(1);
     // Protección CSRF: las peticiones que modifican datos deben llevar este encabezado (no se puede enviar desde otro sitio sin CORS).
-    if (req.method !== 'GET' && r.csrf !== false && req.headers['x-requested-with'] !== 'tallerflow') throw new HttpError(403, 'Petición rechazada.');
+    if (req.method !== 'GET' && r.csrf !== false && req.headers['x-requested-with'] !== 'nau') throw new HttpError(403, 'Petición rechazada.');
     const user = currentUser(req);
     if (r.auth !== false && !user) throw new HttpError(401, 'Inicia sesión para continuar.');
     const body = req.method === 'GET' ? {} : await readJson(req);
@@ -462,10 +462,10 @@ function serveStatic(req, res, url) {
 }
 
 if (require.main === module) {
-  const db = openDb(path.join(config.dataDir, 'tallerflow.db'));
+  const db = openDb(path.join(config.dataDir, 'nau.db'));
   const server = http.createServer(createApp(db));
   server.listen(config.port, () => {
-    console.log(`TallerFlow escuchando en ${config.appUrl} (puerto ${config.port})`);
+    console.log(`Nau escuchando en ${config.appUrl} (puerto ${config.port})`);
     if (config.devBilling) console.log('⚠ Modo de prueba: los pagos se SIMULAN (configura MP_ACCESS_TOKEN para cobrar de verdad).');
     if (config.production && !config.mp.webhookSecret) console.log('⚠ Falta MP_WEBHOOK_SECRET: las notificaciones de Mercado Pago serán rechazadas.');
   });

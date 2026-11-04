@@ -125,3 +125,7 @@ label.field input, label.field select { display: block; width: 100%; margin-top:
   .hero { grid-template-columns: 1fr; padding-top: 32px; }
   .site-nav nav a:not(.btn):not(.nav-login) { display: none; }
 }
+
+/* Marca */
+.brand { letter-spacing: -.03em; }
+.logo { display: inline-block; width: .62em; height: .62em; background: var(--primary); border-radius: 2px; margin-right: .32em; vertical-align: .02em; }

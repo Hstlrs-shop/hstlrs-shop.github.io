@@ -6,7 +6,7 @@
   const api = async (method, url, body) => {
     const res = await fetch(url, {
       method, credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'tallerflow' },
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'nau' },
       body: body ? JSON.stringify(body) : undefined,
     });
     const json = await res.json().catch(() => ({}));

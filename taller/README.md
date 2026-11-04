@@ -1,4 +1,4 @@
-# TallerFlow
+# Nau
 
 SaaS de gestión logística para talleres mecánicos: órdenes de trabajo, repuestos, compras a proveedores y planificación de mecánicos y bahías. Se cobra como suscripción mensual con Mercado Pago.
 
@@ -63,11 +63,11 @@ Cómo funciona el cobro:
 Cualquier servicio que ejecute Docker o Node sirve (Railway, Render, Fly.io, un VPS). Lo importante:
 
 - `NODE_ENV=production` y `APP_URL` con tu dominio en **https**. Las cookies se marcan `Secure` automáticamente.
-- Un **disco persistente** montado en `DATA_DIR`, donde vive la base SQLite `tallerflow.db`. Haz copias de ese archivo con regularidad.
+- Un **disco persistente** montado en `DATA_DIR`, donde vive la base SQLite `nau.db`. Haz copias de ese archivo con regularidad.
 
 ```bash
-docker build -t tallerflow .
-docker run -d -p 3000:3000 -v tallerflow-data:/data --env-file .env tallerflow
+docker build -t nau .
+docker run -d -p 3000:3000 -v nau-data:/data --env-file .env nau
 ```
 
 ## Antes de vender: pendientes que no son de código

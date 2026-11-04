@@ -38,7 +38,7 @@ before(async () => {
   await new Promise((r) => fakeMp.listen(0, r));
   Object.assign(process.env, {
     NODE_ENV: 'production', MP_ACCESS_TOKEN: 'TEST-token', MP_WEBHOOK_SECRET: SECRET,
-    MP_API_URL: `http://127.0.0.1:${fakeMp.address().port}`, APP_URL: 'https://tallerflow.test', CURRENCY: 'ARS',
+    MP_API_URL: `http://127.0.0.1:${fakeMp.address().port}`, APP_URL: 'https://nau.test', CURRENCY: 'ARS',
   });
   const { createApp, openDb } = require('../server/server');
   db = openDb(':memory:');
@@ -51,7 +51,7 @@ after(() => { server.close(); fakeMp.close(); });
 let cookie = '';
 async function call(method, path, body) {
   const res = await fetch(base + path, {
-    method, headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'tallerflow', ...(cookie ? { Cookie: cookie } : {}) },
+    method, headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'nau', ...(cookie ? { Cookie: cookie } : {}) },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const set = res.headers.get('set-cookie');
@@ -83,7 +83,7 @@ test('suscripción: checkout → autorizada → cambio de plan → pago fallido 
   assert.equal(created.auth, 'Bearer TEST-token');
   assert.equal(created.body.external_reference, `${tenantId}|basico`);
   assert.equal(created.body.payer_email, 'pagos@mp.test');
-  assert.equal(created.body.back_url, 'https://tallerflow.test/app/');
+  assert.equal(created.body.back_url, 'https://nau.test/app/');
   assert.deepEqual(created.body.auto_recurring, { frequency: 1, frequency_type: 'months', transaction_amount: 29000, currency_id: 'ARS' });
   assert.equal((await call('GET', '/api/me')).body.tenant.status, 'trial', 'sigue en prueba hasta que MP confirme');
 

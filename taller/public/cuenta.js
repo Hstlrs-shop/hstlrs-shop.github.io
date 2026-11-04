@@ -23,7 +23,7 @@
       const res = await fetch(url, {
         method: 'POST',
         credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'tallerflow' },
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'nau' },
         body: JSON.stringify(Object.fromEntries(new FormData(form))),
       });
       const json = await res.json().catch(() => ({}));

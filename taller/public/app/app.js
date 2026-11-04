@@ -1,7 +1,8 @@
-/* TallerFlow — gestión logística para talleres (sin dependencias, datos en localStorage) */
+/* Nau — gestión logística para talleres (sin dependencias, datos en localStorage) */
 'use strict';
 
-const KEY = 'tallerflow.v1';
+const KEY = 'nau.v1';
+const OLD_KEY = 'nau.v1'; // datos de la demo guardados con el nombre anterior
 const HOURS_PER_DAY = 8;
 
 const STATUSES = [
@@ -103,7 +104,7 @@ const cloud = { me: null, version: 0, timer: null, saving: false, dirty: false }
 function load() {
   if (MODE === 'cloud') return emptyData();
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY);
     if (raw) return JSON.parse(raw);
   } catch (e) { /* almacenamiento no disponible */ }
   return seed();
@@ -134,7 +135,7 @@ async function api(method, url, body) {
   const res = await fetch(url, {
     method,
     credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'tallerflow' },
+    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'nau' },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const json = await res.json().catch(() => ({}));
@@ -851,7 +852,7 @@ const BIND = {
     $('#export', app).onclick = () => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }));
-      a.download = `tallerflow-${today()}.json`;
+      a.download = `nau-${today()}.json`;
       a.click();
     };
     $('#import', app).onchange = async (e) => {
@@ -859,7 +860,7 @@ const BIND = {
         const data = JSON.parse(await e.target.files[0].text());
         if (!Array.isArray(data.orders) || !Array.isArray(data.parts)) throw new Error('formato');
         S = data; save(); toast('Datos importados.');
-      } catch { alert('El archivo no es una copia válida de TallerFlow.'); }
+      } catch { alert('El archivo no es una copia válida de Nau.'); }
     };
     $('#reset', app).onclick = () => { if (confirm('Se reemplazarán todos los datos por los de ejemplo. ¿Continuar?')) { S = seed(); save(); } };
   },
@@ -896,7 +897,7 @@ async function init() {
   const params = new URLSearchParams(location.search);
   if (params.get('preapproval_id')) {
     try { cloud.me = await api('POST', '/api/billing/sync', { preapprovalId: params.get('preapproval_id') }); } catch (e) { toast(e.message); }
-    toast(cloud.me.tenant.status === 'active' ? '¡Suscripción activa! Gracias por confiar en TallerFlow.' : 'Recibimos tu autorización. La activaremos en cuanto Mercado Pago lo confirme.');
+    toast(cloud.me.tenant.status === 'active' ? '¡Suscripción activa! Gracias por confiar en Nau.' : 'Recibimos tu autorización. La activaremos en cuanto Mercado Pago lo confirme.');
   } else if (params.get('pago') === 'simulado') toast('Pago simulado: suscripción activada (modo de prueba).');
   else if (params.get('plan') === 'actualizado') toast('Plan actualizado.');
   if ([...params.keys()].length) history.replaceState(null, '', '/app/');

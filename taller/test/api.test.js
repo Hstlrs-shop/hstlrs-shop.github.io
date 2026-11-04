@@ -7,7 +7,7 @@ const crypto = require('node:crypto');
 process.env.NODE_ENV = 'test';
 process.env.MP_ACCESS_TOKEN = '';
 process.env.MP_WEBHOOK_SECRET = 'secreto-de-prueba';
-process.env.ADMIN_EMAILS = 'admin@tallerflow.test';
+process.env.ADMIN_EMAILS = 'admin@nau.test';
 const { createApp, openDb } = require('../server/server');
 
 let server, base, db;
@@ -24,7 +24,7 @@ function client() {
   return async (method, path, body, headers = {}) => {
     const res = await fetch(base + path, {
       method,
-      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'tallerflow', ...(cookie ? { Cookie: cookie } : {}), ...headers },
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'nau', ...(cookie ? { Cookie: cookie } : {}), ...headers },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const set = res.headers.get('set-cookie');
@@ -127,7 +127,7 @@ test('admin: solo emails autorizados; activación manual', async () => {
   const r = await register(c, 'cliente@test.com');
   assert.equal((await c('GET', '/api/admin/tenants')).status, 403);
   const adm = client();
-  await register(adm, 'admin@tallerflow.test', 'Mi empresa');
+  await register(adm, 'admin@nau.test', 'Mi empresa');
   const list = await adm('GET', '/api/admin/tenants');
   assert.equal(list.status, 200);
   assert.ok(list.body.tenants.some((t) => t.id === r.body.tenant.id));
