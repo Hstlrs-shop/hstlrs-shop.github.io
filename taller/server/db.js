@@ -46,6 +46,16 @@ function openDb(file) {
       updated_at INTEGER NOT NULL,
       updated_by TEXT
     );
+    CREATE TABLE IF NOT EXISTS ai_usage (
+      tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      month TEXT NOT NULL,               -- AAAA-MM
+      messages INTEGER NOT NULL DEFAULT 0,
+      input_tokens INTEGER NOT NULL DEFAULT 0,
+      cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+      cache_write_tokens INTEGER NOT NULL DEFAULT 0,
+      output_tokens INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, month)
+    );
     CREATE TABLE IF NOT EXISTS billing_events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       tenant_id TEXT,

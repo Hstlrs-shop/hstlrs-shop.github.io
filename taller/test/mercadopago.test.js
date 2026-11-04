@@ -38,7 +38,7 @@ before(async () => {
   await new Promise((r) => fakeMp.listen(0, r));
   Object.assign(process.env, {
     NODE_ENV: 'production', MP_ACCESS_TOKEN: 'TEST-token', MP_WEBHOOK_SECRET: SECRET,
-    MP_API_URL: `http://127.0.0.1:${fakeMp.address().port}`, APP_URL: 'https://nau.test', CURRENCY: 'ARS',
+    MP_API_URL: `http://127.0.0.1:${fakeMp.address().port}`, APP_URL: 'https://nau.test', CURRENCY: 'MXN',
   });
   const { createApp, openDb } = require('../server/server');
   db = openDb(':memory:');
@@ -84,7 +84,7 @@ test('suscripción: checkout → autorizada → cambio de plan → pago fallido 
   assert.equal(created.body.external_reference, `${tenantId}|basico`);
   assert.equal(created.body.payer_email, 'pagos@mp.test');
   assert.equal(created.body.back_url, 'https://nau.test/app/');
-  assert.deepEqual(created.body.auto_recurring, { frequency: 1, frequency_type: 'months', transaction_amount: 29000, currency_id: 'ARS' });
+  assert.deepEqual(created.body.auto_recurring, { frequency: 1, frequency_type: 'months', transaction_amount: 499, currency_id: 'MXN' });
   assert.equal((await call('GET', '/api/me')).body.tenant.status, 'trial', 'sigue en prueba hasta que MP confirme');
 
   // 2. El cliente autoriza en MP → webhook
@@ -103,7 +103,7 @@ test('suscripción: checkout → autorizada → cambio de plan → pago fallido 
   // 3. Cambio de plan: actualiza el importe de la misma suscripción
   const up = await call('POST', '/api/billing/checkout', { plan: 'red' });
   assert.equal(up.body.url, '/app/?plan=actualizado');
-  assert.equal(subs.get('pre_1').auto_recurring.transaction_amount, 89000);
+  assert.equal(subs.get('pre_1').auto_recurring.transaction_amount, 1599);
   assert.equal((await call('GET', '/api/me')).body.tenant.plan, 'red');
 
   // 4. MP pausa la suscripción por pagos fallidos → período de gracia

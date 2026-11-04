@@ -7,8 +7,13 @@
   if (!box) return;
   try {
     const info = await (await fetch('/api/plans')).json();
-    const fmt = (n) => n.toLocaleString('es', { style: 'currency', currency: info.currency, maximumFractionDigits: 0 });
+    const fmt = (n) => n.toLocaleString('es-MX', { style: 'currency', currency: info.currency, maximumFractionDigits: 0 });
     document.querySelectorAll('.js-trial').forEach((el) => { el.textContent = info.trialDays; });
+    if (info.whatsapp) {
+      const wa = document.getElementById('wa');
+      wa.href = `https://wa.me/${info.whatsapp}?text=${encodeURIComponent('Hola, me interesa Nau para mi taller.')}`;
+      wa.hidden = false;
+    }
     if (info.contactEmail) {
       document.getElementById('contact').innerHTML = `¿Dudas? <a href="mailto:${esc(info.contactEmail)}">${esc(info.contactEmail)}</a>`;
     }

@@ -8,12 +8,15 @@ const config = require('./config');
 const { openDb } = require('./db');
 const { PLANS, TRIAL_PLAN, publicPlans } = require('./plans');
 const MP = require('./mercadopago');
+const AI = require('./assistant');
 
 const DAY = 86400000;
 const SESSION_DAYS = 30;
 const COOKIE = 'tf_session';
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const MAX_BODY = 6 * 1024 * 1024;
+const STREAMED = Symbol('streamed'); // la ruta ya escribió la respuesta (SSE)
+const monthKey = () => new Date().toISOString().slice(0, 7);
 
 /* ---------------- utilidades ---------------- */
 class HttpError extends Error {
@@ -85,6 +88,11 @@ function createApp(db) {
     stateVersion: db.prepare('SELECT version FROM tenant_state WHERE tenant_id = ?'),
     updateState: db.prepare('UPDATE tenant_state SET version = version + 1, data = ?, updated_at = ?, updated_by = ? WHERE tenant_id = ? AND version = ?'),
     logEvent: db.prepare('INSERT INTO billing_events (tenant_id, kind, payload, created_at) VALUES (?, ?, ?, ?)'),
+    aiUsage: db.prepare('SELECT messages FROM ai_usage WHERE tenant_id = ? AND month = ?'),
+    aiCount: db.prepare(`INSERT INTO ai_usage (tenant_id, month, messages) VALUES (?, ?, 1)
+      ON CONFLICT (tenant_id, month) DO UPDATE SET messages = messages + 1`),
+    aiTokens: db.prepare(`UPDATE ai_usage SET input_tokens = input_tokens + ?, cache_read_tokens = cache_read_tokens + ?,
+      cache_write_tokens = cache_write_tokens + ?, output_tokens = output_tokens + ? WHERE tenant_id = ? AND month = ?`),
   };
   db.prepare('DELETE FROM sessions WHERE expires_at < ?').run(now());
 
@@ -113,6 +121,11 @@ function createApp(db) {
     }
   }
   const limitsOf = (t) => PLANS[t.status === 'trial' ? TRIAL_PLAN : t.plan] || PLANS[TRIAL_PLAN];
+  function aiInfo(t) {
+    const limit = t.status === 'trial' ? Math.min(config.ai.trialMessages, limitsOf(t).aiMessages) : limitsOf(t).aiMessages;
+    const used = q.aiUsage.get(t.id, monthKey())?.messages || 0;
+    return { enabled: AI.enabled(), used, limit, remaining: Math.max(0, limit - used) };
+  }
 
   function me(user) {
     const t = q.tenant.get(user.tenant_id);
@@ -128,6 +141,8 @@ function createApp(db) {
       access: access(t),
       isAdmin: config.adminEmails.includes(user.email),
       billing: { enabled: MP.configured() || config.devBilling, simulated: config.devBilling, currency: config.currency },
+      ai: aiInfo(t),
+      whatsapp: config.whatsapp,
     };
   }
 
@@ -280,6 +295,33 @@ function createApp(db) {
     return { ok: true };
   });
 
+  /* asistente de IA */
+  route('POST', '/api/ai/chat', async ({ user, body, req, res }) => {
+    if (!AI.enabled()) throw new HttpError(503, 'El asistente de IA no está activado en este servidor.');
+    const t = q.tenant.get(user.tenant_id);
+    if (!access(t).canWrite) throw new HttpError(402, 'El asistente está disponible con una suscripción activa.');
+    const question = str(body.question, 'pregunta', { max: 2000 });
+    const info = aiInfo(t);
+    if (info.remaining <= 0) {
+      throw new HttpError(429, t.status === 'trial'
+        ? `Usaste las ${info.limit} consultas de la prueba gratis. Elige un plan para seguir usando el asistente.`
+        : `Tu taller usó las ${info.limit} consultas de este mes. Se renuevan el día 1; con un plan superior tienes más.`);
+    }
+    rateLimit(`ai:${user.id}`, config.ai.perMinute, 60000);
+    const month = monthKey();
+    q.aiCount.run(t.id, month);
+    const state = JSON.parse(q.state.get(t.id).data);
+    const snapshot = AI.buildSnapshot(state, t.name, new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' }));
+    res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache, no-store', 'X-Accel-Buffering': 'no', Connection: 'keep-alive' });
+    res.write(`data: ${JSON.stringify({ type: 'start', remaining: info.remaining - 1 })}\n\n`);
+    await AI.streamAnswer({
+      res, question, history: body.history, snapshot, userName: user.name,
+      onUsage: (u) => q.aiTokens.run(u.input_tokens || 0, u.cache_read_input_tokens || 0, u.cache_creation_input_tokens || 0, u.output_tokens || 0, t.id, month),
+    });
+    return STREAMED;
+  });
+  route('GET', '/api/ai/status', ({ user }) => aiInfo(q.tenant.get(user.tenant_id)));
+
   /* suscripción */
   route('POST', '/api/billing/checkout', async ({ user, body }) => {
     requireOwner(user);
@@ -348,6 +390,7 @@ function createApp(db) {
     requireAdmin(user);
     const rows = db.prepare(`SELECT t.*, (SELECT COUNT(*) FROM users u WHERE u.tenant_id = t.id) AS users,
       (SELECT email FROM users u WHERE u.tenant_id = t.id AND u.role = 'owner' ORDER BY created_at LIMIT 1) AS owner_email,
+      (SELECT messages FROM ai_usage a WHERE a.tenant_id = t.id AND a.month = strftime('%Y-%m', 'now')) AS ai_messages,
       s.updated_at AS last_activity FROM tenants t LEFT JOIN tenant_state s ON s.tenant_id = t.id ORDER BY t.created_at DESC`).all();
     return { tenants: rows.map((t) => ({ ...t, access: access(t) })), plans: PLANS, currency: config.currency };
   });
@@ -388,10 +431,12 @@ function createApp(db) {
     try {
       if (url.pathname.startsWith('/api/')) {
         const out = await handleApi(req, res, url);
+        if (out === STREAMED) return undefined;
         return sendJson(res, 200, out);
       }
       return serveStatic(req, res, url);
     } catch (e) {
+      if (res.headersSent) { console.error(e); return res.end(); }
       if (e instanceof HttpError) return sendJson(res, e.status, { error: e.message, ...(e.body || {}) });
       if (e.body && e.status) { // error de Mercado Pago
         console.error('Mercado Pago:', e.status, JSON.stringify(e.body));
@@ -466,6 +511,7 @@ if (require.main === module) {
   const server = http.createServer(createApp(db));
   server.listen(config.port, () => {
     console.log(`Nau escuchando en ${config.appUrl} (puerto ${config.port})`);
+    console.log(AI.enabled() ? `Asistente IA activo (${AI.MODEL}).` : 'Asistente IA desactivado: configura ANTHROPIC_API_KEY para activarlo.');
     if (config.devBilling) console.log('⚠ Modo de prueba: los pagos se SIMULAN (configura MP_ACCESS_TOKEN para cobrar de verdad).');
     if (config.production && !config.mp.webhookSecret) console.log('⚠ Falta MP_WEBHOOK_SECRET: las notificaciones de Mercado Pago serán rechazadas.');
   });

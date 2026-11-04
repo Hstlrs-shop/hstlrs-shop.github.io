@@ -4,10 +4,15 @@
   "private": true,
   "description": "SaaS de gestión logística para talleres mecánicos",
   "main": "server/server.js",
-  "engines": { "node": ">=22.5" },
+  "engines": {
+    "node": ">=22.5"
+  },
   "scripts": {
     "start": "node server/server.js",
     "dev": "node --watch server/server.js",
     "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0"
   }
 }

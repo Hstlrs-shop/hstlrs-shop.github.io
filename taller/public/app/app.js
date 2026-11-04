@@ -8,13 +8,13 @@ const HOURS_PER_DAY = 8;
 const STATUSES = [
   { id: 'recepcion',  name: 'Recepción' },
   { id: 'diagnostico', name: 'Diagnóstico' },
-  { id: 'repuestos',  name: 'Esperando repuestos' },
+  { id: 'repuestos',  name: 'Esperando refacciones' },
   { id: 'reparacion', name: 'En reparación' },
   { id: 'control',    name: 'Control de calidad' },
   { id: 'listo',      name: 'Listo para entrega' },
   { id: 'entregado',  name: 'Entregado' },
 ];
-// Al entrar en estos estados se descuentan los repuestos del inventario.
+// Al entrar en estos estados se descuentan los refacciones del inventario.
 const CONSUME_AT = ['reparacion', 'control', 'listo', 'entregado'];
 // Estados en los que el vehículo ocupa una bahía.
 const IN_BAY = ['diagnostico', 'reparacion', 'control'];
@@ -28,9 +28,9 @@ const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const isoLocal = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const today = () => isoLocal(new Date());
 const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return isoLocal(d); };
-const fmtDate = (iso) => iso ? new Date(iso + 'T12:00:00').toLocaleDateString('es', { day: '2-digit', month: 'short' }) : '—';
+const fmtDate = (iso) => iso ? new Date(iso + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short' }) : '—';
 let CURRENCY = 'USD';
-const money = (n) => (n || 0).toLocaleString('es', { style: 'currency', currency: CURRENCY, maximumFractionDigits: 0 });
+const money = (n) => (n || 0).toLocaleString('es-MX', { style: 'currency', currency: CURRENCY, maximumFractionDigits: 0 });
 const statusName = (id) => STATUSES.find((s) => s.id === id)?.name || id;
 const byId = (arr, id) => arr.find((x) => x.id === id);
 
@@ -45,23 +45,23 @@ function toast(msg) {
 /* ---------- datos ---------- */
 function seed() {
   const sup = [
-    { id: 's1', name: 'Repuestos del Sur', phone: '555-0101', email: 'ventas@repsur.com', leadDays: 2 },
-    { id: 's2', name: 'Autopartes Global', phone: '555-0202', email: 'pedidos@apglobal.com', leadDays: 4 },
-    { id: 's3', name: 'Lubricantes Norte', phone: '555-0303', email: 'contacto@lubnorte.com', leadDays: 1 },
+    { id: 's1', name: 'Refacciones del Bajío', phone: '442-215-0101', email: 'ventas@repsur.com', leadDays: 2 },
+    { id: 's2', name: 'Autopartes Global', phone: '442-215-0202', email: 'pedidos@apglobal.com', leadDays: 4 },
+    { id: 's3', name: 'Lubricantes Norte', phone: '442-215-0303', email: 'contacto@lubnorte.com', leadDays: 1 },
   ];
   const parts = [
-    ['FIL-AC-01', 'Filtro de aceite', 'Filtros', 14, 10, 'A1', 's1', 6],
-    ['FIL-AI-02', 'Filtro de aire', 'Filtros', 6, 6, 'A1', 's1', 9],
-    ['FIL-CB-03', 'Filtro de combustible', 'Filtros', 3, 4, 'A2', 's1', 12],
-    ['ACE-5W30', 'Aceite 5W30 (litro)', 'Lubricantes', 40, 30, 'B1', 's3', 8],
-    ['ACE-10W40', 'Aceite 10W40 (litro)', 'Lubricantes', 18, 20, 'B1', 's3', 7],
-    ['PAS-DEL-01', 'Pastillas de freno delanteras', 'Frenos', 4, 4, 'C1', 's2', 35],
-    ['DIS-DEL-01', 'Disco de freno delantero', 'Frenos', 2, 2, 'C2', 's2', 48],
-    ['BUJ-IR-01', 'Bujía iridio', 'Encendido', 16, 12, 'D1', 's2', 11],
-    ['COR-DIS-01', 'Correa de distribución', 'Motor', 1, 2, 'D3', 's2', 65],
-    ['BOM-AGU-01', 'Bomba de agua', 'Motor', 1, 1, 'D3', 's2', 90],
-    ['LIQ-REF-01', 'Refrigerante (litro)', 'Lubricantes', 12, 10, 'B2', 's3', 5],
-    ['BAT-12V-60', 'Batería 12V 60Ah', 'Eléctrico', 2, 2, 'E1', 's1', 110],
+    ['FIL-AC-01', 'Filtro de aceite', 'Filtros', 14, 10, 'A1', 's1', 110],
+    ['FIL-AI-02', 'Filtro de aire', 'Filtros', 6, 6, 'A1', 's1', 180],
+    ['FIL-CB-03', 'Filtro de combustible', 'Filtros', 3, 4, 'A2', 's1', 220],
+    ['ACE-5W30', 'Aceite 5W30 (litro)', 'Lubricantes', 40, 30, 'B1', 's3', 160],
+    ['ACE-10W40', 'Aceite 10W40 (litro)', 'Lubricantes', 18, 20, 'B1', 's3', 130],
+    ['PAS-DEL-01', 'Balatas delanteras', 'Frenos', 4, 4, 'C1', 's2', 650],
+    ['DIS-DEL-01', 'Disco de freno delantero', 'Frenos', 2, 2, 'C2', 's2', 900],
+    ['BUJ-IR-01', 'Bujía iridio', 'Encendido', 16, 12, 'D1', 's2', 190],
+    ['COR-DIS-01', 'Correa de distribución', 'Motor', 1, 2, 'D3', 's2', 1200],
+    ['BOM-AGU-01', 'Bomba de agua', 'Motor', 1, 1, 'D3', 's2', 1600],
+    ['LIQ-REF-01', 'Refrigerante (litro)', 'Lubricantes', 12, 10, 'B2', 's3', 90],
+    ['BAT-12V-60', 'Batería 12V 60Ah', 'Eléctrico', 2, 2, 'E1', 's1', 2400],
   ].map(([sku, name, category, stock, min, location, supplierId, cost], i) => ({
     id: 'p' + (i + 1), sku, name, category, stock, min, location, supplierId, cost,
   }));
@@ -82,13 +82,13 @@ function seed() {
     partsConsumed: CONSUME_AT.includes(o.status), notes: '', ...o,
   });
   const orders = [
-    mk(101, { customer: 'María López', phone: '555-1001', vehicle: 'Toyota Corolla 2018', plate: 'ABC123', description: 'Servicio 50.000 km: aceite, filtros y bujías', status: 'reparacion', priority: 'media', mechanicId: 'm4', bayId: 'b3', dueDate: today(), estHours: 3, items: [{ partId: 'p1', qty: 1 }, { partId: 'p2', qty: 1 }, { partId: 'p4', qty: 4 }, { partId: 'p8', qty: 4 }] }),
-    mk(102, { customer: 'Jorge Díaz', phone: '555-1002', vehicle: 'Ford Ranger 2020', plate: 'XYZ789', description: 'Ruido al frenar, cambio de pastillas y discos', status: 'diagnostico', priority: 'alta', mechanicId: 'm2', bayId: 'b1', dueDate: addDays(1), estHours: 4, items: [{ partId: 'p6', qty: 1 }, { partId: 'p7', qty: 2 }] }),
-    mk(103, { customer: 'Lucía Fernández', phone: '555-1003', vehicle: 'VW Gol 2015', plate: 'JKL456', description: 'Cambio de correa de distribución y bomba de agua', status: 'repuestos', priority: 'alta', mechanicId: 'm1', bayId: '', dueDate: addDays(-1), estHours: 6, items: [{ partId: 'p9', qty: 2 }, { partId: 'p10', qty: 1 }, { partId: 'p11', qty: 4 }] }),
-    mk(104, { customer: 'Pedro Gómez', phone: '555-1004', vehicle: 'Chevrolet Onix 2022', plate: 'MNO321', description: 'No arranca por las mañanas', status: 'recepcion', priority: 'media', mechanicId: '', bayId: '', dueDate: addDays(2), estHours: 2, items: [{ partId: 'p12', qty: 1 }] }),
-    mk(105, { customer: 'Elena Castro', phone: '555-1005', vehicle: 'Renault Duster 2019', plate: 'PQR654', description: 'Cambio de aceite y filtro', status: 'listo', priority: 'baja', mechanicId: 'm4', bayId: '', dueDate: today(), estHours: 1, items: [] }),
-    mk(106, { customer: 'Raúl Herrera', phone: '555-1006', vehicle: 'Nissan Frontier 2017', plate: 'STU987', description: 'Revisión de sistema eléctrico, luces intermitentes', status: 'control', priority: 'media', mechanicId: 'm3', bayId: 'b4', dueDate: addDays(1), estHours: 2, items: [] }),
-    mk(107, { customer: 'Carmen Vega', phone: '555-1007', vehicle: 'Hyundai Tucson 2021', plate: 'VWX147', description: 'Servicio completo + filtro de combustible', status: 'recepcion', priority: 'baja', mechanicId: '', bayId: '', dueDate: addDays(3), estHours: 3, items: [{ partId: 'p1', qty: 1 }, { partId: 'p3', qty: 1 }, { partId: 'p5', qty: 5 }] }),
+    mk(101, { customer: 'María López', phone: '442-310-1001', vehicle: 'Toyota Corolla 2018', plate: 'UAB-123-C', description: 'Servicio 50.000 km: aceite, filtros y bujías', status: 'reparacion', priority: 'media', mechanicId: 'm4', bayId: 'b3', dueDate: today(), estHours: 3, items: [{ partId: 'p1', qty: 1 }, { partId: 'p2', qty: 1 }, { partId: 'p4', qty: 4 }, { partId: 'p8', qty: 4 }] }),
+    mk(102, { customer: 'Jorge Díaz', phone: '442-310-1002', vehicle: 'Ford Ranger 2020', plate: 'UXY-789-A', description: 'Ruido al frenar, cambio de pastillas y discos', status: 'diagnostico', priority: 'alta', mechanicId: 'm2', bayId: 'b1', dueDate: addDays(1), estHours: 4, items: [{ partId: 'p6', qty: 1 }, { partId: 'p7', qty: 2 }] }),
+    mk(103, { customer: 'Lucía Fernández', phone: '442-310-1003', vehicle: 'VW Jetta 2015', plate: 'UJK-456-B', description: 'Cambio de correa de distribución y bomba de agua', status: 'repuestos', priority: 'alta', mechanicId: 'm1', bayId: '', dueDate: addDays(-1), estHours: 6, items: [{ partId: 'p9', qty: 2 }, { partId: 'p10', qty: 1 }, { partId: 'p11', qty: 4 }] }),
+    mk(104, { customer: 'Pedro Gómez', phone: '442-310-1004', vehicle: 'Chevrolet Aveo 2022', plate: 'UMN-321-D', description: 'No arranca por las mañanas', status: 'recepcion', priority: 'media', mechanicId: '', bayId: '', dueDate: addDays(2), estHours: 2, items: [{ partId: 'p12', qty: 1 }] }),
+    mk(105, { customer: 'Elena Castro', phone: '442-310-1005', vehicle: 'Renault Duster 2019', plate: 'UPQ-654-E', description: 'Cambio de aceite y filtro', status: 'listo', priority: 'baja', mechanicId: 'm4', bayId: '', dueDate: today(), estHours: 1, items: [] }),
+    mk(106, { customer: 'Raúl Herrera', phone: '442-310-1006', vehicle: 'Nissan Frontier 2017', plate: 'UST-987-F', description: 'Revisión de sistema eléctrico, luces intermitentes', status: 'control', priority: 'media', mechanicId: 'm3', bayId: 'b4', dueDate: addDays(1), estHours: 2, items: [] }),
+    mk(107, { customer: 'Carmen Vega', phone: '442-310-1007', vehicle: 'Hyundai Tucson 2021', plate: 'UVW-147-G', description: 'Servicio completo + filtro de combustible', status: 'recepcion', priority: 'baja', mechanicId: '', bayId: '', dueDate: addDays(3), estHours: 3, items: [{ partId: 'p1', qty: 1 }, { partId: 'p3', qty: 1 }, { partId: 'p5', qty: 5 }] }),
   ];
   const purchases = [
     { id: uid(), number: 501, supplierId: 's3', status: 'pendiente', createdAt: addDays(-1), eta: addDays(0), items: [{ partId: 'p5', qty: 20 }] },
@@ -258,12 +258,12 @@ function setStatus(order, status) {
     const short = order.items.filter((it) => { const p = byId(S.parts, it.partId); return p && p.stock < it.qty; });
     if (short.length) {
       const names = short.map((it) => byId(S.parts, it.partId).name).join(', ');
-      toast(`OT #${order.number}: faltan repuestos (${names}). Se movió a "Esperando repuestos".`);
+      toast(`OT #${order.number}: faltan refacciones (${names}). Se movió a "Esperando refacciones".`);
       status = 'repuestos';
     } else {
       order.items.forEach((it) => { const p = byId(S.parts, it.partId); if (p) p.stock -= it.qty; });
       order.partsConsumed = true;
-      if (order.items.length) toast(`OT #${order.number}: repuestos retirados del inventario.`);
+      if (order.items.length) toast(`OT #${order.number}: refacciones retirados del inventario.`);
     }
   }
   if (!IN_BAY.includes(status)) order.bayId = ''; // libera la bahía
@@ -281,7 +281,7 @@ function receivePurchase(po) {
   const unblocked = S.orders.filter((o) => o.status === 'repuestos' && byOrder[o.id]?.ok);
   save();
   toast(`OC #${po.number} recibida. Stock actualizado.`);
-  if (unblocked.length) toast(`Ya hay repuestos para: ${unblocked.map((o) => '#' + o.number).join(', ')}. Pueden pasar a reparación.`);
+  if (unblocked.length) toast(`Ya hay refacciones para: ${unblocked.map((o) => '#' + o.number).join(', ')}. Pueden pasar a reparación.`);
 }
 
 function autoAssign() {
@@ -330,14 +330,14 @@ const VIEWS = {
     const li = (arr, fn, empty) => arr.length ? `<ul class="list">${arr.map(fn).join('')}</ul>` : `<div class="empty">${empty}</div>`;
     return `
       <h1>Panel del taller</h1>
-      <p class="sub">${new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+      <p class="sub">${new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
       <div class="grid kpis">
         ${kpi('Órdenes activas', act.length)}
         ${kpi('Bahías ocupadas', `${baysBusy}/${S.bays.length}`)}
         ${kpi('Listos para entregar', ready.length, ready.length ? 'ok' : '')}
         ${kpi('Atrasadas', overdue.length, overdue.length ? 'danger' : '')}
-        ${kpi('Bloqueadas por repuestos', blocked.length, blocked.length ? 'warn' : '')}
-        ${kpi('Repuestos bajo mínimo', low.length, low.length ? 'warn' : '')}
+        ${kpi('Bloqueadas por refacciones', blocked.length, blocked.length ? 'warn' : '')}
+        ${kpi('Refacciones bajo mínimo', low.length, low.length ? 'warn' : '')}
       </div>
       <div class="grid two">
         <div class="card"><h2>⚠ Órdenes atrasadas</h2>
@@ -346,8 +346,8 @@ const VIEWS = {
         <div class="card"><h2>📅 Compromisos de hoy</h2>
           ${li(dueToday, (o) => `<li><span>${orderTag(o)} · ${esc(o.vehicle)}</span><span class="badge ${o.status === 'listo' ? 'ok' : 'info'}">${statusName(o.status)}</span></li>`, 'No hay entregas comprometidas hoy')}
         </div>
-        <div class="card"><h2>🔩 Bloqueadas por repuestos</h2>
-          ${li(blocked, (o) => `<li><span>${orderTag(o)}<br><span class="muted small">Falta: ${byOrder[o.id].missing.map((m) => `${m.qty}× ${esc(byId(S.parts, m.partId)?.name)}`).join(', ')}</span></span></li>`, 'Todas las órdenes tienen sus repuestos')}
+        <div class="card"><h2>🔩 Bloqueadas por refacciones</h2>
+          ${li(blocked, (o) => `<li><span>${orderTag(o)}<br><span class="muted small">Falta: ${byOrder[o.id].missing.map((m) => `${m.qty}× ${esc(byId(S.parts, m.partId)?.name)}`).join(', ')}</span></span></li>`, 'Todas las órdenes tienen sus refacciones')}
         </div>
         <div class="card"><h2>🚚 Compras en camino</h2>
           ${li(pendPO, (p) => `<li><span><b>OC #${p.number}</b> · ${esc(byId(S.suppliers, p.supplierId)?.name)}</span><span class="badge ${p.eta < today() ? 'danger' : 'info'}">llega ${fmtDate(p.eta)}</span></li>`, 'No hay compras pendientes')}
@@ -373,7 +373,7 @@ const VIEWS = {
         <p class="sub">Arrastra las tarjetas entre columnas o usa el selector de estado.</p></div>
         <button class="btn primary" id="new-order">+ Nueva orden</button></div>
       <div class="toolbar">
-        <input id="search" type="search" placeholder="Buscar patente, cliente, OT…" value="${esc(ui.search)}">
+        <input id="search" type="search" placeholder="Buscar placas, cliente, OT…" value="${esc(ui.search)}">
         <select id="mech-filter"><option value="">Todos los mecánicos</option>
           ${S.mechanics.map((m) => `<option value="${m.id}" ${ui.mech === m.id ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}</select>
       </div>
@@ -414,7 +414,7 @@ const VIEWS = {
       <div class="grid two">
         <div class="card"><h2>Cola de trabajo sugerida</h2>
           <p class="muted small">Ordenada por atraso, prioridad y fecha comprometida.</p>
-          <div class="table-wrap"><table><thead><tr><th>#</th><th>OT</th><th>Prioridad</th><th>Entrega</th><th>Repuestos</th></tr></thead><tbody>
+          <div class="table-wrap"><table><thead><tr><th>#</th><th>OT</th><th>Prioridad</th><th>Entrega</th><th>Refacciones</th></tr></thead><tbody>
           ${queue.map((o, i) => {
             const a = byOrder[o.id];
             const parts = o.partsConsumed || !a ? '<span class="badge ok">Retirados</span>' : a.ok ? '<span class="badge ok">OK</span>' : '<span class="badge warn">Faltan</span>';
@@ -439,15 +439,15 @@ const VIEWS = {
       .sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
     const value = S.parts.reduce((s, p) => s + p.stock * p.cost, 0);
     return `
-      <div class="page-head"><div><h1>Inventario de repuestos</h1>
+      <div class="page-head"><div><h1>Inventario de refacciones</h1>
         <p class="sub">${S.parts.length} artículos · valor en stock ${money(value)}</p></div>
-        <button class="btn primary" id="new-part">+ Nuevo repuesto</button></div>
+        <button class="btn primary" id="new-part">+ Nueva refacción</button></div>
       <div class="toolbar">
         <input id="search" type="search" placeholder="Buscar SKU, nombre, ubicación…" value="${esc(ui.search)}">
         <label class="small"><input type="checkbox" id="low-only" style="width:auto" ${ui.lowOnly ? 'checked' : ''}> Solo bajo mínimo</label>
       </div>
       <div class="card table-wrap"><table>
-        <thead><tr><th>SKU</th><th>Repuesto</th><th>Ubic.</th><th class="num">Stock</th><th class="num">Reservado</th><th class="num">Disponible</th><th class="num">Mínimo</th><th class="num">En camino</th><th>Proveedor</th><th></th></tr></thead>
+        <thead><tr><th>SKU</th><th>Refacción</th><th>Ubic.</th><th class="num">Stock</th><th class="num">Reservado</th><th class="num">Disponible</th><th class="num">Mínimo</th><th class="num">En camino</th><th>Proveedor</th><th></th></tr></thead>
         <tbody>${rows.map((p) => {
           const r = reserved[p.id] || 0;
           const disp = p.stock - r;
@@ -469,7 +469,7 @@ const VIEWS = {
       const s = byId(S.suppliers, sid);
       const total = sugg[sid].reduce((t, it) => t + it.qty * (byId(S.parts, it.partId)?.cost || 0), 0);
       return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
-          <div><b>${esc(s?.name || 'Sin proveedor')}</b><div class="muted small">${s ? `Entrega en ~${s.leadDays} días · ${esc(s.phone)}` : 'Asigna un proveedor al repuesto'}</div></div>
+          <div><b>${esc(s?.name || 'Sin proveedor')}</b><div class="muted small">${s ? `Entrega en ~${s.leadDays} días · ${esc(s.phone)}` : 'Asigna un proveedor a la refacción'}</div></div>
           ${s ? `<button class="btn sm primary" data-gen-po="${sid}">Generar OC</button>` : ''}</div>
         <table style="margin-top:8px"><tbody>${sugg[sid].map((it) => {
           const p = byId(S.parts, it.partId);
@@ -532,7 +532,7 @@ function orderCard(o, alloc) {
       <span class="badge ${isOverdue(o) ? 'danger' : ''}">📅 ${fmtDate(o.dueDate)}</span>
       ${mech ? `<span class="badge info">👤 ${esc(mech.name.split(' ')[0])}</span>` : '<span class="badge warn">Sin mecánico</span>'}
       ${bay ? `<span class="badge">${esc(bay.name.split(' (')[0])}</span>` : ''}
-      ${o.items.length ? (o.partsConsumed ? '<span class="badge ok">Repuestos ✓</span>' : blocked ? '<span class="badge warn">Faltan repuestos</span>' : '<span class="badge ok">Repuestos OK</span>') : ''}
+      ${o.items.length ? (o.partsConsumed ? '<span class="badge ok">Refacciones ✓</span>' : blocked ? '<span class="badge warn">Faltan refacciones</span>' : '<span class="badge ok">Refacciones OK</span>') : ''}
     </div>
     <select data-move="${o.id}" aria-label="Cambiar estado">${STATUSES.map((s) => `<option value="${s.id}" ${s.id === o.status ? 'selected' : ''}>${s.name}</option>`).join('')}</select>
   </article>`;
@@ -565,7 +565,7 @@ function itemsEditor(items, disabled) {
     <select class="it-part" ${disabled}>${opts(it.partId)}</select>
     <input class="it-qty" type="number" min="1" value="${it.qty}" ${disabled}>
     <button type="button" class="btn sm danger it-del" ${disabled}>✕</button></div>`;
-  return { html: `<div id="items">${items.map(row).join('')}</div>${disabled ? '<p class="muted small">Los repuestos ya fueron retirados del inventario.</p>' : '<button type="button" class="btn sm" id="add-item">+ Añadir repuesto</button>'}`, row };
+  return { html: `<div id="items">${items.map(row).join('')}</div>${disabled ? '<p class="muted small">Los refacciones ya fueron retirados del inventario.</p>' : '<button type="button" class="btn sm" id="add-item">+ Añadir refacción</button>'}`, row };
 }
 function readItems(form) {
   const merged = {};
@@ -588,7 +588,7 @@ function orderModal(o) {
   const ed = itemsEditor(o.items, o.partsConsumed ? 'disabled' : '');
   const html = `
     <div class="row2">${field('Cliente', 'customer', o.customer, 'text', 'required')}${field('Teléfono', 'phone', o.phone, 'tel')}</div>
-    <div class="row2">${field('Vehículo', 'vehicle', o.vehicle, 'text', 'required placeholder="Marca Modelo Año"')}${field('Patente / matrícula', 'plate', o.plate, 'text', 'required')}</div>
+    <div class="row2">${field('Vehículo', 'vehicle', o.vehicle, 'text', 'required placeholder="Marca Modelo Año"')}${field('Placas', 'plate', o.plate, 'text', 'required')}</div>
     <label class="field">Trabajo a realizar<textarea name="description">${esc(o.description)}</textarea></label>
     <div class="row2">${selectField('Prioridad', 'priority', [['alta', 'Alta'], ['media', 'Media'], ['baja', 'Baja']], o.priority)}
       ${field('Fecha comprometida', 'dueDate', o.dueDate, 'date')}</div>
@@ -596,8 +596,8 @@ function orderModal(o) {
       ${selectField('Bahía', 'bayId', [['', '— Ninguna —'], ...S.bays.map((b) => [b.id, b.name])], o.bayId)}</div>
     <div class="row2">${field('Horas estimadas', 'estHours', o.estHours, 'number', 'min="0" step="0.5"')}
       ${isNew ? '' : `<label class="field">Estado<input value="${esc(statusName(o.status))}" disabled></label>`}</div>
-    <h3>Repuestos necesarios</h3>${ed.html}
-    ${isNew ? '' : `<p class="small muted" style="margin-top:12px">Historial: ${o.history.map((h) => `${statusName(h.status)} (${new Date(h.at).toLocaleDateString('es')})`).join(' → ')}</p>
+    <h3>Refacciones necesarios</h3>${ed.html}
+    ${isNew ? '' : `<p class="small muted" style="margin-top:12px">Historial: ${o.history.map((h) => `${statusName(h.status)} (${new Date(h.at).toLocaleDateString('es-MX')})`).join(' → ')}</p>
       <button type="button" class="btn sm danger" id="del-order">Eliminar orden</button>`}`;
   openModal(isNew ? 'Nueva orden de trabajo' : `Orden #${o.number}`, html, (d, form) => {
     const items = o.partsConsumed ? o.items : readItems(form);
@@ -620,19 +620,19 @@ function orderModal(o) {
 function partModal(p) {
   const isNew = !p;
   p = p || { sku: '', name: '', category: '', stock: 0, min: 1, location: '', supplierId: S.suppliers[0]?.id || '', cost: 0 };
-  openModal(isNew ? 'Nuevo repuesto' : `Editar ${p.name}`, `
+  openModal(isNew ? 'Nueva refacción' : `Editar ${p.name}`, `
     <div class="row2">${field('SKU / código', 'sku', p.sku, 'text', 'required')}${field('Nombre', 'name', p.name, 'text', 'required')}</div>
     <div class="row2">${field('Categoría', 'category', p.category)}${field('Ubicación (estante)', 'location', p.location)}</div>
     <div class="row2">${field('Stock actual', 'stock', p.stock, 'number', 'min="0"')}${field('Stock mínimo', 'min', p.min, 'number', 'min="0"')}</div>
     <div class="row2">${selectField('Proveedor', 'supplierId', [['', '—'], ...S.suppliers.map((s) => [s.id, s.name])], p.supplierId)}${field('Costo unitario', 'cost', p.cost, 'number', 'min="0" step="0.01"')}</div>
-    ${isNew ? '' : '<button type="button" class="btn sm danger" id="del-part">Eliminar repuesto</button>'}`, (d) => {
+    ${isNew ? '' : '<button type="button" class="btn sm danger" id="del-part">Eliminar refacción</button>'}`, (d) => {
     const patch = { ...d, stock: +d.stock || 0, min: +d.min || 0, cost: +d.cost || 0 };
     if (isNew) S.parts.push({ id: uid(), ...patch }); else Object.assign(p, patch);
     save();
   });
   $('#del-part')?.addEventListener('click', () => {
     const used = activeOrders().some((o) => !o.partsConsumed && o.items.some((i) => i.partId === p.id));
-    if (used) return alert('Este repuesto está reservado en órdenes abiertas.');
+    if (used) return alert('Esta refacción está reservada en órdenes abiertas.');
     if (!confirm(`¿Eliminar ${p.name}?`)) return;
     S.parts = S.parts.filter((x) => x.id !== p.id);
     $('#modal').close();
@@ -685,7 +685,7 @@ function entityModal(kind, item) {
 
 /* ---------- cuenta y suscripción (modo nube) ---------- */
 const STATUS_TXT = { trial: ['Prueba gratis', 'info'], active: ['Activa', 'ok'], past_due: ['Pago pendiente', 'warn'], canceled: ['Cancelada', 'danger'] };
-const fmtMs = (ms) => (ms ? new Date(ms).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' }) : '—');
+const fmtMs = (ms) => (ms ? new Date(ms).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) : '—');
 
 function accountSection() {
   const m = cloud.me;
@@ -699,7 +699,8 @@ function accountSection() {
   return `<div class="grid two" style="margin-bottom:16px">
     <div class="card"><h2>Suscripción</h2>
       <p><b>${esc(t.name)}</b> · Plan ${esc(m.limits.name)} <span class="badge ${stCls}">${stTxt}</span></p>
-      <p class="muted small">${detail} Límite: ${m.limits.maxUsers} usuarios, ${m.limits.maxBays ?? 'sin límite de'} bahías.</p>
+      <p class="muted small">${detail} Límite: ${m.limits.maxUsers} usuarios, ${m.limits.maxBays ?? 'sin límite de'} bahías${m.ai.enabled ? `, asistente IA: ${m.ai.used} de ${m.ai.limit} consultas este mes` : ''}.</p>
+      ${m.whatsapp ? `<p class="small">¿Dudas con tu cuenta? <a href="https://wa.me/${esc(m.whatsapp)}" target="_blank" rel="noopener">Escríbenos por WhatsApp</a></p>` : ''}
       ${owner ? `<div class="toolbar"><button class="btn primary" data-goto-plan>${t.status === 'active' ? 'Cambiar de plan' : 'Elegir plan y pagar'}</button>
         ${t.status === 'active' ? '<button class="btn danger" id="cancel-sub">Cancelar suscripción</button>' : ''}</div>
         ${m.billing.simulated ? '<p class="small badge warn">Modo de prueba: los pagos se simulan</p>' : '<p class="muted small">Cobro mensual automático con Mercado Pago. Puedes cancelar cuando quieras.</p>'}`
@@ -751,7 +752,7 @@ async function planModal() {
   try { info = await api('GET', '/api/plans'); } catch (e) { return toast(e.message); }
   const m = cloud.me;
   const current = m.tenant.status === 'active' ? m.tenant.plan : '';
-  const fmt = (n) => n.toLocaleString('es', { style: 'currency', currency: info.currency, maximumFractionDigits: 0 });
+  const fmt = (n) => n.toLocaleString('es-MX', { style: 'currency', currency: info.currency, maximumFractionDigits: 0 });
   const needsPayer = !m.tenant.hasSubscription && !m.billing.simulated;
   openModal('Elige tu plan', `
     <div class="plan-pick">${info.plans.map((p) => `<label class="plan-opt">
@@ -874,6 +875,155 @@ $('#nav').addEventListener('click', (e) => {
   render();
 });
 
+/* ---------- asistente de IA ---------- */
+const AI_SUGGESTIONS = [
+  '¿Qué órdenes están atrasadas y qué hago primero?',
+  '¿Qué refacciones tengo que pedir hoy?',
+  '¿Quién del equipo está más cargado?',
+  '¿Cómo registro una orden nueva?',
+];
+const chat = { messages: [], busy: false };
+const chatKey = () => `nau.chat.${cloud.me?.user.id || 'demo'}`;
+
+// Markdown mínimo y seguro: se escapa todo y solo se interpretan negritas, cursivas, código y listas.
+function renderMarkdown(text) {
+  const inline = (s) => esc(s)
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/(^|[\s(])\*(?!\s)(.+?)\*(?=[\s).,;:!?]|$)/g, '$1<i>$2</i>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+  const out = [];
+  let list = null;
+  const close = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  String(text).split('\n').forEach((raw) => {
+    const line = raw.trimEnd();
+    const ul = line.match(/^\s*[-*•]\s+(.*)$/);
+    const ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
+    if (ul || ol) {
+      const kind = ul ? 'ul' : 'ol';
+      if (list !== kind) { close(); out.push(`<${kind}>`); list = kind; }
+      out.push(`<li>${inline((ul || ol)[1])}</li>`);
+    } else if (!line.trim()) close();
+    else { close(); out.push(`<p>${inline(line.replace(/^#+\s*/, ''))}</p>`); }
+  });
+  close();
+  return out.join('');
+}
+
+function saveChat() {
+  try { sessionStorage.setItem(chatKey(), JSON.stringify(chat.messages.slice(-30))); } catch { /* sin almacenamiento */ }
+}
+function loadChat() {
+  try { chat.messages = JSON.parse(sessionStorage.getItem(chatKey()) || '[]'); } catch { chat.messages = []; }
+}
+
+function aiQuotaText() {
+  const ai = cloud.me?.ai;
+  if (MODE === 'local') return 'Disponible con tu cuenta';
+  if (!ai?.enabled) return 'No disponible por ahora';
+  return `${ai.remaining} de ${ai.limit} consultas este mes`;
+}
+
+function renderChat() {
+  const log = $('#ai-log');
+  $('#ai-quota').textContent = aiQuotaText();
+  if (!chat.messages.length) {
+    const intro = MODE === 'local'
+      ? '<p>Soy el asistente de Nau. Respondo dudas sobre cómo usar la app y sobre los datos de tu taller: atrasos, refacciones por pedir, carga del equipo y más.</p><p><a href="/cuenta.html#registro">Crea tu cuenta gratis</a> para probarme con tu taller.</p>'
+      : '<p>¡Hola! Pregúntame sobre tu taller (órdenes, refacciones, compras, tu equipo) o sobre cómo usar Nau.</p>';
+    log.innerHTML = `<div class="ai-msg assistant">${intro}</div>${MODE === 'cloud' && cloud.me?.ai.enabled ? `<div class="ai-chips">${AI_SUGGESTIONS.map((s) => `<button type="button" data-ask="${esc(s)}">${esc(s)}</button>`).join('')}</div>` : ''}`;
+    $$('[data-ask]', log).forEach((b) => b.onclick = () => askAssistant(b.dataset.ask));
+  } else {
+    log.innerHTML = chat.messages.map((m) => `<div class="ai-msg ${m.role}${m.error ? ' error' : ''}">${m.role === 'user' ? esc(m.content) : renderMarkdown(m.content)}</div>`).join('');
+  }
+  log.scrollTop = log.scrollHeight;
+  const disabled = MODE === 'local' || !cloud.me?.ai.enabled;
+  $('#ai-input').disabled = disabled;
+  $('#ai-send').disabled = disabled || chat.busy;
+}
+
+async function askAssistant(question) {
+  question = question.trim();
+  if (!question || chat.busy) return;
+  // Solo se reenvía el historial válido (sin errores) para dar contexto.
+  const history = chat.messages.filter((m) => !m.error).map(({ role, content }) => ({ role, content }));
+  chat.messages.push({ role: 'user', content: question });
+  const answer = { role: 'assistant', content: '' };
+  chat.messages.push(answer);
+  chat.busy = true;
+  renderChat();
+  const bubble = $('#ai-log .ai-msg:last-child');
+  bubble.classList.add('ai-typing');
+  try {
+    const res = await fetch('/api/ai/chat', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'nau' },
+      body: JSON.stringify({ question, history }),
+    });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      throw new Error(j.error || 'No se pudo consultar al asistente.');
+    }
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n\n')) >= 0) {
+        const line = buf.slice(0, i);
+        buf = buf.slice(i + 2);
+        if (!line.startsWith('data: ')) continue;
+        const ev = JSON.parse(line.slice(6));
+        if (ev.type === 'start' && cloud.me) cloud.me.ai.remaining = ev.remaining;
+        else if (ev.type === 'text') {
+          answer.content += ev.text;
+          bubble.classList.remove('ai-typing');
+          bubble.innerHTML = renderMarkdown(answer.content);
+          $('#ai-log').scrollTop = $('#ai-log').scrollHeight;
+        } else if (ev.type === 'error') throw new Error(ev.message);
+      }
+    }
+    if (!answer.content) throw new Error('El asistente no respondió. Intenta de nuevo.');
+  } catch (e) {
+    answer.content = e.message;
+    answer.error = true;
+  } finally {
+    chat.busy = false;
+    saveChat();
+    renderChat();
+    if (cloud.me) $('#ai-quota').textContent = aiQuotaText();
+  }
+}
+
+function initAssistant() {
+  const fab = $('#ai-fab');
+  const panel = $('#ai-panel');
+  const input = $('#ai-input');
+  loadChat();
+  const open = (v) => {
+    panel.hidden = !v;
+    fab.setAttribute('aria-expanded', String(v));
+    document.body.classList.toggle('ai-open', v);
+    if (v) { renderChat(); input.focus(); }
+  };
+  fab.onclick = () => open(true);
+  $('#ai-close').onclick = () => open(false);
+  $('#ai-clear').onclick = () => { if (!chat.busy) { chat.messages = []; saveChat(); renderChat(); } };
+  $('#ai-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = input.value;
+    input.value = '';
+    askAssistant(q);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#ai-form').requestSubmit(); }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden && !$('#modal').open) open(false); });
+}
+
 async function pollState() {
   const busy = cloud.dirty || cloud.saving || $('#modal').open || ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
   if (busy || document.hidden) return;
@@ -886,6 +1036,7 @@ async function pollState() {
 async function init() {
   if (MODE === 'local') {
     render();
+    initAssistant();
     if (location.protocol.startsWith('http')) {
       fetch('/api/plans').then((r) => r.json()).then((p) => { CURRENCY = p.currency; render(); }).catch(() => {});
     }
@@ -902,6 +1053,7 @@ async function init() {
   else if (params.get('plan') === 'actualizado') toast('Plan actualizado.');
   if ([...params.keys()].length) history.replaceState(null, '', '/app/');
   await pullState();
+  initAssistant();
   if (!S.orders.length && !S.parts.length && !S.mechanics.length) {
     toast('¡Bienvenido! Empieza en Ajustes: carga tus mecánicos, bahías y proveedores, o prueba con datos de ejemplo.');
   }

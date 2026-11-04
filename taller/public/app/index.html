@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nau</title>
-  <meta name="description" content="Gestión logística para talleres: órdenes de trabajo, repuestos, compras y planificación.">
+  <meta name="description" content="Gestión logística para talleres: órdenes de trabajo, refacciones, compras y planificación.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -33,6 +33,20 @@
       </div>
     </form>
   </dialog>
+
+  <button id="ai-fab" class="ai-fab" type="button" aria-controls="ai-panel" aria-expanded="false"><span aria-hidden="true">✦</span> Asistente</button>
+  <aside id="ai-panel" class="ai-panel" hidden aria-label="Asistente de Nau">
+    <header class="ai-head">
+      <div><b>Asistente Nau</b><div id="ai-quota" class="muted small"></div></div>
+      <div><button type="button" class="btn sm ghost" id="ai-clear" title="Nueva conversación">Nueva</button>
+      <button type="button" class="btn sm ghost" id="ai-close" aria-label="Cerrar">✕</button></div>
+    </header>
+    <div id="ai-log" class="ai-log" aria-live="polite"></div>
+    <form id="ai-form" class="ai-form">
+      <textarea id="ai-input" rows="2" maxlength="2000" placeholder="Pregunta sobre tu taller o sobre cómo usar Nau…" required></textarea>
+      <button class="btn primary" id="ai-send" type="submit">Enviar</button>
+    </form>
+  </aside>
 
   <div id="toasts" class="toasts" aria-live="polite"></div>
 
