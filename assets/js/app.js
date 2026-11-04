@@ -420,7 +420,7 @@
         <div class="checkout__row checkout__row--3">
           <label>C. postal<input name="zip" required autocomplete="postal-code"></label>
           <label>Ciudad<input name="city" required autocomplete="address-level2"></label>
-          <label>País<input name="country" required autocomplete="country-name" value="España"></label>
+          <label>País<input name="country" required autocomplete="country-name" value="México"></label>
         </div>
         <label class="check"><input type="checkbox" required> Acepto los términos y condiciones y la política de privacidad.</label>
         <button class="btn btn--primary btn--block" type="submit">${CFG.checkoutMode === "email" ? "Enviar pedido por email" : "Confirmar pedido por WhatsApp"}</button>
