@@ -12,6 +12,14 @@ Tienda online de ropa streetwear preparada para **dropshipping**. Web estática 
 - Seguimiento de pedidos (vía 17TRACK), FAQ de envíos y devoluciones, textos legales
 - Newsletter con código de bienvenida y diseño adaptado a móvil
 
+## Drop 01 (colección propia)
+
+La sección "Drop 01 — Próximamente" muestra tus playeras CORE y STUDIO, que en Shopify siguen en borrador (sin fotos y con precio pendiente). Los datos están en `assets/js/upcoming.js`. Para lanzarlas:
+
+1. En Shopify, sube las fotos, confirma precio y stock (o desactiva el control de inventario) y cámbialas a **Activo**.
+2. Copia los IDs de sus variantes y pasa cada playera de `upcoming.js` a `products.js` (con `shopifyVariants`).
+3. Los suscriptores del formulario quedan en Shopify como clientes con la etiqueta `drop-01`: envíales el aviso desde Shopify Email.
+
 ## Cómo personalizarla
 
 | Archivo | Qué cambiar |

@@ -133,6 +133,27 @@
     return list.sort(sorters[state.sort]);
   }
 
+  function renderDrop() {
+    const list = window.UPCOMING || [];
+    const section = $("#drop-01");
+    if (!list.length) { section.hidden = true; return; }
+    $$("[data-drop-price]").forEach((el) => (el.textContent = money(window.UPCOMING_PRICE_FROM || 0)));
+    $("[data-drop-grid]").innerHTML = list
+      .map((u) => {
+        const art = productArt({ id: u.id, name: u.name, shape: "tee", image: u.image, colors: [u.color] });
+        return `
+        <article class="drop-card ${u.featured ? "drop-card--featured" : ""}">
+          <div class="drop-card__media">${art}<span class="badge">Próximamente</span></div>
+          <div class="drop-card__info">
+            <span class="drop-card__line">${esc(u.line)}</span>
+            <h3>${esc(u.name)}</h3>
+            <p>${esc(u.teaser)}</p>
+          </div>
+        </article>`;
+      })
+      .join("");
+  }
+
   function renderGrid() {
     const list = visibleProducts();
     $("[data-empty]").hidden = list.length > 0;
@@ -567,14 +588,43 @@
     if (n) window.open(`https://t.17track.net/es#nums=${encodeURIComponent(n)}`, "_blank", "noopener");
   });
 
+  // Registra el email como cliente con consentimiento de marketing en Shopify
+  // (formulario nativo de la tienda, enviado a un iframe oculto para no salir de la página).
+  function subscribeToShopify(email) {
+    if (!CFG.shopifyDomain) return;
+    let frame = $("#shopify-signup-frame");
+    if (!frame) {
+      frame = document.createElement("iframe");
+      frame.id = frame.name = "shopify-signup-frame";
+      frame.hidden = true;
+      document.body.appendChild(frame);
+    }
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = `https://${CFG.shopifyDomain}/contact#contact_form`;
+    form.target = frame.name;
+    form.hidden = true;
+    const fields = { form_type: "customer", utf8: "✓", "contact[email]": email, "contact[tags]": "newsletter, drop-01", "contact[accepts_marketing]": "true" };
+    for (const [name, value] of Object.entries(fields)) {
+      const input = document.createElement("input");
+      input.type = "hidden"; input.name = name; input.value = value;
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+  }
+
   $("[data-newsletter]").addEventListener("submit", (e) => {
     e.preventDefault();
+    subscribeToShopify(e.target.querySelector('input[type="email"]').value.trim());
     e.target.reset();
     openInfo("¡Bienvenido al club! 🎉", `<p>Usa este código en tu primer pedido:</p><p class="code">HSTLR10</p><p class="muted">10% de descuento en todo el carrito.</p>`);
   });
 
   /* ---------- Inicio ---------- */
   fillConfigText();
+  renderDrop();
   renderGrid();
   renderCart();
 
