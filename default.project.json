@@ -1,0 +1,33 @@
+{
+  "name": "CDMX-Roleplay",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/shared"
+      }
+    },
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    },
+    "Teams": {
+      "$className": "Teams"
+    },
+    "Lighting": {
+      "$properties": {
+        "ClockTime": 10,
+        "Brightness": 2,
+        "GlobalShadows": true
+      }
+    }
+  }
+}
