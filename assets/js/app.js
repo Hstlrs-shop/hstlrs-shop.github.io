@@ -170,6 +170,11 @@
         </article>`;
       })
       .join("");
+
+    const look = window.LOOKBOOK || [];
+    $("[data-lookbook]").innerHTML = look
+      .map((l) => `<figure class="lookbook__item"><img src="${esc(l.src)}" alt="${esc(l.alt)}" loading="lazy"></figure>`)
+      .join("");
   }
 
   function renderGrid() {
