@@ -33,3 +33,19 @@ Ajusta los plazos de `shipping` en `config.js` a los reales de tu proveedor y re
 ## Ver en local
 
 Abre `index.html` en el navegador, o ejecuta `python3 -m http.server` y entra en http://localhost:8000.
+
+## Estado de la tienda en Shopify (`0n1xxz-jc.myshopify.com`)
+
+Ya configurado:
+- 11 productos activos con fotos por color, precios en MXN y precio anterior tachado
+- Colecciones automáticas: Hoodies, Camisetas, Pantalones, Accesorios
+- Cupón `HSTLR10` (10 %, todos los clientes, sin caducidad)
+- Envíos (los que trae la tienda): estándar $150, gratis desde $1,050, exprés $195, internacional $360
+
+Pendiente en el panel de Shopify (no se puede hacer desde la web):
+1. **Contratar un plan** (la tienda está en prueba y no puede cobrar).
+2. **Pagos** → Configuración → Pagos: activar Shopify Payments (RFC, CLABE y datos fiscales) y, si quieres, PayPal y pagos en efectivo (OXXO) con un proveedor como Mercado Pago o Conekta.
+3. **Políticas** → pegar los textos de [`docs/politicas-shopify.md`](docs/politicas-shopify.md).
+4. **Quitar la contraseña** de la tienda online al lanzar (Tienda online → Preferencias).
+5. **Proveedor**: instalar DSers, CJ Dropshipping o Printful y vincular cada producto.
+6. Cambiar en `assets/js/config.js` el email y el WhatsApp reales.

@@ -10,7 +10,12 @@
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
   const money = (n) =>
-    new Intl.NumberFormat(CFG.locale, { style: "currency", currency: CFG.currency }).format(n);
+    new Intl.NumberFormat(CFG.locale, {
+      style: "currency",
+      currency: CFG.currency,
+      minimumFractionDigits: Number.isInteger(Math.round(n * 100) / 100) ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(n);
 
   const esc = (s) =>
     String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
