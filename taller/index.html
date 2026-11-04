@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TallerFlow</title>
+  <meta name="description" content="Gestión logística para talleres: órdenes de trabajo, repuestos, compras y planificación.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">⚙</span> TallerFlow</div>
+    <nav id="nav" class="nav">
+      <button data-view="panel" class="active">Panel</button>
+      <button data-view="ordenes">Órdenes</button>
+      <button data-view="planificacion">Planificación</button>
+      <button data-view="inventario">Inventario</button>
+      <button data-view="compras">Compras</button>
+      <button data-view="ajustes">Ajustes</button>
+    </nav>
+  </header>
+
+  <main id="app" class="main"></main>
+
+  <dialog id="modal">
+    <form id="modal-form" method="dialog">
+      <h2 id="modal-title"></h2>
+      <div id="modal-body"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="modal-cancel">Cancelar</button>
+        <button type="submit" class="btn primary" id="modal-ok">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
