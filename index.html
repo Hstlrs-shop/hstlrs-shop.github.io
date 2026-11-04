@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HSTLRS — Streetwear con envío a domicilio</title>
+  <meta name="description" content="HSTLRS: tienda online de streetwear. Hoodies, camisetas, pantalones y accesorios con envío gratis desde 50 € y devoluciones en 30 días.">
+  <meta name="theme-color" content="#0e0e10">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <!-- Barra de anuncios -->
+  <div class="announce" role="region" aria-label="Promociones">
+    <div class="announce__track">
+      <span>🚚 Envío GRATIS en pedidos desde <strong data-free-shipping></strong></span>
+      <span>↩️ Devoluciones fáciles en 30 días</span>
+      <span>🔒 Pago 100% seguro</span>
+      <span>🎁 10% de descuento en tu primer pedido con <strong>HSTLR10</strong></span>
+    </div>
+  </div>
+
+  <!-- Cabecera -->
+  <header class="header">
+    <div class="container header__inner">
+      <button class="icon-btn header__menu" aria-label="Abrir menú" data-menu-toggle>
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <a href="#" class="logo">HSTLRS</a>
+      <nav class="nav" data-nav>
+        <a href="#tienda" data-filter-link="todo">Tienda</a>
+        <a href="#tienda" data-filter-link="hoodies">Hoodies</a>
+        <a href="#tienda" data-filter-link="camisetas">Camisetas</a>
+        <a href="#tienda" data-filter-link="pantalones">Pantalones</a>
+        <a href="#tienda" data-filter-link="accesorios">Accesorios</a>
+        <a href="#seguimiento">Seguir pedido</a>
+        <a href="#faq">Ayuda</a>
+      </nav>
+      <div class="header__actions">
+        <button class="icon-btn" aria-label="Buscar" data-search-toggle>
+          <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button class="icon-btn cart-btn" aria-label="Abrir carrito" data-cart-open>
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 7h12l-1 13H7L6 7Z M9 7a3 3 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          <span class="cart-btn__count" data-cart-count>0</span>
+        </button>
+      </div>
+    </div>
+    <div class="search" data-search hidden>
+      <div class="container">
+        <input type="search" placeholder="Buscar productos…" aria-label="Buscar productos" data-search-input>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero__inner">
+        <div class="hero__copy">
+          <p class="eyebrow">Nueva colección · Otoño/Invierno</p>
+          <h1>Viste como<br>un <span>hustler</span>.</h1>
+          <p class="hero__lead">Streetwear de calidad a precios honestos. Lo pides hoy, lo preparamos y te llega a casa con seguimiento en tiempo real.</p>
+          <div class="hero__cta">
+            <a href="#tienda" class="btn btn--primary">Comprar ahora</a>
+            <a href="#como-funciona" class="btn btn--ghost">Cómo funciona</a>
+          </div>
+          <ul class="hero__stats">
+            <li><strong data-free-shipping></strong><span>Envío gratis desde</span></li>
+            <li><strong>30 días</strong><span>Para devolver</span></li>
+            <li><strong>24/7</strong><span>Atención al cliente</span></li>
+          </ul>
+        </div>
+        <div class="hero__art" aria-hidden="true">
+          <div class="hero__card hero__card--a" data-hero-a></div>
+          <div class="hero__card hero__card--b" data-hero-b></div>
+          <div class="hero__badge">-30%<small>Drop semanal</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ventajas -->
+    <section class="perks">
+      <div class="container perks__grid">
+        <div class="perk"><span>🚚</span><div><strong>Envío con seguimiento</strong><p>Entrega en <span data-delivery-range></span> días hábiles.</p></div></div>
+        <div class="perk"><span>↩️</span><div><strong>Devolución en 30 días</strong><p>Si no te convence, te devolvemos el dinero.</p></div></div>
+        <div class="perk"><span>🔒</span><div><strong>Pago seguro</strong><p>Tarjeta, PayPal, Apple Pay y Google Pay.</p></div></div>
+        <div class="perk"><span>💬</span><div><strong>Soporte real</strong><p>Te respondemos por WhatsApp o email.</p></div></div>
+      </div>
+    </section>
+
+    <!-- Tienda -->
+    <section class="shop" id="tienda">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Catálogo</p>
+            <h2>La tienda</h2>
+          </div>
+          <div class="shop__controls">
+            <div class="chips" role="tablist" data-filters>
+              <button class="chip is-active" data-filter="todo">Todo</button>
+              <button class="chip" data-filter="hoodies">Hoodies</button>
+              <button class="chip" data-filter="camisetas">Camisetas</button>
+              <button class="chip" data-filter="pantalones">Pantalones</button>
+              <button class="chip" data-filter="accesorios">Accesorios</button>
+            </div>
+            <select class="select" aria-label="Ordenar" data-sort>
+              <option value="destacados">Destacados</option>
+              <option value="precio-asc">Precio: menor a mayor</option>
+              <option value="precio-desc">Precio: mayor a menor</option>
+              <option value="nuevos">Novedades</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid" data-grid></div>
+        <p class="empty" data-empty hidden>No encontramos productos con esa búsqueda.</p>
+      </div>
+    </section>
+
+    <!-- Cómo funciona -->
+    <section class="how" id="como-funciona">
+      <div class="container">
+        <p class="eyebrow">Sin complicaciones</p>
+        <h2>Así funciona tu pedido</h2>
+        <ol class="steps">
+          <li><span>1</span><strong>Eliges y pagas</strong><p>Haz tu pedido en menos de un minuto con pago seguro.</p></li>
+          <li><span>2</span><strong>Lo preparamos</strong><p>Tu pedido se procesa en <span data-processing></span> días hábiles y sale desde nuestro almacén colaborador.</p></li>
+          <li><span>3</span><strong>Lo sigues</strong><p>Recibes un número de seguimiento por email para ver dónde está en todo momento.</p></li>
+          <li><span>4</span><strong>Lo disfrutas</strong><p>Llega a tu puerta. Si algo no encaja, tienes 30 días para devolverlo.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Seguimiento -->
+    <section class="track" id="seguimiento">
+      <div class="container track__inner">
+        <div>
+          <p class="eyebrow">Seguimiento</p>
+          <h2>¿Dónde está mi pedido?</h2>
+          <p>Introduce el número de seguimiento que te enviamos por email al confirmar el envío.</p>
+        </div>
+        <form class="track__form" data-track-form>
+          <input type="text" required placeholder="Ej. LX123456789CN" aria-label="Número de seguimiento" data-track-input>
+          <button class="btn btn--primary" type="submit">Rastrear</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+      <div class="container faq__inner">
+        <div>
+          <p class="eyebrow">Ayuda</p>
+          <h2>Preguntas frecuentes</h2>
+          <p>¿No encuentras lo que buscas? Escríbenos a <a data-contact-email></a>.</p>
+        </div>
+        <div class="faq__list">
+          <details open>
+            <summary>¿Cuánto tarda en llegar mi pedido?</summary>
+            <p>Procesamos los pedidos en <span data-processing></span> días hábiles. Después, el envío tarda entre <span data-delivery-range></span> días hábiles según tu ubicación. Recibirás el número de seguimiento por email.</p>
+          </details>
+          <details>
+            <summary>¿Cuánto cuesta el envío?</summary>
+            <p>El envío estándar cuesta <span data-shipping-cost></span> y es <strong>gratis</strong> en pedidos desde <span data-free-shipping></span>.</p>
+          </details>
+          <details>
+            <summary>¿Puedo devolver o cambiar un producto?</summary>
+            <p>Sí. Tienes 30 días desde que recibes el pedido para solicitar una devolución o cambio. El producto debe estar sin usar y con sus etiquetas. Escríbenos y te indicamos los pasos.</p>
+          </details>
+          <details>
+            <summary>¿Cómo sé qué talla elegir?</summary>
+            <p>Nuestras prendas tienen corte <em>oversize</em>. Si prefieres un ajuste regular, pide una talla menos. Consulta la guía de tallas en cada producto.</p>
+          </details>
+          <details>
+            <summary>¿Qué métodos de pago aceptáis?</summary>
+            <p>Tarjetas de crédito y débito, PayPal, Apple Pay y Google Pay. Todos los pagos están cifrados.</p>
+          </details>
+          <details>
+            <summary>¿Por qué mi pedido puede llegar en varios paquetes?</summary>
+            <p>Trabajamos con varios almacenes para ofrecerte el mejor precio. Si tu pedido incluye productos de distintos almacenes, puede llegar en envíos separados sin coste extra.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+      <div class="container newsletter__inner">
+        <div>
+          <h2>Únete al club HSTLRS</h2>
+          <p>Drops exclusivos, acceso anticipado y un <strong>10% de descuento</strong> en tu primer pedido.</p>
+        </div>
+        <form class="newsletter__form" data-newsletter>
+          <input type="email" required placeholder="tu@email.com" aria-label="Email">
+          <button class="btn btn--light" type="submit">Suscribirme</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div>
+        <a href="#" class="logo">HSTLRS</a>
+        <p>Streetwear para los que no se rinden.</p>
+      </div>
+      <div>
+        <h4>Tienda</h4>
+        <a href="#tienda">Todos los productos</a>
+        <a href="#tienda">Novedades</a>
+        <a href="#tienda">Más vendidos</a>
+      </div>
+      <div>
+        <h4>Ayuda</h4>
+        <a href="#seguimiento">Seguir pedido</a>
+        <a href="#faq">Envíos y devoluciones</a>
+        <a data-contact-email></a>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="#" data-legal="privacidad">Política de privacidad</a>
+        <a href="#" data-legal="terminos">Términos y condiciones</a>
+        <a href="#" data-legal="devoluciones">Política de devoluciones</a>
+      </div>
+    </div>
+    <div class="container footer__bottom">
+      <span>© <span data-year></span> HSTLRS. Todos los derechos reservados.</span>
+      <span class="pay-icons">VISA · Mastercard · PayPal · Apple Pay</span>
+    </div>
+  </footer>
+
+  <!-- Modal de producto -->
+  <div class="overlay" data-overlay hidden></div>
+  <dialog class="modal" data-product-modal aria-labelledby="pm-title">
+    <button class="icon-btn modal__close" aria-label="Cerrar" data-close>✕</button>
+    <div class="modal__body" data-product-body></div>
+  </dialog>
+
+  <!-- Modal genérico (legal / checkout) -->
+  <dialog class="modal modal--narrow" data-info-modal>
+    <button class="icon-btn modal__close" aria-label="Cerrar" data-close>✕</button>
+    <div class="modal__body" data-info-body></div>
+  </dialog>
+
+  <!-- Carrito -->
+  <aside class="drawer" data-cart aria-label="Carrito" aria-hidden="true">
+    <div class="drawer__head">
+      <h3>Tu carrito</h3>
+      <button class="icon-btn" aria-label="Cerrar carrito" data-cart-close>✕</button>
+    </div>
+    <div class="shipping-bar" data-shipping-bar>
+      <p data-shipping-msg></p>
+      <div class="shipping-bar__track"><div class="shipping-bar__fill" data-shipping-fill></div></div>
+    </div>
+    <div class="drawer__items" data-cart-items></div>
+    <div class="drawer__foot">
+      <form class="coupon" data-coupon-form>
+        <input type="text" placeholder="Código de descuento" aria-label="Código de descuento" data-coupon-input>
+        <button class="btn btn--ghost btn--sm" type="submit">Aplicar</button>
+      </form>
+      <p class="coupon__msg" data-coupon-msg></p>
+      <dl class="totals">
+        <div><dt>Subtotal</dt><dd data-subtotal></dd></div>
+        <div data-discount-row hidden><dt>Descuento</dt><dd data-discount></dd></div>
+        <div><dt>Envío</dt><dd data-shipping></dd></div>
+        <div class="totals__total"><dt>Total</dt><dd data-total></dd></div>
+      </dl>
+      <button class="btn btn--primary btn--block" data-checkout>Finalizar compra</button>
+      <p class="drawer__note">🔒 Pago seguro · Entrega estimada: <span data-eta></span></p>
+    </div>
+  </aside>
+
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/products.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
