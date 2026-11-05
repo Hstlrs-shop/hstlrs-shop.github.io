@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Colita · Hstlrs</title>
+  <meta name="description" content="Colita, la tienda de ropa de Hstlrs.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/" aria-label="Inicio">colita<span>.</span></a>
+    <nav class="nav">
+      <a href="#/">Tienda</a>
+      <a href="#/favoritos">Favoritos <span class="badge" id="fav-count">0</span></a>
+    </nav>
+    <button class="cart-btn" id="open-cart" aria-label="Abrir carrito">
+      Carrito <span class="badge" id="cart-count">0</span>
+    </button>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <aside class="drawer" id="cart" aria-hidden="true" aria-label="Carrito">
+    <div class="drawer-head">
+      <h2>Tu carrito</h2>
+      <button class="icon-btn" id="close-cart" aria-label="Cerrar carrito">✕</button>
+    </div>
+    <div class="drawer-body" id="cart-items"></div>
+    <div class="drawer-foot" id="cart-foot"></div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <footer class="footer">
+    <p>© Hstlrs · Colita. Envíos a todo el país · Cambios gratis en 30 días.</p>
+  </footer>
+
+  <script src="js/products.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
