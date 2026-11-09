@@ -1,310 +1,136 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-MX">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HSTLRS — Streetwear con envío a domicilio</title>
-  <meta name="description" content="HSTLRS: tienda online de streetwear. Hoodies, playeras, pantalones y accesorios con envío gratis desde $1,050 y devoluciones en 30 días.">
-  <meta name="theme-color" content="#0e0e10">
+  <title>HSTLRS — Streetwear hecho a pulso</title>
+  <meta name="description" content="Playeras oversize pesadas, sudaderas, gorras y arte de HSTLRS. Hecho bajo pedido en México. Envío gratis desde $1,050.">
+  <meta name="theme-color" content="#1a1613">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="HSTLRS — Streetwear con envío a todo México">
-  <meta property="og:description" content="Hoodies, playeras, pantalones y accesorios. Envío gratis desde $1,050 y devoluciones en 30 días.">
+  <meta property="og:title" content="HSTLRS — Streetwear hecho a pulso">
+  <meta property="og:description" content="Playeras oversize pesadas, sudaderas, gorras y arte. Hecho bajo pedido en México.">
   <meta property="og:image" content="https://raw.githubusercontent.com/fragaa892/hstlrs/tienda-dropshipping/assets/img/og.png">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e0e10'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='36' fill='%23e4572e'%3EH%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%231a1613'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='34' fill='%23ece5d6'%3EH%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/store.css">
 </head>
-<body>
-  <!-- Barra de anuncios -->
-  <div class="announce" role="region" aria-label="Promociones">
-    <div class="announce__track">
-      <span>🚚 Envío GRATIS en pedidos desde <strong data-free-shipping></strong></span>
-      <span>↩️ Devoluciones fáciles en 30 días</span>
-      <span>🔒 Pago 100% seguro</span>
-      <span>🎁 10% de descuento en tu primer pedido con <strong>HSTLR10</strong></span>
-    </div>
-  </div>
-
-  <!-- Cabecera -->
-  <header class="header">
-    <div class="container header__inner">
-      <button class="icon-btn header__menu" aria-label="Abrir menú" data-menu-toggle>
-        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </button>
-      <a href="#" class="logo">HSTLRS</a>
-      <nav class="nav" data-nav>
-        <a href="#drop-01">Drop 01</a>
-        <a href="#tienda" data-filter-link="todo">Tienda</a>
-        <a href="#tienda" data-filter-link="hoodies">Hoodies</a>
-        <a href="#tienda" data-filter-link="camisetas">Playeras</a>
-        <a href="#tienda" data-filter-link="pantalones">Pantalones</a>
-        <a href="#tienda" data-filter-link="accesorios">Accesorios</a>
-        <a href="#seguimiento">Seguir pedido</a>
-        <a href="#faq">Ayuda</a>
-      </nav>
-      <div class="header__actions">
-        <button class="icon-btn" aria-label="Buscar" data-search-toggle>
-          <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-        <button class="icon-btn cart-btn" aria-label="Abrir carrito" data-cart-open>
-          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 7h12l-1 13H7L6 7Z M9 7a3 3 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-          <span class="cart-btn__count" data-cart-count>0</span>
-        </button>
-      </div>
-    </div>
-    <div class="search" data-search hidden>
-      <div class="container">
-        <input type="search" placeholder="Buscar productos…" aria-label="Buscar productos" data-search-input>
-      </div>
-    </div>
-  </header>
+<body data-page="home">
+  <div data-header></div>
 
   <main>
-    <!-- Hero -->
     <section class="hero">
-      <div class="container hero__inner">
-        <div class="hero__copy">
-          <p class="eyebrow">Nueva colección · Otoño/Invierno</p>
-          <h1>Viste como<br>un <span>hustler</span>.</h1>
-          <p class="hero__lead">Playeras oversize pesadas, hechas bajo pedido para ti. Lo pides hoy, lo imprimimos y te llega a casa con seguimiento en tiempo real.</p>
-          <div class="hero__cta">
-            <a href="#tienda" class="btn btn--primary">Comprar ahora</a>
-            <a href="#como-funciona" class="btn btn--ghost">Cómo funciona</a>
-          </div>
-          <ul class="hero__stats">
-            <li><strong data-free-shipping></strong><span>Envío gratis desde</span></li>
-            <li><strong>30 días</strong><span>Para devolver</span></li>
-            <li><strong>24/7</strong><span>Atención al cliente</span></li>
-          </ul>
-        </div>
-        <div class="hero__art" aria-hidden="true">
-          <div class="hero__card hero__card--a" data-hero-a></div>
-          <div class="hero__card hero__card--b" data-hero-b></div>
-          <div class="hero__badge">-30%<small>Drop semanal</small></div>
+      <img class="hero__img" src="assets/img/drop/lookbook-4.jpg" alt="Playeras HSTLRS: Hecho a pulso, Acueducto y Tu ritmo tu camino">
+      <div class="wrap hero__content">
+        <p class="label">Drop 01 · CORE &amp; STUDIO</p>
+        <h1>Hecho<br>a pulso.</h1>
+        <p>Playeras oversize pesadas, sudaderas y arte diseñados en México. Cada pieza se produce bajo pedido para ti.</p>
+        <div class="hero__cta">
+          <a class="btn btn--light" href="tienda.html">Explorar la tienda</a>
+          <a class="btn btn--ghost-light" href="tienda.html?cat=playeras">Ver playeras</a>
         </div>
       </div>
     </section>
 
-    <!-- Ventajas -->
-    <section class="perks">
-      <div class="container perks__grid">
-        <div class="perk"><span>🚚</span><div><strong>Envío con seguimiento</strong><p>Entrega en <span data-delivery-range></span> días hábiles.</p></div></div>
-        <div class="perk"><span>↩️</span><div><strong>Devolución en 30 días</strong><p>Si no te convence, te devolvemos el dinero.</p></div></div>
-        <div class="perk"><span>🔒</span><div><strong>Pago seguro</strong><p>Tarjeta, PayPal y pago en efectivo.</p></div></div>
-        <div class="perk"><span>💬</span><div><strong>Soporte real</strong><p>Te respondemos por WhatsApp o email.</p></div></div>
-      </div>
-    </section>
-
-    <!-- Drop 01: próximamente -->
-    <section class="drop" id="drop-01">
-      <div class="container">
+    <section class="section">
+      <div class="wrap">
         <div class="section-head">
-          <div>
-            <p class="eyebrow">Colección propia · Drop 01</p>
-            <h2>CORE &amp; STUDIO</h2>
-            <p class="drop__lead">Playeras oversize diseñadas por HSTLRS. CORE: lo esencial. STUDIO: arte y perspectiva en la espalda. Desde <strong data-drop-price></strong>.</p>
-          </div>
-          <a href="#club" class="btn btn--light">Avísame del lanzamiento</a>
+          <div><p class="label muted">Categorías</p><h2>Compra por estilo</h2></div>
         </div>
-        <div class="drop__grid" data-drop-grid></div>
-        <div class="lookbook" data-lookbook aria-label="Lookbook de la colección"></div>
+        <div class="cats" data-cats></div>
       </div>
     </section>
 
-    <!-- Tienda -->
-    <section class="shop" id="tienda">
-      <div class="container">
+    <section class="section section--tight">
+      <div class="wrap">
         <div class="section-head">
-          <div>
-            <p class="eyebrow">Catálogo</p>
-            <h2>La tienda</h2>
+          <div><p class="label muted">Drop 01</p><h2>Lo nuevo</h2><p>Gráficos de gran formato en la espalda y básicos de algodón pesado. Ediciones cortas, hechas bajo pedido.</p></div>
+          <a class="btn btn--ghost" href="tienda.html">Ver todo</a>
+        </div>
+        <div class="grid" data-featured></div>
+      </div>
+    </section>
+
+    <section class="section section--dark">
+      <div class="wrap split">
+        <img src="assets/img/drop/lookbook-2.jpg" alt="Colección STUDIO: Built by Hand, Acueducto y Your Pace" loading="lazy">
+        <div>
+          <p class="label">La marca</p>
+          <h2>Tu ritmo.<br>Tu camino.</h2>
+          <p>HSTLRS es para los que construyen a pulso. Diseñamos cada gráfico como un plano: líneas finas, acabados deslavados y mensajes que se leen de cerca. No hacemos inventario que nadie va a usar: cada prenda se produce cuando la pides.</p>
+          <p><a class="btn btn--ghost-light" href="tienda.html?cat=playeras">Ver la colección STUDIO</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="promo">
+          <img src="assets/img/drop/lookbook-1.jpg" alt="Pack CORE de tres playeras" loading="lazy">
+          <div class="promo__body">
+            <p class="label muted">Pack</p>
+            <h2>CORE ×3</h2>
+            <p>Negra relieve, deslavada monograma y hueso etiqueta, en tu talla. Las tres esenciales con casi una playera de ahorro.</p>
+            <div class="promo__price" data-pack-price></div>
+            <div><a class="btn" href="producto.html?id=pack-core-x3">Ver el pack</a></div>
           </div>
-          <div class="shop__controls">
-            <div class="chips" role="tablist" data-filters>
-              <button class="chip is-active" data-filter="todo">Todo</button>
-              <button class="chip" data-filter="hoodies">Hoodies</button>
-              <button class="chip" data-filter="camisetas">Playeras</button>
-              <button class="chip" data-filter="pantalones">Pantalones</button>
-              <button class="chip" data-filter="accesorios">Accesorios</button>
-            </div>
-            <select class="select" aria-label="Ordenar" data-sort>
-              <option value="destacados">Destacados</option>
-              <option value="precio-asc">Precio: menor a mayor</option>
-              <option value="precio-desc">Precio: mayor a menor</option>
-              <option value="nuevos">Novedades</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid" data-grid></div>
-        <p class="empty" data-empty hidden>No encontramos productos con esa búsqueda.</p>
-      </div>
-    </section>
-
-    <!-- Cómo funciona -->
-    <section class="how" id="como-funciona">
-      <div class="container">
-        <p class="eyebrow">Sin complicaciones</p>
-        <h2>Así funciona tu pedido</h2>
-        <ol class="steps">
-          <li><span>1</span><strong>Eliges y pagas</strong><p>Haz tu pedido en menos de un minuto con pago seguro.</p></li>
-          <li><span>2</span><strong>Lo hacemos para ti</strong><p>Tu playera se imprime o borda bajo pedido en <span data-processing></span> días hábiles. Sin sobreproducción ni desperdicio.</p></li>
-          <li><span>3</span><strong>Lo sigues</strong><p>Recibes un número de seguimiento por email para ver dónde está en todo momento.</p></li>
-          <li><span>4</span><strong>Lo disfrutas</strong><p>Llega a tu puerta. Si algo no encaja, tienes 30 días para devolverlo.</p></li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- Seguimiento -->
-    <section class="track" id="seguimiento">
-      <div class="container track__inner">
-        <div>
-          <p class="eyebrow">Seguimiento</p>
-          <h2>¿Dónde está mi pedido?</h2>
-          <p>Introduce el número de seguimiento que te enviamos por email al confirmar el envío.</p>
-        </div>
-        <form class="track__form" data-track-form>
-          <input type="text" required placeholder="Ej. LX123456789CN" aria-label="Número de seguimiento" data-track-input>
-          <button class="btn btn--primary" type="submit">Rastrear</button>
-        </form>
-      </div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="faq" id="faq">
-      <div class="container faq__inner">
-        <div>
-          <p class="eyebrow">Ayuda</p>
-          <h2>Preguntas frecuentes</h2>
-          <p>¿No encuentras lo que buscas? Escríbenos a <a data-contact-email></a>.</p>
-        </div>
-        <div class="faq__list">
-          <details open>
-            <summary>¿Cuánto tarda en llegar mi pedido?</summary>
-            <p>Procesamos los pedidos en <span data-processing></span> días hábiles. Después, el envío tarda entre <span data-delivery-range></span> días hábiles según tu ubicación. Recibirás el número de seguimiento por email.</p>
-          </details>
-          <details>
-            <summary>¿Cuánto cuesta el envío?</summary>
-            <p>El envío estándar cuesta <span data-shipping-cost></span> y es <strong>gratis</strong> en pedidos desde <span data-free-shipping></span>.</p>
-          </details>
-          <details>
-            <summary>¿Puedo devolver o cambiar un producto?</summary>
-            <p>Sí. Tienes 30 días desde que recibes el pedido para solicitar una devolución o cambio. El producto debe estar sin usar y con sus etiquetas. Escríbenos y te indicamos los pasos.</p>
-          </details>
-          <details>
-            <summary>¿Cómo sé qué talla elegir?</summary>
-            <p>Nuestras prendas tienen corte <em>oversize</em>. Si prefieres un ajuste regular, pide una talla menos. Consulta la guía de tallas en cada producto.</p>
-          </details>
-          <details>
-            <summary>¿Qué métodos de pago aceptáis?</summary>
-            <p>Tarjetas de crédito y débito, PayPal y pago en efectivo en tiendas de conveniencia (según disponibilidad en el checkout). Todos los pagos se procesan cifrados en el checkout seguro de Shopify.</p>
-          </details>
-          <details>
-            <summary>¿Qué significa “hecho bajo pedido”?</summary>
-            <p>No guardamos inventario: cada playera se produce cuando haces tu pedido, con tu talla y tu color. Por eso tarda unos días más que una tienda con almacén, pero no se fabrican prendas que nadie va a usar. Si pides varias piezas, pueden llegar en paquetes separados sin costo extra.</p>
-          </details>
         </div>
       </div>
     </section>
 
-    <!-- Newsletter -->
-    <section class="newsletter" id="club">
-      <div class="container newsletter__inner">
-        <div>
-          <h2>Únete al club HSTLRS</h2>
-          <p>Drops exclusivos, acceso anticipado y un <strong>10% de descuento</strong> en tu primer pedido.</p>
+    <section class="section section--tight">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="label muted">Temporada</p><h2>Essentials</h2><p>Hoodies pesados, gorras de perfil bajo y beanies para lo que queda del año.</p></div>
+          <a class="btn btn--ghost" href="tienda.html?cat=sudaderas">Ver sudaderas</a>
         </div>
-        <form class="newsletter__form" data-newsletter>
-          <input type="email" required placeholder="tu@email.com" aria-label="Email">
-          <button class="btn btn--light" type="submit">Suscribirme</button>
-        </form>
+        <div class="grid" data-essentials></div>
+      </div>
+    </section>
+
+    <section class="section section--dark">
+      <div class="wrap">
+        <div class="section-head"><div><p class="label">Lookbook</p><h2>Drop 01</h2></div></div>
+        <div class="lookbook" data-lookbook></div>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <div class="perks">
+        <div class="perk"><strong>Hecho bajo pedido</strong><p>Tu prenda se produce para ti, sin sobreproducción.</p></div>
+        <div class="perk"><strong>Envío a todo México</strong><p>Gratis desde $1,050, con número de seguimiento.</p></div>
+        <div class="perk"><strong>Pago seguro</strong><p>Checkout de Shopify con tarjeta, PayPal y más.</p></div>
+        <div class="perk"><strong>30 días</strong><p>Para cambios y devoluciones.</p></div>
+      </div>
+    </div>
+
+    <section class="section" id="faq">
+      <div class="wrap split" style="align-items:start">
+        <div><p class="label muted">Ayuda</p><h2 class="display" style="font-size:clamp(2.4rem,5vw,3.8rem)">Preguntas frecuentes</h2></div>
+        <div class="acc">
+          <details open><summary>¿Cuánto tarda mi pedido?</summary><p>Cada prenda se produce bajo pedido en 2 a 5 días hábiles; el envío dentro de México tarda de 3 a 10 días hábiles más. Te mandamos el número de seguimiento por correo.</p></details>
+          <details><summary>¿Cómo elijo mi talla?</summary><p>El corte es oversize. Si prefieres un ajuste más regular, pide una talla menos. Cada producto tiene su guía de tallas.</p></details>
+          <details><summary>¿Cuánto cuesta el envío?</summary><p>$150 el envío estándar y gratis en pedidos desde $1,050.</p></details>
+          <details><summary>¿Puedo cambiar o devolver?</summary><p>Sí, tienes 30 días desde que recibes tu pedido. Si llega con algún defecto, lo reponemos sin costo.</p></details>
+          <details><summary>¿Qué formas de pago aceptan?</summary><p>Tarjetas de crédito y débito, PayPal, Shop Pay, Apple Pay y Google Pay en el checkout seguro de Shopify.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section club">
+      <div class="wrap club__inner">
+        <div><h2>Únete al club</h2><p>Lanzamientos antes que nadie y 10% de descuento en tu primer pedido.</p></div>
+        <form class="form-row" data-club><input type="email" required placeholder="tu@email.com" aria-label="Correo"><button class="btn">Suscribirme</button></form>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="container footer__grid">
-      <div>
-        <a href="#" class="logo">HSTLRS</a>
-        <p>Streetwear para los que no se rinden.</p>
-      </div>
-      <div>
-        <h4>Tienda</h4>
-        <a href="#tienda">Todos los productos</a>
-        <a href="#tienda">Novedades</a>
-        <a href="#tienda">Más vendidos</a>
-      </div>
-      <div>
-        <h4>Ayuda</h4>
-        <a href="#seguimiento">Seguir pedido</a>
-        <a href="#faq">Envíos y devoluciones</a>
-        <a data-contact-email></a>
-      </div>
-      <div>
-        <h4>Legal</h4>
-        <a href="#" data-legal="privacidad">Política de privacidad</a>
-        <a href="#" data-legal="terminos">Términos y condiciones</a>
-        <a href="#" data-legal="devoluciones">Política de devoluciones</a>
-      </div>
-    </div>
-    <div class="container footer__bottom">
-      <span>© <span data-year></span> HSTLRS. Todos los derechos reservados.</span>
-      <span class="pay-icons">Visa · Mastercard · American Express · PayPal · OXXO</span>
-    </div>
-  </footer>
-
-  <!-- Modal de producto -->
-  <div class="overlay" data-overlay hidden></div>
-  <dialog class="modal" data-product-modal aria-labelledby="pm-title">
-    <button class="icon-btn modal__close" aria-label="Cerrar" data-close>✕</button>
-    <div class="modal__body" data-product-body></div>
-  </dialog>
-
-  <!-- Modal genérico (legal / checkout) -->
-  <dialog class="modal modal--narrow" data-info-modal>
-    <button class="icon-btn modal__close" aria-label="Cerrar" data-close>✕</button>
-    <div class="modal__body" data-info-body></div>
-  </dialog>
-
-  <!-- Carrito -->
-  <aside class="drawer" data-cart aria-label="Carrito" aria-hidden="true">
-    <div class="drawer__head">
-      <h3>Tu carrito</h3>
-      <button class="icon-btn" aria-label="Cerrar carrito" data-cart-close>✕</button>
-    </div>
-    <div class="shipping-bar" data-shipping-bar>
-      <p data-shipping-msg></p>
-      <div class="shipping-bar__track"><div class="shipping-bar__fill" data-shipping-fill></div></div>
-    </div>
-    <div class="drawer__items" data-cart-items></div>
-    <div class="drawer__foot">
-      <form class="coupon" data-coupon-form>
-        <input type="text" placeholder="Código de descuento" aria-label="Código de descuento" data-coupon-input>
-        <button class="btn btn--ghost btn--sm" type="submit">Aplicar</button>
-      </form>
-      <p class="coupon__msg" data-coupon-msg></p>
-      <dl class="totals">
-        <div><dt>Subtotal</dt><dd data-subtotal></dd></div>
-        <div data-discount-row hidden><dt>Descuento</dt><dd data-discount></dd></div>
-        <div><dt>Envío</dt><dd data-shipping></dd></div>
-        <div class="totals__total"><dt>Total</dt><dd data-total></dd></div>
-      </dl>
-      <button class="btn btn--primary btn--block" data-checkout>Finalizar compra</button>
-      <p class="drawer__note">🔒 Pago seguro · Entrega estimada: <span data-eta></span></p>
-    </div>
-  </aside>
-
-  <a class="wa-float" data-whatsapp hidden target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3Z"/></svg>
-  </a>
-
-  <div class="toast" data-toast role="status" aria-live="polite"></div>
+  <div data-footer></div>
 
   <script src="assets/js/config.js"></script>
-  <script src="assets/js/products.js"></script>
-  <script src="assets/js/upcoming.js"></script>
-  <script src="assets/js/app.js"></script>
+  <script src="assets/js/catalog.js"></script>
+  <script src="assets/js/store.js"></script>
 </body>
 </html>
