@@ -1,5 +1,7 @@
 # HSTLRS
 
+**Web publicada:** https://fragaa892.github.io/Hstlrs/ (GitHub Pages, rama `tienda-dropshipping`)
+
 Tienda online de streetwear **HSTLRS**, pensada como dropshipping: impresión bajo demanda con Printful y pago con el checkout de Shopify (`hsltrs.myshopify.com`, en MXN). Web estática (HTML + CSS + JS, sin dependencias): se publica gratis en GitHub Pages, Netlify o Vercel.
 
 ## Páginas
