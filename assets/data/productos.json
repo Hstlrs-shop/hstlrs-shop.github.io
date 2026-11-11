@@ -84,9 +84,9 @@
  {
   "nombre": "STUDIO 01 — Acueducto",
   "categoria": "Playeras",
-  "precio": 799,
+  "precio": 849,
   "precios_por_talla": {
-   "2XL": 849
+   "2XL": 899
   },
   "colores": [
    "Negro"
@@ -98,13 +98,14 @@
    "XL",
    "2XL"
   ],
-  "disponible": false,
+  "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=studio-01-acueducto",
   "descripcion": "Lo que se construye a pulso, dura siglos. Playera negra con HSTLRS discreto al frente y, en la espalda, un acueducto de piedra trazado como plano de arquitecto bajo un sol rojo.",
   "detalles": [
-   "Gráfico de gran formato en la espalda",
-   "Playera oversize de algodón pesado, hombro caído",
-   "Cuello acanalado reforzado",
+   "Arte original HSTLRS de gran formato en la espalda",
+   "HSTLRS discreto al frente",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
    "Hecha bajo pedido para ti",
    "Lavar en frío del revés, no usar secadora"
   ]
@@ -112,9 +113,9 @@
  {
   "nombre": "STUDIO 02 — Beyond Borders",
   "categoria": "Playeras",
-  "precio": 799,
+  "precio": 849,
   "precios_por_talla": {
-   "2XL": 849
+   "2XL": 899
   },
   "colores": [
    "Negro"
@@ -126,13 +127,14 @@
    "XL",
    "2XL"
   ],
-  "disponible": false,
+  "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=studio-02-beyond-borders",
-  "descripcion": "Beyond borders. Un globo de líneas finas y una ruta en rojo de México a España, en la espalda.",
+  "descripcion": "Beyond borders. Un globo terráqueo a línea fina con la ruta México–España trazada en rojo, en la espalda. Para los que no conocen fronteras.",
   "detalles": [
-   "Gráfico de gran formato en la espalda",
-   "Playera oversize de algodón pesado, hombro caído",
-   "Cuello acanalado reforzado",
+   "Arte original HSTLRS de gran formato en la espalda",
+   "HSTLRS discreto al frente",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
    "Hecha bajo pedido para ti",
    "Lavar en frío del revés, no usar secadora"
   ]
@@ -140,9 +142,9 @@
  {
   "nombre": "STUDIO 03 — The Climb",
   "categoria": "Playeras",
-  "precio": 799,
+  "precio": 849,
   "precios_por_talla": {
-   "2XL": 849
+   "2XL": 899
   },
   "colores": [
    "Hueso"
@@ -154,13 +156,14 @@
    "XL",
    "2XL"
   ],
-  "disponible": false,
+  "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=studio-03-the-climb",
-  "descripcion": "The climb is yours. Una cordillera dibujada a línea fina en la espalda. Nadie sube por ti.",
+  "descripcion": "The climb is yours. Una cordillera dibujada a línea fina sobre playera hueso. Nadie sube por ti.",
   "detalles": [
-   "Gráfico de gran formato en la espalda",
-   "Playera oversize de algodón pesado, hombro caído",
-   "Cuello acanalado reforzado",
+   "Arte original HSTLRS de gran formato en la espalda",
+   "HSTLRS discreto al frente",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
    "Hecha bajo pedido para ti",
    "Lavar en frío del revés, no usar secadora"
   ]
