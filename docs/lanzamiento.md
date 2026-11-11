@@ -60,3 +60,7 @@ Las imágenes están en `docs/redes/` (formato 1080×1350, listo para Instagram,
 - Pago en Shopify, producción y envío por Printful, guía de rastreo automática al cliente.
 - Chat 24/7 en la página y botón de WhatsApp.
 - Revisión de pedidos cada 3 horas, que detiene los sospechosos de fraude. Para que confirme pedidos falta activarle el conector de Shopify.
+
+## 5. Comercial de 8 segundos
+
+El guion, los cuadros iniciales con los diseños de la tienda y el cierre están en `docs/comercial/` (ver `guion.md`).
