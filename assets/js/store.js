@@ -359,6 +359,27 @@
     });
     draw();
 
+    // Datos estructurados para Google (resultados con precio y disponibilidad)
+    const abs = (u) => new URL(u, location.href).href;
+    const ld = document.createElement("script");
+    ld.type = "application/ld+json";
+    ld.textContent = JSON.stringify({
+      "@context": "https://schema.org", "@type": "Product",
+      name: p.name, description: p.description, brand: { "@type": "Brand", name: "HSTLRS" },
+      image: imagesOf(p).map(abs), sku: p.id, category: categoryName(p.category),
+      offers: {
+        "@type": "Offer", url: location.href, priceCurrency: CFG.currency, price: p.price,
+        availability: avail ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
+        itemCondition: "https://schema.org/NewCondition",
+      },
+    });
+    document.head.appendChild(ld);
+    let canon = document.querySelector('link[rel="canonical"]');
+    if (!canon) { canon = document.createElement("link"); canon.rel = "canonical"; document.head.appendChild(canon); }
+    canon.href = location.href;
+    const md = document.querySelector('meta[name="description"]');
+    if (md) md.content = `${p.name} — ${p.description}`.slice(0, 155);
+
     const related = CATALOG.filter((x) => x.id !== p.id && (x.category === p.category || x.collection === p.collection)).slice(0, 4);
     $("[data-related]").innerHTML = related.map(cardHTML).join("");
   }
