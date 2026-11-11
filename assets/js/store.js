@@ -130,7 +130,7 @@
           <p class="coupon-msg" data-coupon-msg></p>
           <div class="totals">
             <div><span>Subtotal</span><span data-subtotal></span></div>
-            <div data-discount-row hidden><span>Descuento</span><span data-discount></span></div>
+            <div data-discount-row hidden><span data-discount-label>Descuento</span><span data-discount></span></div>
             <div><span>Envío</span><span data-shipping></span></div>
             <div class="total"><span>Total estimado</span><span data-total></span></div>
           </div>
@@ -195,11 +195,16 @@
   function totals() {
     const subtotal = cart.reduce((s, l) => s + priceFor(byId(l.id), l.size) * l.qty, 0);
     const c = coupon && CFG.coupons[coupon];
-    let discount = 0;
-    if (c && subtotal >= (c.minSubtotal || 0)) discount = c.type === "percent" ? subtotal * c.value / 100 : Math.min(c.value, subtotal);
+    let discount = 0, discountLabel = "";
+    if (c && subtotal >= (c.minSubtotal || 0)) { discount = c.type === "percent" ? subtotal * c.value / 100 : Math.min(c.value, subtotal); discountLabel = coupon; }
+    // Descuento automático por cantidad (no se combina con cupones: se aplica el mayor)
+    const units = cart.reduce((s, l) => s + l.qty, 0);
+    const mb = CFG.multiBuy;
+    if (mb && units >= mb.minQty && subtotal * mb.percent / 100 > discount) { discount = subtotal * mb.percent / 100; discountLabel = `${mb.percent}% por ${mb.minQty}+ piezas`; }
+    discount = Math.round(discount * 100) / 100;
     const after = subtotal - discount;
     const shipping = !cart.length || after >= CFG.shipping.freeFrom ? 0 : CFG.shipping.cost;
-    return { subtotal, discount, after, shipping, total: after + shipping };
+    return { subtotal, discount, discountLabel, units, after, shipping, total: after + shipping };
   }
 
   function renderCart() {
@@ -221,13 +226,17 @@
     $("[data-subtotal]").textContent = money(t.subtotal);
     $("[data-discount-row]").hidden = !t.discount;
     $("[data-discount]").textContent = `−${money(t.discount)}`;
+    $("[data-discount-label]").textContent = t.discountLabel ? `Descuento (${t.discountLabel})` : "Descuento";
     $("[data-shipping]").textContent = t.shipping ? money(t.shipping) : "Gratis";
     $("[data-total]").textContent = money(t.total);
     const left = CFG.shipping.freeFrom - t.after;
     $("[data-ship-fill]").style.width = `${Math.min(100, (t.after / CFG.shipping.freeFrom) * 100)}%`;
     $("[data-ship-msg]").innerHTML = left > 0 ? `Te faltan <strong>${money(left)}</strong> para el envío gratis` : "Tu pedido tiene <strong>envío gratis</strong>";
     const c = coupon && CFG.coupons[coupon];
-    $("[data-coupon-msg]").textContent = c ? `${coupon} aplicado: ${c.label}` : "";
+    const mb = CFG.multiBuy;
+    $("[data-coupon-msg]").textContent = c && t.discountLabel === coupon ? `${coupon} aplicado: ${c.label}`
+      : t.units >= (mb?.minQty || Infinity) ? `${mb.percent}% automático por llevar ${mb.minQty} o más${c ? " (mejor que tu cupón)" : ""}`
+      : mb && t.units > 0 ? `Agrega ${mb.minQty - t.units} pieza${mb.minQty - t.units === 1 ? "" : "s"} más y obtén ${mb.percent}% de descuento` : "";
   }
 
   const drawer = () => $("[data-drawer]");
@@ -254,8 +263,7 @@
     $("[data-featured]").innerHTML = featured.map(cardHTML).join("");
     $("[data-essentials]").innerHTML = CATALOG.filter((p) => p.collection === "ESSENTIALS").slice(0, 4).map(cardHTML).join("");
     $("[data-lookbook]").innerHTML = window.LOOKBOOK.map((l) => `<img src="${esc(l.src)}" alt="${esc(l.alt)}" loading="lazy">`).join("");
-    const pack = byId("pack-core-x3");
-    $("[data-pack-price]").innerHTML = `${money(pack.price)}<s>${money(pack.compareAt)}</s>`;
+    $("[data-pack-price]").textContent = `3 playeras CORE desde ${money(Math.round(799 * 3 * (1 - CFG.multiBuy.percent / 100)))}`;
   }
 
   /* ---------- Página: tienda ---------- */
@@ -291,10 +299,11 @@
   }
 
   /* ---------- Página: producto ---------- */
-  const SIZE_GUIDE = `<table class="size-table"><thead><tr><th>Talla</th><th>Pecho (cm)</th><th>Largo (cm)</th></tr></thead><tbody>
-    <tr><td>S</td><td>110</td><td>70</td></tr><tr><td>M</td><td>116</td><td>72</td></tr><tr><td>L</td><td>122</td><td>74</td></tr>
-    <tr><td>XL</td><td>128</td><td>76</td></tr><tr><td>2XL</td><td>134</td><td>78</td></tr></tbody></table>
-    <p class="muted">Corte oversize. Si prefieres un ajuste más regular, elige una talla menos. Medidas aproximadas: se confirman con las muestras del proveedor.</p>`;
+  const SIZE_GUIDE = `<p>Medidas de la prenda extendida (playeras CORE, Comfort Colors 1717):</p>
+    <table class="size-table"><thead><tr><th>Talla</th><th>Ancho de pecho (cm)</th><th>Largo (cm)</th></tr></thead><tbody>
+    <tr><td>S</td><td>51</td><td>71</td></tr><tr><td>M</td><td>56</td><td>74</td></tr><tr><td>L</td><td>61</td><td>76</td></tr>
+    <tr><td>XL</td><td>66</td><td>79</td></tr><tr><td>2XL</td><td>71</td><td>81</td></tr></tbody></table>
+    <p class="muted">Corte relajado. Para el look oversize de las fotos, pide una talla más de la que usas normalmente.</p>`;
 
   function initProduct() {
     const p = byId(params.get("id"));

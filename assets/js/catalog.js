@@ -21,45 +21,42 @@
     "Hecha bajo pedido para ti",
     "Lavar en frío del revés, no usar secadora",
   ];
+  const coreDetails = [
+    "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+    "Corte relajado: para un look oversize pide una talla más",
+    "Hecha bajo pedido para ti",
+    "Lavar en frío del revés, no usar secadora",
+  ];
   const variants = (ids) => Object.fromEntries(TEE_SIZES.map((s, i) => [s, ids[i]]));
 
   window.CATALOG = [
     // ---------- CORE ----------
     {
-      id: "core-01-negra-relieve", name: "CORE 01 — Negra relieve", collection: "CORE", category: "playeras",
-      price: 799, sizePrice: { "2XL": 849 }, badge: "Drop 01",
+      id: "core-01-negra-relieve", name: "CORE 01 — Negra manga", collection: "CORE", category: "playeras",
+      price: 799, sizePrice: { "2XL": 849 }, badge: "Disponible",
       colors: [{ name: "Negro", hex: "#141414", image: D + "core-01-negra-relieve.jpg" }],
       gallery: [D + "lookbook-1.jpg"], sizes: TEE_SIZES,
-      description: "Hecho a pulso. La base de todo, en negro: HSTLRS discreto al frente y el nombre tono sobre tono a lo largo de la manga. Corte oversize, hombro caído. Sin ruido: se nota de cerca.",
-      details: teeDetails, published: true,
+      description: "Hecho a pulso. La base de todo, en negro: HSTLRS discreto al frente y el nombre en vertical, estampado tono sobre tono, a lo largo de la manga izquierda. Sin ruido: se nota de cerca.",
+      details: coreDetails, published: true,
       shopify: variants([67954952110353, 67954952143121, 67954952175889, 67954952208657, 67954952241425]),
     },
     {
       id: "core-02-deslavada-monograma", name: "CORE 02 — Deslavada monograma", collection: "CORE", category: "playeras",
-      price: 799, sizePrice: { "2XL": 849 }, badge: "Drop 01",
+      price: 799, sizePrice: { "2XL": 849 }, badge: "Disponible",
       colors: [{ name: "Carbón deslavado", hex: "#3c3b3a", image: D + "core-02-deslavada-monograma.jpg" }],
       gallery: [D + "lookbook-1.jpg"], sizes: TEE_SIZES,
-      description: "El desgaste que no se finge. Gris carbón con lavado vintage y el monograma HR bordado tono sobre tono en el pecho.",
-      details: ["Monograma bordado", ...teeDetails], published: true,
+      description: "El desgaste que no se finge. Carbón teñido en prenda con aspecto vintage y el monograma HR bordado en gris en el pecho.",
+      details: ["Monograma bordado en el pecho izquierdo", ...coreDetails], published: true,
       shopify: variants([67954952339729, 67954952372497, 67954952405265, 67954952438033, 67954952470801]),
     },
     {
-      id: "core-03-hueso-etiqueta", name: "CORE 03 — Hueso etiqueta", collection: "CORE", category: "playeras",
-      price: 799, sizePrice: { "2XL": 849 }, badge: "Drop 01",
+      id: "core-03-hueso-etiqueta", name: "CORE 03 — Hueso", collection: "CORE", category: "playeras",
+      price: 799, sizePrice: { "2XL": 849 }, badge: "Disponible",
       colors: [{ name: "Hueso", hex: "#e9e1d1", image: D + "core-03-hueso-etiqueta.jpg" }],
       gallery: [D + "lookbook-1.jpg"], sizes: TEE_SIZES,
-      description: "Lo esencial, en hueso. HSTLRS discreto al frente y etiqueta en el costado. La pieza que combina con todo tu clóset.",
-      details: teeDetails, published: true,
+      description: "Lo esencial, en hueso. HSTLRS discreto al frente, en negro. La pieza que combina con todo tu clóset.",
+      details: coreDetails, published: true,
       shopify: variants([67954952536337, 67954952569105, 67954952601873, 67954952634641, 67954952667409]),
-    },
-    {
-      id: "pack-core-x3", name: "Pack CORE ×3", collection: "CORE", category: "packs",
-      price: 1999, compareAt: 2397, badge: "Ahorra $398",
-      colors: [{ name: "Negro + carbón + hueso", hex: "#6b6560", image: D + "lookbook-1.jpg" }],
-      gallery: [D + "core-01-negra-relieve.jpg", D + "core-02-deslavada-monograma.jpg", D + "core-03-hueso-etiqueta.jpg"],
-      sizes: TEE_SIZES,
-      description: "Las tres CORE en tu talla: negra relieve, deslavada monograma y hueso etiqueta. El pack más pedido en playeras es el de tres, y aquí te ahorras casi una playera.",
-      details: ["3 playeras CORE de la misma talla", ...teeDetails], published: false, shopify: null,
     },
 
     // ---------- STUDIO ----------

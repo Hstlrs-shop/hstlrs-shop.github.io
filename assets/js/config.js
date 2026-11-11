@@ -23,6 +23,10 @@ window.STORE_CONFIG = {
     HSTLR10: { type: "percent", value: 10, label: "10% de bienvenida" },
   },
 
+  // Descuento automático por cantidad. Debe coincidir con el descuento automático
+  // "Lleva 3 o más: 15% de descuento" creado en Shopify (no se combina con cupones).
+  multiBuy: { minQty: 3, percent: 15 },
+
   /**
    * Cómo se procesa el pago:
    *  - "whatsapp": envía el resumen del pedido por WhatsApp (ideal para empezar).
