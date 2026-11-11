@@ -1,0 +1,971 @@
+[
+ {
+  "nombre": "CORE 01 — Negra manga",
+  "categoria": "Playeras",
+  "precio": 799,
+  "precios_por_talla": {
+   "2XL": 849
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=core-01-negra-relieve",
+  "descripcion": "Hecho a pulso. La base de todo, en negro: HSTLRS discreto al frente y el nombre en vertical, estampado tono sobre tono, a lo largo de la manga izquierda. Sin ruido: se nota de cerca.",
+  "detalles": [
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "CORE 02 — Deslavada monograma",
+  "categoria": "Playeras",
+  "precio": 799,
+  "precios_por_talla": {
+   "2XL": 849
+  },
+  "colores": [
+   "Carbón deslavado"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=core-02-deslavada-monograma",
+  "descripcion": "El desgaste que no se finge. Carbón teñido en prenda con aspecto vintage y el monograma HR bordado en gris en el pecho.",
+  "detalles": [
+   "Monograma bordado en el pecho izquierdo",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "CORE 03 — Hueso",
+  "categoria": "Playeras",
+  "precio": 799,
+  "precios_por_talla": {
+   "2XL": 849
+  },
+  "colores": [
+   "Hueso"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=core-03-hueso-etiqueta",
+  "descripcion": "Lo esencial, en hueso. HSTLRS discreto al frente, en negro. La pieza que combina con todo tu clóset.",
+  "detalles": [
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 01 — Acueducto",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-01-acueducto",
+  "descripcion": "Lo que se construye a pulso, dura siglos. Playera negra con un acueducto de piedra trazado como plano de arquitecto bajo un sol rojo, en la espalda.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 02 — Beyond Borders",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-02-beyond-borders",
+  "descripcion": "Beyond borders. Un globo terráqueo a línea fina con la ruta México–España trazada en rojo, en la espalda. Para los que no conocen fronteras.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 03 — The Climb",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Hueso"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-03-the-climb",
+  "descripcion": "The climb is yours. Una cordillera dibujada a línea fina sobre playera hueso. Nadie sube por ti.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 04 — Topografía",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Carbón deslavado"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-04-topografia",
+  "descripcion": "Un mapa topográfico a línea fina y una ruta en rojo hacia la cumbre, en la espalda. Para los que eligen el camino sin mapa.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 05 — Escalera al sol",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-05-escalera",
+  "descripcion": "Un arco de piedra, una escalera que solo sube quien la camina y un sol rojo al final. Tu ritmo, tu camino.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 06 — Ciudad a pulso",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Marfil"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-06-ciudad",
+  "descripcion": "El plano de una ciudad construida a mano, en blanco y negro, con un punto rojo donde empezó todo.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "Hoodie Topografía",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Carbón"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-topografia",
+  "descripcion": "El mapa topográfico HSTLRS en la espalda de una sudadera con capucha de felpa premium.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Hoodie Escalera al sol",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-escalera",
+  "descripcion": "El arco, la escalera y el sol rojo en la espalda de una sudadera con capucha negra de felpa premium.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Hoodie Ciudad a pulso",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Hueso"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-ciudad",
+  "descripcion": "El plano de la ciudad a pulso en la espalda de una sudadera con capucha color hueso de felpa premium.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "STUDIO 07 — Ajolote astronauta",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-07-ajolote",
+  "descripcion": "Un ajolote mexicano con casco de astronauta flotando entre flores de cempasúchil. Arte realista a todo color en la espalda.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 08 — Jaguar",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-08-jaguar",
+  "descripcion": "Un jaguar que emerge del humo y la obsidiana frente a un sol rojo. Arte realista a todo color en la espalda.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 09 — Rinoceronte",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-09-rinoceronte",
+  "descripcion": "El rinoceronte de Alberto Durero (grabado de 1515) en trazo crema sobre negro, con el sol rojo HSTLRS.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 10 — La ola",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Marfil"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-10-ola",
+  "descripcion": "La gran ola de Hokusai dentro de un círculo, con un sol rojo en lugar del cielo. Grabado clásico, reinterpretado.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 11 — Calavera",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Marfil"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-11-calavera",
+  "descripcion": "Una calavera del grabador mexicano José Guadalupe Posada, tallada en madera, con un sol rojo detrás.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 12 — El caballero",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Marfil"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-12-caballero",
+  "descripcion": "El caballero, la muerte y el diablo, grabado de Alberto Durero (1513), en arco y con el sol rojo HSTLRS.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "Hoodie Ajolote astronauta",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-ajolote",
+  "descripcion": "Sudadera con capucha negra con el ajolote astronauta a todo color en la espalda. Felpa premium con interior cepillado.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Hoodie Jaguar",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-jaguar",
+  "descripcion": "Sudadera con capucha negra con el jaguar de obsidiana y sol rojo en la espalda. Felpa premium con interior cepillado.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Hoodie La ola",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Hueso"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-ola",
+  "descripcion": "Sudadera con capucha color hueso con la gran ola y el sol rojo en la espalda. Felpa premium con interior cepillado.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck Rinoceronte",
+  "categoria": "Sudaderas",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crew-rinoceronte",
+  "descripcion": "Sudadera cuello redondo negra con el rinoceronte de Durero y el sol rojo en la espalda. Felpa premium.",
+  "detalles": [
+   "Arte de gran formato en la espalda",
+   "Cotton Heritage M2480: felpa premium con interior cepillado",
+   "Cuello, puños y dobladillo acanalados",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck Calavera",
+  "categoria": "Sudaderas",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Hueso"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crew-calavera",
+  "descripcion": "Sudadera cuello redondo color hueso con la calavera de Posada y el sol rojo en la espalda. Felpa premium.",
+  "detalles": [
+   "Arte de gran formato en la espalda",
+   "Cotton Heritage M2480: felpa premium con interior cepillado",
+   "Cuello, puños y dobladillo acanalados",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck El caballero",
+  "categoria": "Sudaderas",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Hueso"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crew-caballero",
+  "descripcion": "Sudadera cuello redondo color hueso con el grabado del caballero de Durero en la espalda. Felpa premium.",
+  "detalles": [
+   "Arte de gran formato en la espalda",
+   "Cotton Heritage M2480: felpa premium con interior cepillado",
+   "Cuello, puños y dobladillo acanalados",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck Topografía",
+  "categoria": "Sudaderas",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Carbón"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crew-topografia",
+  "descripcion": "Sudadera cuello redondo gris carbón con el mapa topográfico HSTLRS en la espalda. Felpa premium.",
+  "detalles": [
+   "Arte de gran formato en la espalda",
+   "Cotton Heritage M2480: felpa premium con interior cepillado",
+   "Cuello, puños y dobladillo acanalados",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck Escalera al sol",
+  "categoria": "Sudaderas",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crew-escalera",
+  "descripcion": "Sudadera cuello redondo negra con el arco, la escalera y el sol rojo en la espalda. Felpa premium.",
+  "detalles": [
+   "Arte de gran formato en la espalda",
+   "Cotton Heritage M2480: felpa premium con interior cepillado",
+   "Cuello, puños y dobladillo acanalados",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck Ciudad a pulso",
+  "categoria": "Sudaderas",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Hueso"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crew-ciudad",
+  "descripcion": "Sudadera cuello redondo color hueso con el plano de la ciudad en la espalda. Felpa premium.",
+  "detalles": [
+   "Arte de gran formato en la espalda",
+   "Cotton Heritage M2480: felpa premium con interior cepillado",
+   "Cuello, puños y dobladillo acanalados",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Hoodie Heavyweight HSTLRS",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Negro",
+   "Carbón",
+   "Hueso"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-heavyweight",
+  "descripcion": "La sudadera con capucha que vas a usar todo el invierno. Felpa premium, interior cepillado y HSTLRS discreto al frente.",
+  "detalles": [
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck Monograma HR",
+  "categoria": "Sudaderas",
+  "precio": 1099,
+  "precios_por_talla": {
+   "2XL": 1149
+  },
+  "colores": [
+   "Hueso",
+   "Carbón"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crewneck-monograma",
+  "descripcion": "Sudadera cuello redondo con el monograma HR bordado en el pecho. Discreta, cómoda y fácil de combinar.",
+  "detalles": [
+   "Cotton Heritage M2480: felpa premium, interior cepillado",
+   "Monograma HR bordado en el pecho izquierdo",
+   "Puños y dobladillo acanalados",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Jogger Fleece HSTLRS",
+  "categoria": "Pantalones",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Negro",
+   "Carbón"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=jogger-fleece",
+  "descripcion": "Jogger de felpa con cintura elástica y cordón, a juego con el hoodie. HSTLRS bordado.",
+  "detalles": [
+   "Cotton Heritage M7580: felpa premium, interior cepillado",
+   "Bolsillos laterales y puños elásticos",
+   "Logo bordado",
+   "Hecho bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Gorra Dad Hat HSTLRS",
+  "categoria": "Gorras",
+  "precio": 599,
+  "colores": [
+   "Negro",
+   "Khaki",
+   "Piedra"
+  ],
+  "tallas": [
+   "Única"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=dad-hat",
+  "descripcion": "Gorra sin estructura de perfil bajo con HSTLRS bordado al frente. El estilo de gorra que más se usa este año.",
+  "detalles": [
+   "Yupoong 6245CM: 100 % algodón sarga",
+   "Sin estructura, visera curva",
+   "Cierre ajustable con hebilla metálica",
+   "Bordado al frente"
+  ]
+ },
+ {
+  "nombre": "Beanie HSTLRS",
+  "categoria": "Gorras",
+  "precio": 499,
+  "colores": [
+   "Negro",
+   "Café"
+  ],
+  "tallas": [
+   "Única"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=beanie-hstlrs",
+  "descripcion": "Gorro de punto con doblez y HSTLRS bordado. Para las mañanas frías.",
+  "detalles": [
+   "Yupoong 1501KC: acrílico suave, punto acanalado",
+   "Doblez con logo bordado",
+   "Talla única"
+  ]
+ },
+ {
+  "nombre": "Tote Bag Acueducto",
+  "categoria": "Accesorios",
+  "precio": 449,
+  "colores": [
+   "Crudo"
+  ],
+  "tallas": [
+   "Única"
+  ],
+  "disponible": false,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=tote-acueducto",
+  "descripcion": "Bolsa de lona gruesa con el acueducto y el sol rojo de STUDIO. Cabe la laptop, el gym y el súper.",
+  "detalles": [
+   "Lona de algodón gruesa",
+   "Asas largas para el hombro",
+   "Estampado al frente"
+  ]
+ },
+ {
+  "nombre": "Lámina STUDIO — Acueducto",
+  "categoria": "Arte",
+  "precio": 349,
+  "precios_por_talla": {
+   "45 × 60 cm": 549
+  },
+  "colores": [
+   "Sin marco"
+  ],
+  "tallas": [
+   "30 × 40 cm",
+   "45 × 60 cm"
+  ],
+  "disponible": false,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=lamina-acueducto",
+  "descripcion": "El arte de STUDIO 01 para tu pared. Impresión en papel mate grueso.",
+  "detalles": [
+   "Papel mate de alto gramaje",
+   "Marco no incluido",
+   "Envío en tubo protector"
+  ]
+ },
+ {
+  "nombre": "Lámina STUDIO — Beyond Borders",
+  "categoria": "Arte",
+  "precio": 349,
+  "precios_por_talla": {
+   "45 × 60 cm": 549
+  },
+  "colores": [
+   "Sin marco"
+  ],
+  "tallas": [
+   "30 × 40 cm",
+   "45 × 60 cm"
+  ],
+  "disponible": false,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=lamina-beyond-borders",
+  "descripcion": "La ruta de México a España, en lámina. Impresión en papel mate grueso.",
+  "detalles": [
+   "Papel mate de alto gramaje",
+   "Marco no incluido",
+   "Envío en tubo protector"
+  ]
+ },
+ {
+  "nombre": "Lámina STUDIO — The Climb",
+  "categoria": "Arte",
+  "precio": 349,
+  "precios_por_talla": {
+   "45 × 60 cm": 549
+  },
+  "colores": [
+   "Sin marco"
+  ],
+  "tallas": [
+   "30 × 40 cm",
+   "45 × 60 cm"
+  ],
+  "disponible": false,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=lamina-the-climb",
+  "descripcion": "La cordillera de STUDIO 03, en lámina. Impresión en papel mate grueso.",
+  "detalles": [
+   "Papel mate de alto gramaje",
+   "Marco no incluido",
+   "Envío en tubo protector"
+  ]
+ }
+]
