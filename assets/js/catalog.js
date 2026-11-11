@@ -31,7 +31,7 @@
       colors: [{ name: "Negro", hex: "#141414", image: D + "core-01-negra-relieve.jpg" }],
       gallery: [D + "lookbook-1.jpg"], sizes: TEE_SIZES,
       description: "Hecho a pulso. La base de todo, en negro: HSTLRS discreto al frente y el nombre tono sobre tono a lo largo de la manga. Corte oversize, hombro caído. Sin ruido: se nota de cerca.",
-      details: teeDetails, published: false,
+      details: teeDetails, published: true,
       shopify: variants([67954952110353, 67954952143121, 67954952175889, 67954952208657, 67954952241425]),
     },
     {
@@ -40,7 +40,7 @@
       colors: [{ name: "Carbón deslavado", hex: "#3c3b3a", image: D + "core-02-deslavada-monograma.jpg" }],
       gallery: [D + "lookbook-1.jpg"], sizes: TEE_SIZES,
       description: "El desgaste que no se finge. Gris carbón con lavado vintage y el monograma HR bordado tono sobre tono en el pecho.",
-      details: ["Monograma bordado", ...teeDetails], published: false,
+      details: ["Monograma bordado", ...teeDetails], published: true,
       shopify: variants([67954952339729, 67954952372497, 67954952405265, 67954952438033, 67954952470801]),
     },
     {
@@ -49,7 +49,7 @@
       colors: [{ name: "Hueso", hex: "#e9e1d1", image: D + "core-03-hueso-etiqueta.jpg" }],
       gallery: [D + "lookbook-1.jpg"], sizes: TEE_SIZES,
       description: "Lo esencial, en hueso. HSTLRS discreto al frente y etiqueta en el costado. La pieza que combina con todo tu clóset.",
-      details: teeDetails, published: false,
+      details: teeDetails, published: true,
       shopify: variants([67954952536337, 67954952569105, 67954952601873, 67954952634641, 67954952667409]),
     },
     {
