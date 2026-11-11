@@ -125,7 +125,7 @@
       sizes: TEE_SIZES,
       description: "La sudadera con capucha que vas a usar todo el invierno. Felpa premium, interior cepillado y HSTLRS discreto al frente.",
       details: ["Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster", "Capucha forrada y bolsillo canguro", "Corte unisex regular: para un look oversize pide una talla más", "Hecha bajo pedido para ti"],
-      published: false,
+      published: true,
       shopify: {
         "S/Negro": 68026208715025, "S/Carbón": 68026208747793, "S/Hueso": 68026208780561,
         "M/Negro": 68026208813329, "M/Carbón": 68026208846097, "M/Hueso": 68026208878865,
@@ -144,7 +144,7 @@
       sizes: TEE_SIZES,
       description: "Sudadera cuello redondo con el monograma HR bordado en el pecho. Discreta, cómoda y fácil de combinar.",
       details: ["Cotton Heritage M2480: felpa premium, interior cepillado", "Monograma HR bordado en el pecho izquierdo", "Puños y dobladillo acanalados", "Hecha bajo pedido para ti"],
-      published: false,
+      published: true,
       shopify: {
         "S/Hueso": 68026209272081, "S/Carbón": 68026209304849, "M/Hueso": 68026209337617, "M/Carbón": 68026209370385,
         "L/Hueso": 68026209403153, "L/Carbón": 68026209435921, "XL/Hueso": 68026209468689, "XL/Carbón": 68026209501457,
@@ -153,7 +153,7 @@
     },
     {
       id: "jogger-fleece", name: "Jogger Fleece HSTLRS", collection: "ESSENTIALS", category: "pantalones",
-      price: 1099, sizePrice: { "2XL": 1149 },
+      price: 1199, sizePrice: { "2XL": 1249 },
       colors: [
         { name: "Negro", hex: "#1d1c1b", image: P + "jogger-negro.jpg" },
         { name: "Carbón", hex: "#3d3c3a", image: P + "jogger-carbon.jpg" },
@@ -161,7 +161,7 @@
       sizes: TEE_SIZES,
       description: "Jogger de felpa con cintura elástica y cordón, a juego con el hoodie. HSTLRS bordado.",
       details: ["Cotton Heritage M7580: felpa premium, interior cepillado", "Bolsillos laterales y puños elásticos", "Logo bordado", "Hecho bajo pedido para ti"],
-      published: false,
+      published: true,
       shopify: {
         "S/Negro": 68026209632529, "S/Carbón": 68026209665297, "M/Negro": 68026209698065, "M/Carbón": 68026209730833,
         "L/Negro": 68026209763601, "L/Carbón": 68026209796369, "XL/Negro": 68026209829137, "XL/Carbón": 68026209861905,
@@ -170,7 +170,7 @@
     },
     {
       id: "dad-hat", name: "Gorra Dad Hat HSTLRS", collection: "ESSENTIALS", category: "gorras",
-      price: 549, badge: "Tendencia", featured: true,
+      price: 599, badge: "Tendencia", featured: true,
       colors: [
         { name: "Negro", hex: "#1d1c1b", image: P + "gorra-negro.jpg" },
         { name: "Khaki", hex: "#b9a77f", image: P + "gorra-khaki.jpg" },
@@ -179,12 +179,12 @@
       sizes: ["Única"],
       description: "Gorra sin estructura de perfil bajo con HSTLRS bordado al frente. El estilo de gorra que más se usa este año.",
       details: ["Yupoong 6245CM: 100 % algodón sarga", "Sin estructura, visera curva", "Cierre ajustable con hebilla metálica", "Bordado al frente"],
-      published: false,
+      published: true,
       shopify: { "Única/Negro": 68026209992977, "Única/Khaki": 68026210025745, "Única/Piedra": 68026210058513 },
     },
     {
       id: "beanie-hstlrs", name: "Beanie HSTLRS", collection: "ESSENTIALS", category: "gorras",
-      price: 449, badge: "Temporada",
+      price: 499, badge: "Temporada",
       colors: [
         { name: "Negro", hex: "#1d1c1b", image: P + "beanie-negro.jpg" },
         { name: "Café", hex: "#5b4637", image: P + "beanie-cafe.jpg" },
@@ -192,7 +192,7 @@
       sizes: ["Única"],
       description: "Gorro de punto con doblez y HSTLRS bordado. Para las mañanas frías.",
       details: ["Yupoong 1501KC: acrílico suave, punto acanalado", "Doblez con logo bordado", "Talla única"],
-      published: false,
+      published: true,
       shopify: { "Única/Negro": 68026210124049, "Única/Café": 68026210156817 },
     },
     {

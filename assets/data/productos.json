@@ -268,7 +268,7 @@
    "XL",
    "2XL"
   ],
-  "disponible": false,
+  "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-heavyweight",
   "descripcion": "La sudadera con capucha que vas a usar todo el invierno. Felpa premium, interior cepillado y HSTLRS discreto al frente.",
   "detalles": [
@@ -296,7 +296,7 @@
    "XL",
    "2XL"
   ],
-  "disponible": false,
+  "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=crewneck-monograma",
   "descripcion": "Sudadera cuello redondo con el monograma HR bordado en el pecho. Discreta, cómoda y fácil de combinar.",
   "detalles": [
@@ -309,9 +309,9 @@
  {
   "nombre": "Jogger Fleece HSTLRS",
   "categoria": "Pantalones",
-  "precio": 1099,
+  "precio": 1199,
   "precios_por_talla": {
-   "2XL": 1149
+   "2XL": 1249
   },
   "colores": [
    "Negro",
@@ -324,7 +324,7 @@
    "XL",
    "2XL"
   ],
-  "disponible": false,
+  "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=jogger-fleece",
   "descripcion": "Jogger de felpa con cintura elástica y cordón, a juego con el hoodie. HSTLRS bordado.",
   "detalles": [
@@ -337,7 +337,7 @@
  {
   "nombre": "Gorra Dad Hat HSTLRS",
   "categoria": "Gorras",
-  "precio": 549,
+  "precio": 599,
   "colores": [
    "Negro",
    "Khaki",
@@ -346,7 +346,7 @@
   "tallas": [
    "Única"
   ],
-  "disponible": false,
+  "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=dad-hat",
   "descripcion": "Gorra sin estructura de perfil bajo con HSTLRS bordado al frente. El estilo de gorra que más se usa este año.",
   "detalles": [
@@ -359,7 +359,7 @@
  {
   "nombre": "Beanie HSTLRS",
   "categoria": "Gorras",
-  "precio": 449,
+  "precio": 499,
   "colores": [
    "Negro",
    "Café"
@@ -367,7 +367,7 @@
   "tallas": [
    "Única"
   ],
-  "disponible": false,
+  "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=beanie-hstlrs",
   "descripcion": "Gorro de punto con doblez y HSTLRS bordado. Para las mañanas frías.",
   "detalles": [
