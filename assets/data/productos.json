@@ -89,7 +89,10 @@
    "2XL": 899
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -100,7 +103,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=studio-01-acueducto",
-  "descripcion": "Lo que se construye a pulso, dura siglos. Playera negra con un acueducto de piedra trazado como plano de arquitecto bajo un sol rojo, en la espalda.",
+  "descripcion": "Lo que se construye a pulso, dura siglos. Un acueducto de piedra trazado como plano de arquitecto bajo un sol rojo, en la espalda.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
    "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
@@ -117,7 +120,10 @@
    "2XL": 899
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -145,7 +151,10 @@
    "2XL": 899
   },
   "colores": [
-   "Hueso"
+   "Hueso",
+   "Negro",
+   "Carbón",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -173,7 +182,10 @@
    "2XL": 899
   },
   "colores": [
-   "Carbón deslavado"
+   "Carbón",
+   "Negro",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -201,7 +213,10 @@
    "2XL": 899
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -229,7 +244,10 @@
    "2XL": 899
   },
   "colores": [
-   "Marfil"
+   "Hueso",
+   "Negro",
+   "Carbón",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -257,7 +275,10 @@
    "2XL": 1349
   },
   "colores": [
-   "Carbón"
+   "Carbón",
+   "Negro",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -285,7 +306,10 @@
    "2XL": 1349
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -296,7 +320,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-escalera",
-  "descripcion": "El arco, la escalera y el sol rojo en la espalda de una sudadera con capucha negra de felpa premium.",
+  "descripcion": "El arco, la escalera y el sol rojo en la espalda de una sudadera con capucha de felpa premium.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
    "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
@@ -313,7 +337,10 @@
    "2XL": 1349
   },
   "colores": [
-   "Hueso"
+   "Hueso",
+   "Negro",
+   "Carbón",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -324,7 +351,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-ciudad",
-  "descripcion": "El plano de la ciudad a pulso en la espalda de una sudadera con capucha color hueso de felpa premium.",
+  "descripcion": "El plano de la ciudad a pulso en la espalda de una sudadera con capucha de felpa premium.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
    "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
@@ -341,7 +368,10 @@
    "2XL": 899
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -369,7 +399,10 @@
    "2XL": 899
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -397,7 +430,10 @@
    "2XL": 899
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -408,7 +444,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=studio-09-rinoceronte",
-  "descripcion": "El rinoceronte de Alberto Durero (grabado de 1515) en trazo crema sobre negro, con el sol rojo HSTLRS.",
+  "descripcion": "El rinoceronte de Alberto Durero (grabado de 1515), con el sol rojo HSTLRS.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
    "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
@@ -425,7 +461,10 @@
    "2XL": 899
   },
   "colores": [
-   "Marfil"
+   "Hueso",
+   "Negro",
+   "Carbón",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -453,7 +492,9 @@
    "2XL": 899
   },
   "colores": [
-   "Marfil"
+   "Hueso",
+   "Arena",
+   "Gris"
   ],
   "tallas": [
    "S",
@@ -481,7 +522,9 @@
    "2XL": 899
   },
   "colores": [
-   "Marfil"
+   "Hueso",
+   "Arena",
+   "Gris"
   ],
   "tallas": [
    "S",
@@ -509,7 +552,10 @@
    "2XL": 1349
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -520,7 +566,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-ajolote",
-  "descripcion": "Sudadera con capucha negra con el ajolote astronauta a todo color en la espalda. Felpa premium con interior cepillado.",
+  "descripcion": "Sudadera con capucha con el ajolote astronauta a todo color en la espalda. Felpa premium con interior cepillado.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
    "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
@@ -537,7 +583,10 @@
    "2XL": 1349
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -548,7 +597,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-jaguar",
-  "descripcion": "Sudadera con capucha negra con el jaguar de obsidiana y sol rojo en la espalda. Felpa premium con interior cepillado.",
+  "descripcion": "Sudadera con capucha con el jaguar de obsidiana y sol rojo en la espalda. Felpa premium con interior cepillado.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
    "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
@@ -565,7 +614,10 @@
    "2XL": 1349
   },
   "colores": [
-   "Hueso"
+   "Hueso",
+   "Negro",
+   "Carbón",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -576,7 +628,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-ola",
-  "descripcion": "Sudadera con capucha color hueso con la gran ola y el sol rojo en la espalda. Felpa premium con interior cepillado.",
+  "descripcion": "Sudadera con capucha con la gran ola y el sol rojo en la espalda. Felpa premium con interior cepillado.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
    "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
@@ -593,7 +645,10 @@
    "2XL": 1249
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -604,7 +659,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=crew-rinoceronte",
-  "descripcion": "Sudadera cuello redondo negra con el rinoceronte de Durero y el sol rojo en la espalda. Felpa premium.",
+  "descripcion": "Sudadera cuello redondo con el rinoceronte de Durero y el sol rojo en la espalda. Felpa premium.",
   "detalles": [
    "Arte de gran formato en la espalda",
    "Cotton Heritage M2480: felpa premium con interior cepillado",
@@ -621,7 +676,9 @@
    "2XL": 1249
   },
   "colores": [
-   "Hueso"
+   "Hueso",
+   "Arena",
+   "Gris"
   ],
   "tallas": [
    "S",
@@ -632,7 +689,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=crew-calavera",
-  "descripcion": "Sudadera cuello redondo color hueso con la calavera de Posada y el sol rojo en la espalda. Felpa premium.",
+  "descripcion": "Sudadera cuello redondo con la calavera de Posada y el sol rojo en la espalda. Felpa premium.",
   "detalles": [
    "Arte de gran formato en la espalda",
    "Cotton Heritage M2480: felpa premium con interior cepillado",
@@ -649,7 +706,9 @@
    "2XL": 1249
   },
   "colores": [
-   "Hueso"
+   "Hueso",
+   "Arena",
+   "Gris"
   ],
   "tallas": [
    "S",
@@ -660,7 +719,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=crew-caballero",
-  "descripcion": "Sudadera cuello redondo color hueso con el grabado del caballero de Durero en la espalda. Felpa premium.",
+  "descripcion": "Sudadera cuello redondo con el grabado del caballero de Durero en la espalda. Felpa premium.",
   "detalles": [
    "Arte de gran formato en la espalda",
    "Cotton Heritage M2480: felpa premium con interior cepillado",
@@ -677,7 +736,10 @@
    "2XL": 1249
   },
   "colores": [
-   "Carbón"
+   "Carbón",
+   "Negro",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -688,7 +750,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=crew-topografia",
-  "descripcion": "Sudadera cuello redondo gris carbón con el mapa topográfico HSTLRS en la espalda. Felpa premium.",
+  "descripcion": "Sudadera cuello redondo con el mapa topográfico HSTLRS en la espalda. Felpa premium.",
   "detalles": [
    "Arte de gran formato en la espalda",
    "Cotton Heritage M2480: felpa premium con interior cepillado",
@@ -705,7 +767,10 @@
    "2XL": 1249
   },
   "colores": [
-   "Negro"
+   "Negro",
+   "Carbón",
+   "Hueso",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -716,7 +781,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=crew-escalera",
-  "descripcion": "Sudadera cuello redondo negra con el arco, la escalera y el sol rojo en la espalda. Felpa premium.",
+  "descripcion": "Sudadera cuello redondo con el arco, la escalera y el sol rojo en la espalda. Felpa premium.",
   "detalles": [
    "Arte de gran formato en la espalda",
    "Cotton Heritage M2480: felpa premium con interior cepillado",
@@ -733,7 +798,10 @@
    "2XL": 1249
   },
   "colores": [
-   "Hueso"
+   "Hueso",
+   "Negro",
+   "Carbón",
+   "Arena"
   ],
   "tallas": [
    "S",
@@ -744,7 +812,7 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=crew-ciudad",
-  "descripcion": "Sudadera cuello redondo color hueso con el plano de la ciudad en la espalda. Felpa premium.",
+  "descripcion": "Sudadera cuello redondo con el plano de la ciudad en la espalda. Felpa premium.",
   "detalles": [
    "Arte de gran formato en la espalda",
    "Cotton Heritage M2480: felpa premium con interior cepillado",
