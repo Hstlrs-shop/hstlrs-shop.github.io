@@ -36,31 +36,31 @@
   window.CATALOG = [
     // ---------- CORE ----------
     {
-      id: "core-01-negra-relieve", name: "CORE 01 — Negra manga", collection: "CORE", category: "playeras",
+      id: "core-01-negra-relieve", name: "CORE 01 — Logo y manga", collection: "CORE", category: "playeras",
       price: 799, sizePrice: { "2XL": 849 }, badge: "Disponible",
-      colors: [{ name: "Negro", hex: "#141414", image: P + "core01-front.jpg" }],
+      colors: [{ name: "Negro", hex: "#1b1b1c", image: P + "core01-negro.jpg" }, { name: "Carbón", hex: "#514f4c", image: P + "core01-carbon.jpg" }, { name: "Hueso", hex: "#f3ead6", image: P + "core01-hueso.jpg" }, { name: "Arena", hex: "#b3ab8b", image: P + "core01-arena.jpg" }, { name: "Blanco", hex: "#ffffff", image: P + "core01-blanco.jpg" }],
       gallery: [P + "core01-manga.jpg"], sizes: TEE_SIZES,
-      description: "Hecho a pulso. La base de todo, en negro: HSTLRS discreto al frente y el nombre en vertical, estampado tono sobre tono, a lo largo de la manga izquierda. Sin ruido: se nota de cerca.",
+      description: "Hecho a pulso. La base de todo: HSTLRS discreto al frente y el nombre en vertical a lo largo de la manga izquierda.",
       details: coreDetails, published: true,
-      shopify: variants([67954952110353, 67954952143121, 67954952175889, 67954952208657, 67954952241425]),
+      shopify: { "S/Negro": 67954952110353, "M/Negro": 67954952143121, "L/Negro": 67954952175889, "XL/Negro": 67954952208657, "2XL/Negro": 67954952241425, "S/Carbón": 68026872168721, "M/Carbón": 68026872299793, "L/Carbón": 68026872430865, "XL/Carbón": 68026872561937, "2XL/Carbón": 68026872693009, "S/Hueso": 68026872201489, "M/Hueso": 68026872332561, "L/Hueso": 68026872463633, "XL/Hueso": 68026872594705, "2XL/Hueso": 68026872725777, "S/Arena": 68026872234257, "M/Arena": 68026872365329, "L/Arena": 68026872496401, "XL/Arena": 68026872627473, "2XL/Arena": 68026872758545, "S/Blanco": 68026872267025, "M/Blanco": 68026872398097, "L/Blanco": 68026872529169, "XL/Blanco": 68026872660241, "2XL/Blanco": 68026872791313 },
     },
     {
-      id: "core-02-deslavada-monograma", name: "CORE 02 — Deslavada monograma", collection: "CORE", category: "playeras",
+      id: "core-02-deslavada-monograma", name: "CORE 02 — Monograma", collection: "CORE", category: "playeras",
       price: 799, sizePrice: { "2XL": 849 }, badge: "Disponible",
-      colors: [{ name: "Carbón deslavado", hex: "#3c3b3a", image: P + "core02-front.jpg" }],
+      colors: [{ name: "Carbón", hex: "#514f4c", image: P + "core02-carbon.jpg" }, { name: "Negro", hex: "#1b1b1c", image: P + "core02-negro.jpg" }, { name: "Hueso", hex: "#f3ead6", image: P + "core02-hueso.jpg" }, { name: "Arena", hex: "#b3ab8b", image: P + "core02-arena.jpg" }, { name: "Blanco", hex: "#ffffff", image: P + "core02-blanco.jpg" }],
       gallery: [P + "core02-back.jpg"], sizes: TEE_SIZES,
-      description: "El desgaste que no se finge. Carbón teñido en prenda con aspecto vintage y el monograma HR bordado en gris en el pecho.",
+      description: "El monograma HR bordado en el pecho, en hilo gris. Discreta y fácil de combinar.",
       details: ["Monograma bordado en el pecho izquierdo", ...coreDetails], published: true,
-      shopify: variants([67954952339729, 67954952372497, 67954952405265, 67954952438033, 67954952470801]),
+      shopify: { "S/Carbón": 67954952339729, "M/Carbón": 67954952372497, "L/Carbón": 67954952405265, "XL/Carbón": 67954952438033, "2XL/Carbón": 67954952470801, "S/Negro": 68026872856849, "M/Negro": 68026872987921, "L/Negro": 68026873118993, "XL/Negro": 68026873250065, "2XL/Negro": 68026873381137, "S/Hueso": 68026872889617, "M/Hueso": 68026873020689, "L/Hueso": 68026873151761, "XL/Hueso": 68026873282833, "2XL/Hueso": 68026873413905, "S/Arena": 68026872922385, "M/Arena": 68026873053457, "L/Arena": 68026873184529, "XL/Arena": 68026873315601, "2XL/Arena": 68026873446673, "S/Blanco": 68026872955153, "M/Blanco": 68026873086225, "L/Blanco": 68026873217297, "XL/Blanco": 68026873348369, "2XL/Blanco": 68026873479441 },
     },
     {
-      id: "core-03-hueso-etiqueta", name: "CORE 03 — Hueso", collection: "CORE", category: "playeras",
+      id: "core-03-hueso-etiqueta", name: "CORE 03 — Logo frente", collection: "CORE", category: "playeras",
       price: 799, sizePrice: { "2XL": 849 }, badge: "Disponible",
-      colors: [{ name: "Hueso", hex: "#e9e1d1", image: P + "core03-front.jpg" }],
+      colors: [{ name: "Hueso", hex: "#f3ead6", image: P + "core03-hueso.jpg" }, { name: "Arena", hex: "#b3ab8b", image: P + "core03-arena.jpg" }, { name: "Gris", hex: "#a6abaa", image: P + "core03-gris.jpg" }, { name: "Blanco", hex: "#ffffff", image: P + "core03-blanco.jpg" }],
       gallery: [P + "core03-back.jpg"], sizes: TEE_SIZES,
-      description: "Lo esencial, en hueso. HSTLRS discreto al frente, en negro. La pieza que combina con todo tu clóset.",
+      description: "Lo esencial: HSTLRS discreto al frente, en negro. La pieza que combina con todo tu clóset.",
       details: coreDetails, published: true,
-      shopify: variants([67954952536337, 67954952569105, 67954952601873, 67954952634641, 67954952667409]),
+      shopify: { "S/Hueso": 67954952536337, "M/Hueso": 67954952569105, "L/Hueso": 67954952601873, "XL/Hueso": 67954952634641, "2XL/Hueso": 67954952667409, "S/Arena": 68026873544977, "M/Arena": 68026873643281, "L/Arena": 68026873741585, "XL/Arena": 68026873839889, "2XL/Arena": 68026873938193, "S/Gris": 68026873577745, "M/Gris": 68026873676049, "L/Gris": 68026873774353, "XL/Gris": 68026873872657, "2XL/Gris": 68026873970961, "S/Blanco": 68026873610513, "M/Blanco": 68026873708817, "L/Blanco": 68026873807121, "XL/Blanco": 68026873905425, "2XL/Blanco": 68026874003729 },
     },
 
     // ---------- STUDIO ----------
