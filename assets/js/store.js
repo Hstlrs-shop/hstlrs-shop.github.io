@@ -394,7 +394,7 @@
   function localAnswer(text) {
     const q = fold(text);
     const s = CFG.shipping;
-    const contact = `Si necesitas ayuda personal, escríbenos a ${CFG.contactEmail}.`;
+    const contact = `Si necesitas ayuda personal, escríbenos por WhatsApp (https://wa.me/${CFG.whatsapp}) o a ${CFG.contactEmail}.`;
     if (has(q, ["hola", "buenas", "que tal", "hey"]) && q.length < 25) {
       return "¡Hola! Soy el asistente de HSTLRS. Pregúntame por envíos, tallas, cambios, pagos, tu pedido o cualquier producto.";
     }
@@ -411,13 +411,19 @@
       return `Tienes 30 días desde que recibes tu pedido para cambios o devoluciones (prenda sin usar y con etiquetas). Si llegó con un defecto, mándanos fotos a ${CFG.contactEmail} en los primeros 7 días y lo reponemos sin costo.`;
     }
     if (has(q, ["pago", "pagar", "tarjeta", "paypal", "oxxo", "efectivo", "meses", "apple pay"])) {
-      return "Pagas en el checkout seguro de Shopify con tarjeta de crédito o débito, PayPal, Shop Pay, Apple Pay o Google Pay.";
+      return "Pagas en el checkout seguro de Shopify con tarjeta de crédito o débito, PayPal, Shop Pay, Apple Pay o Google Pay. Nunca te pediremos transferencias, depósitos ni datos de tarjeta por chat, WhatsApp o correo.";
     }
     if (has(q, ["descuento", "cupon", "codigo", "promo", "oferta"])) {
       return `Usa el cupón HSTLR10 para 10% en tu primer pedido. Y si llevas 3 o más piezas, se aplica 15% automático al pagar (no se combinan: se aplica el mayor).`;
     }
     if (has(q, ["contacto", "humano", "persona", "alguien", "hablar", "asesor", "agente", "whatsapp", "correo", "email", "telefono", "queja"])) {
-      return `Escríbenos a ${CFG.contactEmail} y te responde una persona del equipo.`;
+      return `Te atiende una persona del equipo por WhatsApp: https://wa.me/${CFG.whatsapp} o por correo: ${CFG.contactEmail}.`;
+    }
+    if (has(q, ["pedido", "orden", "rastreo", "rastrear", "guia", "seguimiento", "donde esta", "no llega", "no ha llegado"])) {
+      return `Cuando tu pedido sale de producción te llega un correo de Shopify con el número de guía para rastrearlo. También puedes ver el estado con el enlace del correo de confirmación. Si ya pasó la fecha estimada, mándanos tu número de pedido por WhatsApp (https://wa.me/${CFG.whatsapp}) y lo revisamos.`;
+    }
+    if (has(q, ["transferencia", "deposito", "fraude", "estafa", "seguro", "confiable", "es real", "legit"])) {
+      return `Sí, es seguro: solo cobramos en el checkout de Shopify (hsltrs.myshopify.com), con tarjeta, PayPal, Shop Pay, Apple Pay o Google Pay. Nunca te pediremos transferencias, depósitos ni datos de tarjeta por chat, WhatsApp o correo. Si alguien lo hace a nombre de HSTLRS, no pagues y avísanos.`;
     }
     // Productos: busca coincidencias por nombre, categoría o color
     const words = q.split(/[^a-z0-9ñ]+/).filter((w) => w.length > 2);

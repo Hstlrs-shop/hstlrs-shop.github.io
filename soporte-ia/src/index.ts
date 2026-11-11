@@ -32,7 +32,8 @@ const MAX_CHARS = 1200;
 
 const STORE_INFO = `
 Tienda: HSTLRS (streetwear mexicano). Web: https://hstlrs-shop.github.io
-Contacto humano: fragaaitss@icloud.com
+Contacto humano: WhatsApp +52 55 8014 9227 (https://wa.me/525580149227) o fragaaitss@icloud.com
+Seguridad: solo se cobra en el checkout de Shopify (hsltrs.myshopify.com). HSTLRS nunca pide transferencias, depósitos, códigos ni datos de tarjeta por chat, WhatsApp o correo. Si alguien lo hace a nombre de HSTLRS, es fraude: que no pague y nos avise.
 Moneda: pesos mexicanos (MXN), IVA incluido.
 
 Envíos:
@@ -85,7 +86,7 @@ function systemPrompt(catalog: string): string {
 
 Cómo respondes:
 - En español de México, cercano y breve (2 a 5 oraciones). Tutea al cliente.
-- Responde solo con la información de abajo. Si algo no está ahí (por ejemplo el estado de un pedido concreto, un cambio de dirección o un problema de pago), no inventes: pide que escriban a fragaaitss@icloud.com con su número de pedido.
+- Responde solo con la información de abajo. Si algo no está ahí (por ejemplo el estado de un pedido concreto, un cambio de dirección o un problema de pago), no inventes: pide que escriban por WhatsApp (https://wa.me/525580149227) o a fragaaitss@icloud.com con su número de pedido.
 - Para el estado de un pedido: el correo de confirmación de Shopify trae el enlace "Ver tu pedido", y cuando se envía llega el número de seguimiento.
 - Cuando recomiendes un producto, incluye su precio y su enlace. Solo ofrece como comprables los que dicen DISPONIBLE; los PRÓXIMAMENTE se pueden apartar con "Avísame" en su página.
 - No prometas fechas exactas ni descuentos que no estén abajo.
@@ -113,7 +114,7 @@ function json(body: unknown, status: number, headers: Record<string, string>): R
 }
 
 const FALLBACK_REPLY =
-  "Ahorita no puedo responder bien tu pregunta. Escríbenos a fragaaitss@icloud.com y te ayudamos personalmente.";
+  "Ahorita no puedo responder bien tu pregunta. Escríbenos por WhatsApp al +52 55 8014 9227 o a fragaaitss@icloud.com y te ayudamos personalmente.";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {

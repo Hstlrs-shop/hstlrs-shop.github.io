@@ -7,7 +7,7 @@ window.STORE_CONFIG = {
   currency: "MXN",            // Debe coincidir con la moneda de tu tienda Shopify
   locale: "es-MX",
   contactEmail: "fragaaitss@icloud.com",
-  whatsapp: "520000000000",  // Tu WhatsApp: 52 + 10 dígitos. Mientras sea 52000... el botón flotante no aparece
+  whatsapp: "525580149227",  // WhatsApp de atención: 52 + 10 dígitos
 
   shipping: {
     cost: 150,                // Igual que la tarifa "Estándar" de Shopify
