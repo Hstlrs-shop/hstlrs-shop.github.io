@@ -27,6 +27,10 @@ window.STORE_CONFIG = {
   // "Lleva 3 o más: 15% de descuento" creado en Shopify (no se combina con cupones).
   multiBuy: { minQty: 3, percent: 15 },
 
+  // Asistente de atención 24/7. Con la dirección del Worker de soporte-ia
+  // (ver soporte-ia/README.md) responde con IA; vacío = respuestas automáticas locales.
+  chat: { endpoint: "" },
+
   /**
    * Cómo se procesa el pago:
    *  - "whatsapp": envía el resumen del pedido por WhatsApp (ideal para empezar).

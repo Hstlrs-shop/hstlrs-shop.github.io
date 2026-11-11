@@ -384,6 +384,115 @@
     $("[data-related]").innerHTML = related.map(cardHTML).join("");
   }
 
+  /* ---------- Asistente de atención 24/7 ----------
+   * Con CFG.chat.endpoint (Worker de soporte-ia) responde con IA (Claude).
+   * Sin él, o si falla, responde con la base de conocimiento local de abajo. */
+  const CHAT_KEY = "hstlrs_chat_v1";
+  const fold = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const has = (q, words) => words.some((w) => q.includes(w));
+
+  function localAnswer(text) {
+    const q = fold(text);
+    const s = CFG.shipping;
+    const contact = `Si necesitas ayuda personal, escríbenos a ${CFG.contactEmail}.`;
+    if (has(q, ["hola", "buenas", "que tal", "hey"]) && q.length < 25) {
+      return "¡Hola! Soy el asistente de HSTLRS. Pregúntame por envíos, tallas, cambios, pagos, tu pedido o cualquier producto.";
+    }
+    if (has(q, ["donde esta mi pedido", "rastre", "seguimiento", "mi pedido", "mi orden", "guia", "tracking"])) {
+      return `Cuando tu pedido sale del taller te llega un correo con el número de seguimiento; puedes rastrearlo en https://t.17track.net . En el correo de confirmación también está el enlace "Ver tu pedido". Si ya pasaron más de ${s.processingDays[1] + s.deliveryDays[1]} días hábiles, escríbenos a ${CFG.contactEmail} con tu número de pedido.`;
+    }
+    if (has(q, ["envio", "envian", "tarda", "llega", "entrega", "dias", "paqueteria", "costo de envio"])) {
+      return `Cada prenda se hace bajo pedido: la producimos en ${s.processingDays.join(" a ")} días hábiles y el envío tarda ${s.deliveryDays.join(" a ")} días hábiles más. El envío cuesta ${money(s.cost)} y es gratis desde ${money(s.freeFrom)}. Entrega estimada si pides hoy: ${eta()}.`;
+    }
+    if (has(q, ["talla", "medida", "queda", "oversize", "grande", "chica", "size"])) {
+      return "Las playeras CORE tienen corte relajado: S 51 cm de ancho de pecho, M 56, L 61, XL 66, 2XL 71. Para el look oversize de las fotos pide una talla más. Hoodie, crewneck y jogger son de corte regular (igual: una talla más para oversize). Gorra y beanie son talla única. Cada producto tiene su \"Guía de tallas\".";
+    }
+    if (has(q, ["devol", "cambio", "reembolso", "regres", "defect", "roto", "mal estado"])) {
+      return `Tienes 30 días desde que recibes tu pedido para cambios o devoluciones (prenda sin usar y con etiquetas). Si llegó con un defecto, mándanos fotos a ${CFG.contactEmail} en los primeros 7 días y lo reponemos sin costo.`;
+    }
+    if (has(q, ["pago", "pagar", "tarjeta", "paypal", "oxxo", "efectivo", "meses", "apple pay"])) {
+      return "Pagas en el checkout seguro de Shopify con tarjeta de crédito o débito, PayPal, Shop Pay, Apple Pay o Google Pay.";
+    }
+    if (has(q, ["descuento", "cupon", "codigo", "promo", "oferta"])) {
+      return `Usa el cupón HSTLR10 para 10% en tu primer pedido. Y si llevas 3 o más piezas, se aplica 15% automático al pagar (no se combinan: se aplica el mayor).`;
+    }
+    if (has(q, ["contacto", "humano", "persona", "alguien", "hablar", "asesor", "agente", "whatsapp", "correo", "email", "telefono", "queja"])) {
+      return `Escríbenos a ${CFG.contactEmail} y te responde una persona del equipo.`;
+    }
+    // Productos: busca coincidencias por nombre, categoría o color
+    const words = q.split(/[^a-z0-9ñ]+/).filter((w) => w.length > 2);
+    const hits = CATALOG.map((p) => {
+      const hay = fold(`${p.name} ${categoryName(p.category)} ${p.category} ${p.colors.map((c) => c.name).join(" ")} ${p.collection}`);
+      return { p, score: words.filter((w) => hay.includes(w) || hay.includes(w.replace(/s$/, ""))).length };
+    }).filter((h) => h.score > 0).sort((a, b) => b.score - a.score || Number(isAvailable(b.p)) - Number(isAvailable(a.p))).slice(0, 3);
+    if (hits.length) {
+      const base = location.href.replace(/[^/]*$/, "");
+      return "Esto es lo que tenemos:\n" + hits.map(({ p }) =>
+        `• ${p.name} — ${money(p.price)} ${isAvailable(p) ? "(disponible)" : "(próximamente: deja tu correo en \"Avísame\")"}: ${base}${productUrl(p)}`).join("\n");
+    }
+    return `No estoy seguro de cómo ayudarte con eso. Puedo responderte sobre envíos, tallas, cambios, pagos, descuentos o productos. ${contact}`;
+  }
+
+  function initChat() {
+    const root = document.createElement("div");
+    root.className = "chat";
+    root.innerHTML = `
+      <button class="chat__fab" data-chat-toggle aria-label="Abrir chat de ayuda">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5h16v11H9l-5 4V5Z"/></svg>
+      </button>
+      <section class="chat__panel" data-chat-panel hidden aria-label="Chat de ayuda">
+        <header class="chat__head"><div><strong>Ayuda HSTLRS</strong><span>Respuesta inmediata · 24/7</span></div>
+          <button class="icon-btn" data-chat-toggle aria-label="Cerrar chat">${ICONS.close}</button></header>
+        <div class="chat__log" data-chat-log aria-live="polite"></div>
+        <div class="chat__quick" data-chat-quick>
+          ${["¿Cuánto tarda el envío?", "¿Qué talla pido?", "¿Dónde está mi pedido?", "Cambios y devoluciones"].map((t) => `<button data-chat-q="${esc(t)}">${esc(t)}</button>`).join("")}
+        </div>
+        <form class="chat__form" data-chat-form><input placeholder="Escribe tu pregunta…" aria-label="Tu pregunta" maxlength="600" autocomplete="off"><button class="btn" aria-label="Enviar">Enviar</button></form>
+      </section>`;
+    document.body.appendChild(root);
+
+    const log = $("[data-chat-log]", root);
+    let history = (() => { try { return JSON.parse(sessionStorage.getItem(CHAT_KEY)) || []; } catch { return []; } })();
+    const persist = () => { try { sessionStorage.setItem(CHAT_KEY, JSON.stringify(history.slice(-30))); } catch { /* sin almacenamiento */ } };
+    const linkify = (t) => esc(t).replace(/(https?:\/\/[^\s<]+)/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\//, "").slice(0, 48)}${u.length > 56 ? "…" : ""}</a>`).replace(/\n/g, "<br>");
+    const bubble = (role, text) => {
+      const d = document.createElement("div");
+      d.className = `chat__msg chat__msg--${role}`;
+      d.innerHTML = linkify(text);
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      return d;
+    };
+    const greet = "¡Hola! Soy el asistente de HSTLRS. ¿En qué te ayudo? Pregúntame por envíos, tallas, cambios, pagos, tu pedido o cualquier producto.";
+    if (!history.length) history.push({ role: "assistant", content: greet });
+    history.forEach((m) => bubble(m.role, m.content));
+
+    async function ask(text) {
+      text = text.trim(); if (!text) return;
+      $("[data-chat-quick]", root).hidden = true;
+      history.push({ role: "user", content: text }); bubble("user", text); persist();
+      const typing = bubble("assistant", "Escribiendo…"); typing.classList.add("is-typing");
+      let reply = "";
+      if (CFG.chat?.endpoint) {
+        try {
+          const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 45000);
+          const res = await fetch(CFG.chat.endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: history.slice(-20) }), signal: ctrl.signal });
+          clearTimeout(timer);
+          if (res.ok) reply = (await res.json()).reply || "";
+        } catch { /* sin conexión con la IA: respuesta local */ }
+      }
+      if (!reply) reply = localAnswer(text);
+      typing.remove();
+      history.push({ role: "assistant", content: reply }); bubble("assistant", reply); persist();
+    }
+
+    root.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-chat-toggle],[data-chat-q]"); if (!t) return;
+      if (t.matches("[data-chat-toggle]")) { const p = $("[data-chat-panel]", root); p.hidden = !p.hidden; if (!p.hidden) $("[data-chat-form] input", root).focus(); }
+      else ask(t.dataset.chatQ);
+    });
+    $("[data-chat-form]", root).addEventListener("submit", (e) => { e.preventDefault(); const i = e.target.querySelector("input"); ask(i.value); i.value = ""; });
+  }
+
   /* ---------- Eventos globales ---------- */
   function bind() {
     document.addEventListener("click", (e) => {
@@ -420,6 +529,7 @@
   renderLayout();
   bind();
   renderCart();
+  initChat();
   if (PAGE === "home") initHome();
   if (PAGE === "shop") initShop();
   if (PAGE === "product") initProduct();

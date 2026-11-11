@@ -1,0 +1,13 @@
+name = "hstlrs-soporte"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Dominio de la tienda que puede usar el chat
+ALLOWED_ORIGIN = "https://hstlrs-shop.github.io"
+# Catálogo publicado por la web (se genera con scripts/build-knowledge.mjs)
+CATALOG_URL = "https://hstlrs-shop.github.io/assets/data/productos.json"
+
+# La clave de Anthropic NO va aquí. Guárdala como secreto:
+#   npx wrangler secret put ANTHROPIC_API_KEY
