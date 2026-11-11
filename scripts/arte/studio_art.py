@@ -17,8 +17,13 @@ def font(w, size):
     return ImageFont.truetype(F + f"montserrat-latin-{w}-normal.ttf", size)
 
 
+NOTEXT = True  # diseños solo gráficos, sin letras
+
+
 def spaced(draw, xy, text, fnt, fill, track, anchor="center"):
     """Texto con interletrado amplio; anchor center/left/right respecto a x."""
+    if NOTEXT:
+        return 0
     widths = [draw.textlength(c, font=fnt) for c in text]
     total = sum(widths) + track * (len(text) - 1)
     x, y = xy
@@ -173,8 +178,6 @@ def acueducto():
 
     # Marca
     spaced(d, (2000, 2380), "HSTLRS", font(600, 250), c, 46, anchor="left")
-    d.line((1760, 2290, 1880, 2290), fill=c, width=lw)
-    d.line((1820, 2230, 1820, 2350), fill=c, width=lw)
     spaced(d, (2010, 2610), "STUDIO 01 — ACUEDUCTO", font(500, 62), c, 20, anchor="left")
     spaced(d, (2010, 2700), "CONSTRUIDO A PULSO", font(500, 62), c, 20, anchor="left")
     spaced(d, (420, 4700), "N 20°35'  O 100°23'", font(500, 58), c, 18, anchor="left")
