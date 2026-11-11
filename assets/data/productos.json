@@ -100,10 +100,9 @@
   ],
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=studio-01-acueducto",
-  "descripcion": "Lo que se construye a pulso, dura siglos. Playera negra con HSTLRS discreto al frente y, en la espalda, un acueducto de piedra trazado como plano de arquitecto bajo un sol rojo.",
+  "descripcion": "Lo que se construye a pulso, dura siglos. Playera negra con un acueducto de piedra trazado como plano de arquitecto bajo un sol rojo, en la espalda.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
-   "HSTLRS discreto al frente",
    "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
    "Corte relajado: para un look oversize pide una talla más",
    "Hecha bajo pedido para ti",
@@ -132,7 +131,6 @@
   "descripcion": "Beyond borders. Un globo terráqueo a línea fina con la ruta México–España trazada en rojo, en la espalda. Para los que no conocen fronteras.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
-   "HSTLRS discreto al frente",
    "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
    "Corte relajado: para un look oversize pide una talla más",
    "Hecha bajo pedido para ti",
@@ -161,7 +159,6 @@
   "descripcion": "The climb is yours. Una cordillera dibujada a línea fina sobre playera hueso. Nadie sube por ti.",
   "detalles": [
    "Arte original HSTLRS de gran formato en la espalda",
-   "HSTLRS discreto al frente",
    "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
    "Corte relajado: para un look oversize pide una talla más",
    "Hecha bajo pedido para ti",
@@ -169,63 +166,7 @@
   ]
  },
  {
-  "nombre": "Follow the Unknown",
-  "categoria": "Playeras",
-  "precio": 799,
-  "precios_por_talla": {
-   "2XL": 849
-  },
-  "colores": [
-   "Carbón deslavado"
-  ],
-  "tallas": [
-   "S",
-   "M",
-   "L",
-   "XL",
-   "2XL"
-  ],
-  "disponible": false,
-  "url": "https://hstlrs-shop.github.io/producto.html?id=follow-the-unknown",
-  "descripcion": "Una costa en relieve topográfico sobre carbón deslavado. Para los que eligen el camino sin mapa.",
-  "detalles": [
-   "Gráfico de gran formato en la espalda",
-   "Playera oversize de algodón pesado, hombro caído",
-   "Cuello acanalado reforzado",
-   "Hecha bajo pedido para ti",
-   "Lavar en frío del revés, no usar secadora"
-  ]
- },
- {
-  "nombre": "Hecho a pulso",
-  "categoria": "Playeras",
-  "precio": 849,
-  "precios_por_talla": {
-   "2XL": 899
-  },
-  "colores": [
-   "Arena deslavada"
-  ],
-  "tallas": [
-   "S",
-   "M",
-   "L",
-   "XL",
-   "2XL"
-  ],
-  "disponible": false,
-  "url": "https://hstlrs-shop.github.io/producto.html?id=hecho-a-pulso",
-  "descripcion": "El trazo de una ciudad construida a mano, con HSTLRS en tipografía condensada a lo grande. La declaración de la marca, en la espalda.",
-  "detalles": [
-   "Gráfico de espalda completa",
-   "Playera oversize de algodón pesado, hombro caído",
-   "Cuello acanalado reforzado",
-   "Hecha bajo pedido para ti",
-   "Lavar en frío del revés, no usar secadora"
-  ]
- },
- {
-  "nombre": "Tu ritmo, tu camino",
+  "nombre": "STUDIO 04 — Topografía",
   "categoria": "Playeras",
   "precio": 849,
   "precios_por_talla": {
@@ -241,15 +182,155 @@
    "XL",
    "2XL"
   ],
-  "disponible": false,
-  "url": "https://hstlrs-shop.github.io/producto.html?id=tu-ritmo-tu-camino",
-  "descripcion": "Un arco y una escalera que solo sube quien la camina. Tu ritmo, tu camino.",
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-04-topografia",
+  "descripcion": "Un mapa topográfico a línea fina y una ruta en rojo hacia la cumbre, en la espalda. Para los que eligen el camino sin mapa.",
   "detalles": [
-   "Gráfico de espalda completa",
-   "Playera oversize de algodón pesado, hombro caído",
-   "Cuello acanalado reforzado",
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
    "Hecha bajo pedido para ti",
    "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 05 — Escalera al sol",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-05-escalera",
+  "descripcion": "Un arco de piedra, una escalera que solo sube quien la camina y un sol rojo al final. Tu ritmo, tu camino.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "STUDIO 06 — Ciudad a pulso",
+  "categoria": "Playeras",
+  "precio": 849,
+  "precios_por_talla": {
+   "2XL": 899
+  },
+  "colores": [
+   "Marfil"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=studio-06-ciudad",
+  "descripcion": "El plano de una ciudad construida a mano, en blanco y negro, con un punto rojo donde empezó todo.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Comfort Colors 1717: algodón 100 % pesado, teñido en prenda",
+   "Corte relajado: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti",
+   "Lavar en frío del revés, no usar secadora"
+  ]
+ },
+ {
+  "nombre": "Hoodie Topografía",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Carbón"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-topografia",
+  "descripcion": "El mapa topográfico HSTLRS en la espalda de una sudadera con capucha de felpa premium.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Hoodie Escalera al sol",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Negro"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-escalera",
+  "descripcion": "El arco, la escalera y el sol rojo en la espalda de una sudadera con capucha negra de felpa premium.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Hoodie Ciudad a pulso",
+  "categoria": "Sudaderas",
+  "precio": 1299,
+  "precios_por_talla": {
+   "2XL": 1349
+  },
+  "colores": [
+   "Hueso"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=hoodie-ciudad",
+  "descripcion": "El plano de la ciudad a pulso en la espalda de una sudadera con capucha color hueso de felpa premium.",
+  "detalles": [
+   "Arte original HSTLRS de gran formato en la espalda",
+   "Cotton Heritage M2580: felpa premium 80 % algodón, 20 % poliéster",
+   "Capucha forrada y bolsillo canguro",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
   ]
  },
  {
