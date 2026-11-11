@@ -14,6 +14,7 @@
   const D = "assets/img/drop/";
   const C = "assets/img/concept/";
   const A = "assets/img/arte/";
+  const P = "assets/img/printful/"; // fotos reales del producto (generador de Printful)
   const TEE_SIZES = ["S", "M", "L", "XL", "2XL"];
   const teeDetails = [
     "Playera oversize de algodón pesado, hombro caído",
@@ -34,8 +35,8 @@
     {
       id: "core-01-negra-relieve", name: "CORE 01 — Negra manga", collection: "CORE", category: "playeras",
       price: 799, sizePrice: { "2XL": 849 }, badge: "Disponible",
-      colors: [{ name: "Negro", hex: "#141414", image: D + "core-01-negra-relieve.jpg" }],
-      gallery: [D + "lookbook-1.jpg"], sizes: TEE_SIZES,
+      colors: [{ name: "Negro", hex: "#141414", image: P + "core01-front.jpg" }],
+      gallery: [P + "core01-manga.jpg"], sizes: TEE_SIZES,
       description: "Hecho a pulso. La base de todo, en negro: HSTLRS discreto al frente y el nombre en vertical, estampado tono sobre tono, a lo largo de la manga izquierda. Sin ruido: se nota de cerca.",
       details: coreDetails, published: true,
       shopify: variants([67954952110353, 67954952143121, 67954952175889, 67954952208657, 67954952241425]),
@@ -43,8 +44,8 @@
     {
       id: "core-02-deslavada-monograma", name: "CORE 02 — Deslavada monograma", collection: "CORE", category: "playeras",
       price: 799, sizePrice: { "2XL": 849 }, badge: "Disponible",
-      colors: [{ name: "Carbón deslavado", hex: "#3c3b3a", image: D + "core-02-deslavada-monograma.jpg" }],
-      gallery: [D + "lookbook-1.jpg"], sizes: TEE_SIZES,
+      colors: [{ name: "Carbón deslavado", hex: "#3c3b3a", image: P + "core02-front.jpg" }],
+      gallery: [P + "core02-back.jpg"], sizes: TEE_SIZES,
       description: "El desgaste que no se finge. Carbón teñido en prenda con aspecto vintage y el monograma HR bordado en gris en el pecho.",
       details: ["Monograma bordado en el pecho izquierdo", ...coreDetails], published: true,
       shopify: variants([67954952339729, 67954952372497, 67954952405265, 67954952438033, 67954952470801]),
@@ -52,8 +53,8 @@
     {
       id: "core-03-hueso-etiqueta", name: "CORE 03 — Hueso", collection: "CORE", category: "playeras",
       price: 799, sizePrice: { "2XL": 849 }, badge: "Disponible",
-      colors: [{ name: "Hueso", hex: "#e9e1d1", image: D + "core-03-hueso-etiqueta.jpg" }],
-      gallery: [D + "lookbook-1.jpg"], sizes: TEE_SIZES,
+      colors: [{ name: "Hueso", hex: "#e9e1d1", image: P + "core03-front.jpg" }],
+      gallery: [P + "core03-back.jpg"], sizes: TEE_SIZES,
       description: "Lo esencial, en hueso. HSTLRS discreto al frente, en negro. La pieza que combina con todo tu clóset.",
       details: coreDetails, published: true,
       shopify: variants([67954952536337, 67954952569105, 67954952601873, 67954952634641, 67954952667409]),
