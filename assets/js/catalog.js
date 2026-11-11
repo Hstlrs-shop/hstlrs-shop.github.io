@@ -214,7 +214,7 @@
       id: "hoodie-jaguar", name: "Hoodie Jaguar", collection: "STUDIO", category: "sudaderas",
       price: 1299, sizePrice: { "2XL": 1349 }, badge: "Nuevo", featured: true,
       colors: [{ name: "Negro", hex: "#1d1c1b", image: P + "hoodie-jaguar-negro.jpg" }, { name: "Carbón", hex: "#463e3d", image: P + "hoodie-jaguar-carbon.jpg" }, { name: "Hueso", hex: "#f0e4cb", image: P + "hoodie-jaguar-hueso.jpg" }, { name: "Arena", hex: "#c9a072", image: P + "hoodie-jaguar-arena.jpg" }],
-      sizes: TEE_SIZES,
+      gallery: ["assets/img/modelos/hoodie-jaguar-modelo-1.jpg", "assets/img/modelos/hoodie-jaguar-modelo-2.jpg"], sizes: TEE_SIZES,
       description: "Sudadera con capucha con el jaguar de obsidiana y sol rojo en la espalda. Felpa premium con interior cepillado.",
       details: HOODIE_ART_DETAILS, published: true,
       shopify: { "S/Negro": 68026613563665, "M/Negro": 68026613596433, "L/Negro": 68026613629201, "XL/Negro": 68026613661969, "2XL/Negro": 68026613694737, "S/Carbón": 68026803388689, "M/Carbón": 68026803486993, "L/Carbón": 68026803585297, "XL/Carbón": 68026803683601, "2XL/Carbón": 68026803781905, "S/Hueso": 68026803421457, "M/Hueso": 68026803519761, "L/Hueso": 68026803618065, "XL/Hueso": 68026803716369, "2XL/Hueso": 68026803814673, "S/Arena": 68026803454225, "M/Arena": 68026803552529, "L/Arena": 68026803650833, "XL/Arena": 68026803749137, "2XL/Arena": 68026803847441 },
@@ -416,6 +416,7 @@
   ];
 
   window.LOOKBOOK = [
+    { src: "assets/img/modelos/hoodie-jaguar-azotea.jpg", alt: "Hoodie Jaguar en una azotea de la Ciudad de México" },
     { src: P + "hoodie-escalera-back.jpg", alt: "Hoodie Escalera al sol" },
     { src: P + "studio04-back.jpg", alt: "STUDIO 04 Topografía" },
     { src: P + "studio02-back.jpg", alt: "STUDIO 02 Beyond Borders" },
