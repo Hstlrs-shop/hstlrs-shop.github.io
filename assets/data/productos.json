@@ -658,8 +658,12 @@
   "colores": [
    "Negro",
    "Carbón",
+   "Marino",
+   "Gris",
    "Hueso",
-   "Arena"
+   "Arena",
+   "Latte",
+   "Blanco"
   ],
   "tallas": [
    "S",
@@ -688,8 +692,13 @@
   },
   "colores": [
    "Hueso",
+   "Negro",
+   "Carbón",
+   "Marino",
+   "Gris",
    "Arena",
-   "Gris"
+   "Latte",
+   "Blanco"
   ],
   "tallas": [
    "S",
@@ -718,8 +727,13 @@
   },
   "colores": [
    "Hueso",
+   "Negro",
+   "Carbón",
+   "Marino",
+   "Gris",
    "Arena",
-   "Gris"
+   "Latte",
+   "Blanco"
   ],
   "tallas": [
    "S",
@@ -749,8 +763,12 @@
   "colores": [
    "Carbón",
    "Negro",
+   "Marino",
+   "Gris",
    "Hueso",
-   "Arena"
+   "Arena",
+   "Latte",
+   "Blanco"
   ],
   "tallas": [
    "S",
@@ -780,8 +798,12 @@
   "colores": [
    "Negro",
    "Carbón",
+   "Marino",
+   "Gris",
    "Hueso",
-   "Arena"
+   "Arena",
+   "Latte",
+   "Blanco"
   ],
   "tallas": [
    "S",
@@ -812,7 +834,11 @@
    "Hueso",
    "Negro",
    "Carbón",
-   "Arena"
+   "Marino",
+   "Gris",
+   "Arena",
+   "Latte",
+   "Blanco"
   ],
   "tallas": [
    "S",
@@ -824,6 +850,111 @@
   "disponible": true,
   "url": "https://hstlrs-shop.github.io/producto.html?id=crew-ciudad",
   "descripcion": "Sudadera cuello redondo con el plano de la ciudad en la espalda. Felpa premium.",
+  "detalles": [
+   "Arte de gran formato en la espalda",
+   "Cotton Heritage M2480: felpa premium con interior cepillado",
+   "Cuello, puños y dobladillo acanalados",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck Ajolote astronauta",
+  "categoria": "Sudaderas",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Negro",
+   "Carbón",
+   "Marino",
+   "Gris",
+   "Hueso",
+   "Arena",
+   "Latte",
+   "Blanco"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crew-ajolote",
+  "descripcion": "Sudadera cuello redondo con el ajolote astronauta entre flores de cempasúchil, a todo color en la espalda. Felpa premium.",
+  "detalles": [
+   "Arte de gran formato en la espalda",
+   "Cotton Heritage M2480: felpa premium con interior cepillado",
+   "Cuello, puños y dobladillo acanalados",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck Jaguar",
+  "categoria": "Sudaderas",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Negro",
+   "Carbón",
+   "Marino",
+   "Gris",
+   "Hueso",
+   "Arena",
+   "Latte",
+   "Blanco"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crew-jaguar",
+  "descripcion": "Sudadera cuello redondo con el jaguar de obsidiana frente al sol rojo, a todo color en la espalda. Felpa premium.",
+  "detalles": [
+   "Arte de gran formato en la espalda",
+   "Cotton Heritage M2480: felpa premium con interior cepillado",
+   "Cuello, puños y dobladillo acanalados",
+   "Corte unisex regular: para un look oversize pide una talla más",
+   "Hecha bajo pedido para ti"
+  ]
+ },
+ {
+  "nombre": "Crewneck La ola",
+  "categoria": "Sudaderas",
+  "precio": 1199,
+  "precios_por_talla": {
+   "2XL": 1249
+  },
+  "colores": [
+   "Hueso",
+   "Negro",
+   "Carbón",
+   "Marino",
+   "Gris",
+   "Arena",
+   "Latte",
+   "Blanco"
+  ],
+  "tallas": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "2XL"
+  ],
+  "disponible": true,
+  "url": "https://hstlrs-shop.github.io/producto.html?id=crew-ola",
+  "descripcion": "Sudadera cuello redondo con la gran ola y el sol rojo dentro de un círculo en la espalda. Felpa premium.",
   "detalles": [
    "Arte de gran formato en la espalda",
    "Cotton Heritage M2480: felpa premium con interior cepillado",
@@ -870,7 +1001,12 @@
   },
   "colores": [
    "Hueso",
-   "Carbón"
+   "Carbón",
+   "Negro",
+   "Marino",
+   "Arena",
+   "Latte",
+   "Blanco"
   ],
   "tallas": [
    "S",
