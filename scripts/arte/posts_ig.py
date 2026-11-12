@@ -140,7 +140,7 @@ def historia_encuesta():
     c.convert("RGB").save(OUT + "05-historia-encuesta-ola.jpg", quality=92); print("ok historia", flush=True)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and (len(sys.argv) < 3):
     carrusel_crew()
     modelo_jaguar()
     grid("crew-jaguar", "8 COLORES", COLS, "03-colores-crew-jaguar")
@@ -148,3 +148,58 @@ if __name__ == "__main__":
     grid("crewneck", "MONOGRAMA HR", [("hueso", "Hueso"), ("carbon", "Carbón"), ("negro", "Negro"), ("marino", "Marino"),
                                        ("arena", "Arena"), ("latte", "Latte"), ("blanco", "Blanco")], "06-monograma-colores")
     historia_encuesta()
+
+
+# ---------- Publicaciones con modelos (fotos de docs/comercial con los diseños de la tienda) ----------
+C = os.path.join(ROOT, "docs/comercial/")
+MODELOS = [  # foto, titular (2 líneas), prenda y precio, archivo
+    ("cuadro-1-ajolote", ("LEJOS DE", "XOCHIMILCO."), "Playera Ajolote astronauta · $849", "07-lookbook-1-ajolote"),
+    ("cuadro-2-jaguar", ("EL JAGUAR", "VA CONTIGO."), "Playera Jaguar · $849", "07-lookbook-2-jaguar"),
+    ("cuadro-3-ola", ("LA OLA,", "CON SOL ROJO."), "Playera La ola · $849", "07-lookbook-3-ola"),
+    ("modelo-escalera", ("SUBE", "A PULSO."), "Playera Escalera al sol · $849", "07-lookbook-4-escalera"),
+    ("modelo-calavera", ("TODOS SOMOS", "CALAVERAS."), "Playera Calavera · $849", "07-lookbook-5-calavera"),
+    ("modelo-topografia", ("TU RUTA,", "TU MAPA."), "Playera Topografía · $849", "07-lookbook-6-topografia"),
+]
+
+
+def crop45(im):
+    w, h = im.size
+    if w / h > 0.8:
+        nw = int(h * 0.8); x = (w - nw) // 2
+        return im.crop((x, 0, x + nw, h))
+    nh = int(w / 0.8); return im.crop((0, 0, w, nh))
+
+
+def modelo_post(src, lines, label, name):
+    im = crop45(Image.open(C + src + ".jpg").convert("RGB")).resize((W, H), Image.LANCZOS).convert("RGBA")
+    grad = Image.new("L", (1, H))
+    for y in range(H): grad.putpixel((0, y), int(max(0, (y - H * 0.66) / (H * 0.34)) * 230))
+    shade = Image.new("RGBA", (W, H), (12, 10, 9, 255)); shade.putalpha(grad.resize((W, H)))
+    im.alpha_composite(shade)
+    d = ImageDraw.Draw(im)
+    d.text((64, 1160), lines[0], font=A.anton(96), fill=CREAM, anchor="ls")
+    d.text((64, 1262), lines[1], font=A.anton(96), fill=CREAM, anchor="ls")
+    A.spaced(d, (W - 230, 1170), "HSTLRS", A.mont(600, 24), CREAM, 11, anchor="left")
+    d.text((W - 64, 1262), label.split(" · ")[1], font=A.mont(700, 34), fill=CREAM, anchor="rs")
+    save(im, name)
+
+
+def portada_lookbook():
+    """Portada del carrusel con 4 fotos de modelos."""
+    c = base(); d = ImageDraw.Draw(c); header(d, CREAM)
+    d.text((W / 2, 230), "LOOKBOOK DROP 01", font=A.anton(100), fill=CREAM, anchor="ms")
+    srcs = ["cuadro-1-ajolote", "cuadro-2-jaguar", "cuadro-3-ola", "modelo-calavera"]
+    cw, ch = 470, 470
+    for i, s in enumerate(srcs):
+        im = Image.open(C + s + ".jpg").convert("RGB")
+        w, h = im.size; side = min(w, h); im = im.crop(((w - side) // 2, 0, (w + side) // 2, side)).resize((cw, ch), Image.LANCZOS)
+        c.paste(im, (int(W / 2 - cw - 8 + (i % 2) * (cw + 16)), 290 + (i // 2) * (ch + 16)))
+    d = ImageDraw.Draw(c)
+    d.text((W / 2, 1300), "Arte que se usa · desliza", font=A.mont(600, 34), fill=CREAM, anchor="ms")
+    save(c, "07-lookbook-0-portada")
+
+
+if __name__ == "__main__" and len(sys.argv) > 2 and sys.argv[2] == "modelos":
+    portada_lookbook()
+    for m in MODELOS:
+        modelo_post(*m)

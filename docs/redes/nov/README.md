@@ -15,6 +15,32 @@ Formato: feed 1080×1350 (4:5) e historia 1080×1920. Para volver a generarlas: 
 
 Hora recomendada: entre 7 y 9 de la noche, que es cuando más se usa Instagram en México.
 
+## Publicaciones con modelos (nuevas)
+
+Fotos de tus modelos con los diseños originales de la tienda en la espalda. Archivos `07-lookbook-0` a `07-lookbook-6`.
+
+| Día | Publicación | Archivos |
+|---|---|---|
+| 7 | Carrusel "Lookbook Drop 01" | `07-lookbook-0-portada` y luego del 1 al 6 |
+| 8 en adelante | Una foto suelta por día | `07-lookbook-1-ajolote` … `07-lookbook-6-topografia` |
+
+**Carrusel Lookbook Drop 01**
+> Lookbook Drop 01. 🖤🔴
+> Ajolote, Jaguar, La ola, Escalera, Calavera y Topografía: arte de gran formato en la espalda, en playeras pesadas hechas bajo pedido.
+> Desde $849 · 10% en tu primera compra con HSTLR10
+> 🛒 Enlace en la bio
+> #lookbook #streetwearmexico #ootd #ropamexicana #playerasoversize #hechoenmexico
+
+**Textos cortos para las fotos sueltas**
+- Ajolote: "Lejos de Xochimilco. 🚀🌼 Playera Ajolote astronauta · $849 · Enlace en la bio #ajolote #streetwear"
+- Jaguar: "El jaguar va contigo. 🐆🔴 Playera Jaguar · $849 · Enlace en la bio #jaguar #ootd"
+- La ola: "La ola, con sol rojo. 🌊 Playera La ola · $849 · Enlace en la bio #hokusai #arteenropa"
+- Escalera: "Sube a pulso. Playera Escalera al sol · $849 · Enlace en la bio #minimalismo #streetwearmx"
+- Calavera: "Todos somos calaveras. 💀 Playera Calavera · $849 · Enlace en la bio #posada #calavera"
+- Topografía: "Tu ruta, tu mapa. 🗺️ Playera Topografía · $849 · Enlace en la bio #roadtrip #streetwear"
+
+Etiqueta el producto con Instagram Shopping cuando conectes Shopify con Instagram (ver `docs/anuncios/README.md`).
+
 ## Textos para copiar
 
 **Día 1 · Carrusel nuevos crewnecks**

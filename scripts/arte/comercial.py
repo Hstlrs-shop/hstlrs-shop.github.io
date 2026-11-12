@@ -16,6 +16,12 @@ SHOTS = [
     ("c2-4", "real-jaguar.png", (130, 100, 260, 300), (198, 212, 108), False, "cuadro-2-jaguar"),
     ("c1-7", "real-ola.png", (55, 135, 245, 310), (150, 228, 175), True, "cuadro-3-ola"),
 ]
+# más fotos con modelo para Instagram (no forman parte del comercial)
+EXTRA = [
+    ("c2-9", "escalera-espalda.png", (150, 150, 315, 305), (232, 238, 125), False, "modelo-escalera"),
+    ("c2-7-sin-logo", "real-calavera.png", (176, 136, 302, 318), (240, 236, 118), True, "modelo-calavera"),
+    ("c3-4", "topografia-espalda.png", (18, 212, 228, 388), (118, 302, 128), False, "modelo-topografia"),
+]
 
 
 def composite(scene, art, box, place, light, name):
@@ -27,7 +33,9 @@ def composite(scene, art, box, place, light, name):
     region = g[y0:y1, x0:x1]
     base = np.median(region)
     m = np.zeros(g.shape, np.uint8)
-    m[y0:y1, x0:x1] = (np.abs(region - base) > 22).astype(np.uint8) * 255
+    m[y0:y1, x0:x1] = (np.abs(region - base) > (12 if light else 22)).astype(np.uint8) * 255
+    if light:  # en tela clara se rellena toda la caja desde la tela de alrededor
+        m[y0:y1, x0:x1] = 255
     m = cv2.dilate(m, np.ones((9, 9), np.uint8), iterations=2)
     clean = cv2.inpaint(im, m, 9, cv2.INPAINT_TELEA)
     clean = cv2.GaussianBlur(clean, (0, 0), 0.6) * (m[..., None] > 0) + clean * (m[..., None] == 0)
@@ -67,7 +75,7 @@ def composite(scene, art, box, place, light, name):
 
 
 if __name__ == "__main__":
-    for s in SHOTS:
+    for s in SHOTS + EXTRA:
         composite(*s)
 
 
