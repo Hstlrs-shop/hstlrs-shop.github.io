@@ -6,7 +6,8 @@ import { parseFeed, type FeedItem } from "./rss";
 import { fingerprint, scoreItem } from "./scoring";
 import { sourcesFor, type Source } from "./sources";
 import { queueRadar } from "./pro";
-import { esc, formatAlert, sendMessage } from "./telegram";
+import { newsPath } from "./pages";
+import { esc, sendAlert } from "./telegram";
 
 const UA = "Mozilla/5.0 (compatible; LanaConCafeBot/1.0)";
 const MAX_AGE_MS = 36 * 3600 * 1000;   // ignoramos noticias viejas
@@ -45,12 +46,12 @@ async function fetchSource(env: Env, s: Source): Promise<{ items: FeedItem[]; fi
 export async function syncBotNoticias(env: Env): Promise<boolean> {
   if (env.BOT_NOTICIAS !== "1" || !env.BOT_KV) return false;
   const q = await env.DB.prepare(
-    `SELECT title, headline_es, brief_es, link, source_name FROM news
+    `SELECT id, title, headline_es, brief_es, link, source_name FROM news
      WHERE detected_at > ?1 AND impact >= 3 ORDER BY impact DESC, score DESC LIMIT 5`,
   ).bind(Date.now() - 24 * 3600_000).all<any>();
   if (q.results.length === 0) return false;
   const lineas = q.results.map((n, i) =>
-    `${i + 1}. <b>${esc(n.headline_es ?? n.title)}</b>${n.brief_es ? `\n${esc(n.brief_es)}` : ""}\n<a href="${esc(n.link)}">${esc(n.source_name)}</a>`);
+    `${i + 1}. <b>${esc(n.headline_es ?? n.title)}</b>${n.brief_es ? `\n${esc(n.brief_es)}` : ""}\n<a href="${esc(env.SITE_URL + newsPath(n))}">Leer en Lana con Café</a> · <a href="${esc(n.link)}">${esc(n.source_name)}</a>`);
   await env.BOT_KV.put("noticias", `<b>☕ Las 5 noticias que mueven el mercado</b>\n\n${lineas.join("\n\n")}\n\n<i>Información, no asesoría financiera.</i>`);
   return true;
 }
@@ -111,13 +112,13 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
   // 3) Guardar
   const stmts = rows.map((r) =>
     env.DB.prepare(
-      `INSERT OR IGNORE INTO news (id, fingerprint, source_id, source_name, tier, scope, title, link, summary, published_at, detected_at, score, impact, category, assets, bias, headline_es, brief_es, ai, alerted_pro, alerted_free)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      `INSERT OR IGNORE INTO news (id, fingerprint, source_id, source_name, tier, scope, title, link, summary, published_at, detected_at, score, impact, category, assets, bias, headline_es, brief_es, ai, alerted_pro, alerted_free, image)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     ).bind(
       r.id, r.fp, r.s.id, r.s.name, r.s.tier, r.s.scope, r.item.title, r.item.link, r.item.summary,
       r.item.publishedAt, now, r.score, r.ai?.impact ?? r.impact, r.ai?.category ?? r.category,
       JSON.stringify(r.ai?.assets ?? []), r.ai?.bias ?? null, r.ai?.headline_es ?? null, r.ai?.brief_es ?? null,
-      r.ai ? 1 : 0, r.silent ? 1 : 0, r.silent ? 1 : 0,
+      r.ai ? 1 : 0, r.silent ? 1 : 0, r.silent ? 1 : 0, r.item.image,
     ),
   );
   for (let i = 0; i < stmts.length; i += 50) await env.DB.batch(stmts.slice(i, i + 50));
@@ -142,10 +143,11 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
   let alerted = 0;
   for (const r of toAlert) {
     try {
-      await sendMessage(env, env.TELEGRAM_PRO_CHAT, formatAlert({
+      await sendAlert(env, env.TELEGRAM_PRO_CHAT, {
+        id: r.id, title: r.item.title, image: r.item.image, category: r.ai?.category ?? r.category,
         headline: r.ai?.headline_es ?? r.item.title, brief: r.ai?.brief_es, link: r.item.link, source: r.s.name,
         impact: r.ai?.impact ?? r.impact, bias: r.ai?.bias, assets: r.ai?.assets, scope: r.s.scope,
-      }, { pro: true, brand: env.BRAND, siteUrl: env.SITE_URL }));
+      }, { pro: true });
       await env.DB.prepare("UPDATE news SET alerted_pro = 1 WHERE id = ?").bind(r.id).run();
       alerted++;
     } catch (e) {
@@ -166,10 +168,11 @@ export async function flushFreeQueue(env: Env): Promise<number> {
   ).bind(num(env.FREE_MIN_IMPACT, 4), now - delay, now - 3 * 3600_000, env.HEURISTIC_ALERTS === "1" ? 1 : 0).all<any>();
   let sent = 0;
   for (const n of q.results) {
-    await sendMessage(env, env.TELEGRAM_FREE_CHAT, formatAlert({
+    await sendAlert(env, env.TELEGRAM_FREE_CHAT, {
+      id: n.id, title: n.title, image: n.image, category: n.category,
       headline: n.headline_es ?? n.title, brief: n.brief_es, link: n.link, source: n.source_name,
       impact: n.impact, scope: n.scope,
-    }, { pro: false, brand: env.BRAND, siteUrl: env.SITE_URL }), true);
+    }, { pro: false }, true);
     await env.DB.prepare("UPDATE news SET alerted_free = 1 WHERE id = ?").bind(n.id).run();
     sent++;
   }
@@ -190,4 +193,24 @@ export async function enrichRecent(env: Env, limit = 10): Promise<{ analyzed: nu
     ).bind(a.id, a.impact, a.category, JSON.stringify(a.assets), a.bias, a.headline_es, a.brief_es).run();
   }
   return { analyzed: out.length };
+}
+
+/** Rellena la foto de noticias ya guardadas (una vez, tras añadir la columna image). */
+export async function backfillImages(env: Env): Promise<{ updated: number }> {
+  const sources = sourcesFor(env.COUNTRY).filter((s) => !s.every);
+  let updated = 0;
+  for (const s of sources) {
+    try {
+      const res = await fetch(s.url, { headers: { "user-agent": UA }, signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const items = parseFeed(await res.text()).filter((i) => i.image);
+      const stmts = await Promise.all(items.map(async (i) =>
+        env.DB.prepare("UPDATE news SET image = ?2 WHERE id = ?1 AND image IS NULL").bind(await sha256(normLink(i.link)), i.image)));
+      for (let k = 0; k < stmts.length; k += 50) {
+        const r = await env.DB.batch(stmts.slice(k, k + 50));
+        updated += r.reduce((a, x) => a + (x.meta.changes ?? 0), 0);
+      }
+    } catch { /* fuente caída: se ignora */ }
+  }
+  return { updated };
 }

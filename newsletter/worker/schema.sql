@@ -1,5 +1,6 @@
 -- Esquema D1 del newsletter. Aplicar con:
 --   npx wrangler d1 execute lanaconcafe-news-db --remote --file=schema.sql
+-- (instalación nueva). Cambios sobre una base existente: carpeta migrations/.
 
 CREATE TABLE IF NOT EXISTS news (
   id            TEXT PRIMARY KEY,          -- sha256 del enlace normalizado
@@ -22,7 +23,18 @@ CREATE TABLE IF NOT EXISTS news (
   brief_es      TEXT,                      -- resumen propio 1-2 frases
   ai            INTEGER NOT NULL DEFAULT 0,
   alerted_pro   INTEGER NOT NULL DEFAULT 0,
-  alerted_free  INTEGER NOT NULL DEFAULT 0
+  alerted_free  INTEGER NOT NULL DEFAULT 0,
+  image         TEXT,                      -- foto publicada por la fuente en su RSS
+  views         INTEGER NOT NULL DEFAULT 0,
+  likes         INTEGER NOT NULL DEFAULT 0,
+  dislikes      INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_news_views ON news(views DESC);
+CREATE TABLE IF NOT EXISTS reactions (
+  news_id  TEXT NOT NULL,
+  who      TEXT NOT NULL,
+  value    INTEGER NOT NULL,
+  PRIMARY KEY (news_id, who)
 );
 CREATE INDEX IF NOT EXISTS idx_news_detected ON news(detected_at DESC);
 CREATE INDEX IF NOT EXISTS idx_news_fp ON news(fingerprint);

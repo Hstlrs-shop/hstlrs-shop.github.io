@@ -29,3 +29,12 @@ test("penaliza ruido", () => {
 test("huella igual para el mismo titular reordenado", () => {
   assert.equal(fingerprint("Fed cuts rates by 25 bps"), fingerprint("Rates: Fed cuts by 25 bps"));
 });
+
+import { extractImage } from "../src/rss.ts";
+test("extrae la foto del item (media, enclosure, img escapado)", () => {
+  assert.equal(extractImage(`<item><media:content url="https://a.com/x.jpg" medium="image"/></item>`), "https://a.com/x.jpg");
+  assert.equal(extractImage(`<item><enclosure url="https://a.com/v.mp4" type="video/mp4"/><enclosure url="https://a.com/y.jpg" type="image/jpeg"/></item>`), "https://a.com/y.jpg");
+  assert.equal(extractImage(`<item><description>&lt;img src="https://a.com/z.png?a=1&amp;b=2"&gt;</description></item>`), "https://a.com/z.png?a=1&b=2");
+  assert.equal(extractImage(`<item><img src="http://inseguro.com/a.jpg"></item>`), null);
+  assert.equal(extractImage(`<item><title>sin foto</title></item>`), null);
+});

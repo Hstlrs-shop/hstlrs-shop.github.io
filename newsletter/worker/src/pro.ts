@@ -4,6 +4,7 @@
 
 import { answerQuestion } from "./ai";
 import { num, type Env } from "./env";
+import { newsPath } from "./pages";
 import { esc, tgCall } from "./telegram";
 import { matchesTerm, normalize, parseCdmx, validTerm } from "./textutil";
 
@@ -101,7 +102,7 @@ export async function queueRadar(env: Env, items: RadarItem[]): Promise<number> 
       const delay = LIMITS[plan].radarDelayMin;
       const msg = `🎯 <b>Tu radar: ${esc(labels.join(", "))}</b>\n\n<b>${esc(it.headline_es ?? it.title)}</b>` +
         (it.brief_es ? `\n${esc(it.brief_es)}` : "") +
-        `\n\n${esc(it.source)} · <a href="${esc(it.link)}">Fuente</a>` +
+        `\n\n☕ <a href="${esc(env.SITE_URL + newsPath({ id: it.id, headline_es: it.headline_es, title: it.title }))}">Leer en Lana con Café</a> · <a href="${esc(it.link)}">${esc(it.source)}</a>` +
         (delay ? `\n\n⏱ Te llegó con ${delay} min de retraso. Con <b>Pro</b> llega al instante → /pro` : "");
       await enqueue(env, [tg], msg, delay);
       queued++;

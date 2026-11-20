@@ -118,7 +118,7 @@ export default {
     if (url.pathname === "/internal/tg") {
       if (!env.INTERNAL_SECRET || request.headers.get("x-internal-secret") !== env.INTERNAL_SECRET) return new Response("No autorizado", { status: 401 });
       const { method, body } = await request.json();
-      if (!/^(sendMessage|createChatInviteLink|revokeChatInviteLink|banChatMember|unbanChatMember|sendPoll|stopPoll|getChatMemberCount)$/.test(method || ""))
+      if (!/^(sendMessage|sendPhoto|createChatInviteLink|revokeChatInviteLink|banChatMember|unbanChatMember|sendPoll|stopPoll|getChatMemberCount)$/.test(method || ""))
         return Response.json({ ok: false, description: "método no permitido" }, { status: 400 });
       return Response.json(await tg(env, method, body || {}));
     }

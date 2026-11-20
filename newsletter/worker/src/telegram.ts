@@ -2,6 +2,7 @@
 // así el token nunca se copia a este Worker.
 
 import type { Env } from "./env";
+import { catImage, newsPath } from "./pages";
 
 const IMPACT_ICON = ["", "⚪", "🔵", "🟡", "🟠", "🔴"];
 const BIAS_ICON: Record<string, string> = { alcista: "📈", bajista: "📉", mixto: "↔️", neutral: "➖" };
@@ -33,6 +34,10 @@ export async function tgCall<T = unknown>(env: Env, method: string, body: Record
 const call = tgCall;
 
 export interface AlertNews {
+  id?: string;
+  title?: string;               // titular original (para la URL)
+  image?: string | null;
+  category?: string | null;
   headline: string;
   brief?: string | null;
   link: string;
@@ -53,9 +58,32 @@ export function formatAlert(n: AlertNews, opts: { pro: boolean; brand: string; s
   }
   lines.push("", `${n.scope === "nacional" ? "🏠" : "🌎"} ${esc(n.source)} · <a href="${esc(n.link)}">Fuente</a>`);
   if (!opts.pro) {
-    lines.push("", `⚡ Los miembros Pro recibieron esto al instante → <a href="${esc(opts.siteUrl)}/precios.html">${esc(opts.brand)} Pro</a>`);
+    lines.push("", `⚡ Los miembros Pro recibieron esto al instante.`);
   }
   return lines.join("\n");
+}
+
+/**
+ * Alerta para los canales: foto + resumen + botón a la página de la noticia en
+ * nuestro sitio (así cada alerta trae visitas). Si la foto falla, va como texto.
+ */
+export async function sendAlert(env: Env, chatId: string, n: AlertNews, opts: { pro: boolean }, silent = false) {
+  const caption = formatAlert(n, { ...opts, brand: env.BRAND, siteUrl: env.SITE_URL });
+  const page = n.id ? `${env.SITE_URL}${newsPath({ id: n.id, headline_es: n.headline, title: n.title ?? n.headline })}` : null;
+  const buttons = [
+    ...(page ? [[{ text: "☕ Leer en Lana con Café", url: page }]] : []),
+    ...(opts.pro ? [] : [[{ text: "⚡ Recíbelas al instante con Pro", url: `${env.SITE_URL}/precios.html` }]]),
+  ];
+  const reply_markup = buttons.length ? { inline_keyboard: buttons } : undefined;
+  const photo = n.image ?? (n.category !== undefined ? catImage(env, n.category) : null);
+  if (photo && caption.length <= 1024) {
+    try {
+      return await call(env, "sendPhoto", { chat_id: chatId, photo, caption, parse_mode: "HTML", disable_notification: silent, reply_markup });
+    } catch (e) {
+      console.warn("sendPhoto falló, envío como texto:", (e as Error).message);
+    }
+  }
+  return call(env, "sendMessage", { chat_id: chatId, text: caption, parse_mode: "HTML", link_preview_options: { is_disabled: true }, disable_notification: silent, reply_markup });
 }
 
 export function sendMessage(env: Env, chatId: string, html: string, silent = false) {
