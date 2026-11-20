@@ -175,3 +175,19 @@ export async function flushFreeQueue(env: Env): Promise<number> {
   }
   return sent;
 }
+
+/** Pasa por la IA noticias recientes que entraron sin revisar (p. ej. antes de configurar la clave). */
+export async function enrichRecent(env: Env, limit = 10): Promise<{ analyzed: number }> {
+  const q = await env.DB.prepare(
+    `SELECT id, title, summary, source_name, scope FROM news WHERE ai = 0 AND score >= ?1 AND detected_at > ?2
+     ORDER BY score DESC LIMIT ?3`,
+  ).bind(num(env.AI_MIN_SCORE, 45), Date.now() - 24 * 3600_000, limit).all<any>();
+  const out = await analyze(env, q.results.map((n) => ({ id: n.id, title: n.title, summary: (n.summary ?? "").slice(0, 300), source: n.source_name, scope: n.scope })));
+  for (const a of out) {
+    await env.DB.prepare(
+      // alerted_free = 1: no publicar en el canal noticias que ya tienen horas
+      "UPDATE news SET impact=?2, category=?3, assets=?4, bias=?5, headline_es=?6, brief_es=?7, ai=1, alerted_free=1, alerted_pro=1 WHERE id=?1",
+    ).bind(a.id, a.impact, a.category, JSON.stringify(a.assets), a.bias, a.headline_es, a.brief_es).run();
+  }
+  return { analyzed: out.length };
+}

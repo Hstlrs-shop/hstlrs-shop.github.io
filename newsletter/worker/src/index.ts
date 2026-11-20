@@ -1,6 +1,6 @@
 import { buildDigest } from "./digest";
 import { num, type Env } from "./env";
-import { flushFreeQueue, ingest, syncBotNoticias } from "./ingest";
+import { enrichRecent, flushFreeQueue, ingest, syncBotNoticias } from "./ingest";
 import { handleAccess, handleChatMember, handleMercadoPago } from "./payments";
 import { flushOutbox, handleBotApi, morningBriefing, proTick } from "./pro";
 import { SITE } from "./site-files";
@@ -128,6 +128,7 @@ export default {
       if (task === "free") return json({ sent: await flushFreeQueue(env) });
       if (task === "digest") return json(await buildDigest(env));
       if (task === "bot") return json({ updated: await syncBotNoticias(env) });
+      if (task === "enrich") return json(await enrichRecent(env, Math.min(num(url.searchParams.get("n") ?? undefined, 10), 30)));
       if (task === "brief") { const n = await morningBriefing(env, true); return json({ queued: n, sent: await flushOutbox(env) }); }
       if (task === "stats") {
         const s = await env.DB.batch([
@@ -137,7 +138,7 @@ export default {
         ]);
         return json({ news_24h: s[0].results[0], leads: s[1].results[0], members: s[2].results });
       }
-      return json({ error: "task = ingest | free | digest | bot | brief | stats" }, 400);
+      return json({ error: "task = ingest | free | digest | bot | brief | enrich | stats" }, 400);
     }
 
     return json({ error: "no encontrado" }, 404);
