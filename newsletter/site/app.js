@@ -146,6 +146,17 @@ $$("form.sub").forEach((f) => f.addEventListener("submit", async (e) => {
   } catch { btn.disabled = false; }
 }));
 
+// ---------- Convertidor (páginas Dólar hoy / Bitcoin hoy) ----------
+const conv = $(".converter");
+if (conv) {
+  const rate = Number(conv.dataset.rate), from = $("[data-from]", conv), to = $("[data-to]", conv);
+  const dec = conv.dataset.base === "BTC" ? 8 : 2;
+  const fmt = (n, d) => (Number.isFinite(n) ? Number(n.toFixed(d)) : "");
+  const a = () => (to.value = fmt(Number(from.value) * rate, 2));
+  const b = () => (from.value = fmt(Number(to.value) / rate, dec));
+  from.addEventListener("input", a); to.addEventListener("input", b); if (rate) a();
+}
+
 // ---------- Página de noticia: reacciones y copiar enlace ----------
 const react = $(".react");
 if (react) $$("button", react).forEach((b) => b.addEventListener("click", async () => {
