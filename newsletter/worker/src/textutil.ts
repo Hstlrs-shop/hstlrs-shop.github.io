@@ -26,3 +26,18 @@ export function parseCdmx(date: string, time: string): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
+
+const STOP = new Set("el la los las de del en y a un una que por con para se su al es lo como mas más sus ante tras sobre entre the of to in and on for is at by with from".split(" "));
+/** Palabras significativas de un titular (sin acentos ni palabras vacías). */
+export function keywords(title: string): Set<string> {
+  // raíz de 5 letras: "riesgo"/"riesgos", "inflación"/"inflacionario" cuentan como la misma palabra
+  return new Set(normalize(title).replace(/[^a-z0-9 ]/g, " ").split(" ").filter((w) => w.length > 2 && !STOP.has(w)).map((w) => w.slice(0, 5)));
+}
+/** ¿Cuentan la misma historia? (palabras en común sobre el titular más corto) */
+export function sameStory(a: string, b: string, threshold = 0.34): boolean {
+  const A = keywords(a), B = keywords(b);
+  if (!A.size || !B.size) return false;
+  let common = 0;
+  for (const w of A) if (B.has(w)) common++;
+  return common / Math.min(A.size, B.size) >= threshold;
+}

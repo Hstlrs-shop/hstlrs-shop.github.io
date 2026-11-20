@@ -7,11 +7,12 @@ import { fingerprint, scoreItem } from "./scoring";
 import { sourcesFor, type Source } from "./sources";
 import { queueRadar } from "./pro";
 import { newsPath } from "./pages";
+import { sameStory } from "./textutil";
 import { esc, proChatId, sendAlert } from "./telegram";
 
 const UA = "Mozilla/5.0 (compatible; LanaConCafeBot/1.0)";
 const MAX_AGE_MS = 36 * 3600 * 1000;   // ignoramos noticias viejas
-const MAX_AI_PER_RUN = 20;
+const MAX_AI_PER_RUN = 30;
 const MAX_PRO_ALERTS_PER_RUN = 8;       // Telegram limita ~20 msg/min por canal
 
 async function sha256(s: string): Promise<string> {
@@ -97,7 +98,7 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
   }
 
   // 2) IA solo para lo que pinta relevante (las oficiales y urgentes primero)
-  const minScore = num(env.AI_MIN_SCORE, 45);
+  const minScore = num(env.AI_MIN_SCORE, 25);
   const forAi = rows.filter((r) => !r.silent && r.score >= minScore).sort((a, b) => b.score - a.score).slice(0, MAX_AI_PER_RUN);
   for (let i = 0; i < forAi.length; i += 10) {
     const batch: Candidate[] = forAi.slice(i, i + 10).map((r) => ({ id: r.id, title: r.item.title, summary: r.item.summary.slice(0, 300), source: r.s.name, scope: r.s.scope }));
@@ -134,7 +135,7 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
   }
 
   // 5) Alerta instantánea al canal Pro (solo noticias revisadas por la IA, salvo HEURISTIC_ALERTS = "1")
-  const proMin = num(env.PRO_MIN_IMPACT, 4);
+  const proMin = num(env.PRO_MIN_IMPACT, 3);
   const proChat = await proChatId(env);
   const proReady = !!proChat;
   const toAlert = rows
@@ -142,7 +143,14 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
     .sort((a, b) => (b.ai?.impact ?? b.impact) - (a.ai?.impact ?? a.impact) || b.score - a.score)
     .slice(0, MAX_PRO_ALERTS_PER_RUN);
   let alerted = 0;
+  const proRecent = toAlert.length ? await recentHeadlines(env, "alerted_pro", now) : [];
   for (const r of toAlert) {
+    const head = r.ai?.headline_es ?? r.item.title;
+    if (proRecent.some((t) => sameStory(t, head))) {
+      await env.DB.prepare("UPDATE news SET alerted_pro = 1 WHERE id = ?").bind(r.id).run(); // misma historia ya publicada
+      continue;
+    }
+    proRecent.push(head);
     try {
       await sendAlert(env, proChat!, {
         id: r.id, title: r.item.title, image: r.item.image, category: r.ai?.category ?? r.category,
@@ -158,23 +166,49 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
   return { fetched: raw.length, inserted: rows.length, alerted, errors };
 }
 
+/** Titulares ya publicados en un canal en las últimas 12 h (para no repetir historias). */
+async function recentHeadlines(env: Env, col: "alerted_free" | "alerted_pro", now: number): Promise<string[]> {
+  const q = await env.DB.prepare(
+    `SELECT COALESCE(headline_es, title) t FROM news WHERE ${col} = 1 AND ai = 1 AND impact >= 3 AND detected_at > ?1 ORDER BY detected_at DESC LIMIT 40`,
+  ).bind(now - 12 * 3600_000).all<{ t: string }>();
+  return q.results.map((r) => r.t);
+}
+
 /** Canal gratuito: las noticias más fuertes, con retraso. Es el gancho para vender Pro. */
 export async function flushFreeQueue(env: Env): Promise<number> {
   const now = Date.now();
   const delay = num(env.FREE_DELAY_MIN, 15) * 60_000;
+  // Ritmo del canal gratis: máx. FREE_DAILY_MAX al día y una cada FREE_GAP_MIN (impacto 5 no espera)
+  const day = new Date(now - 6 * 3600_000).toISOString().slice(0, 10);
+  const [cnt, last] = await env.DB.batch([
+    env.DB.prepare("SELECT v FROM flags WHERE k = ?1").bind(`free:${day}`),
+    env.DB.prepare("SELECT v FROM flags WHERE k = 'free:last'"),
+  ]);
+  const sentToday = Number((cnt.results[0] as any)?.v ?? 0);
+  if (sentToday >= num(env.FREE_DAILY_MAX, 8)) return 0;
+  const gapOk = now - Number((last.results[0] as any)?.v ?? 0) >= num(env.FREE_GAP_MIN, 40) * 60_000;
   const q = await env.DB.prepare(
     `SELECT * FROM news WHERE alerted_free = 0 AND impact >= ?1 AND detected_at <= ?2 AND detected_at > ?3
-       AND (ai = 1 OR ?4 = 1)
-     ORDER BY impact DESC, score DESC LIMIT 3`,
-  ).bind(num(env.FREE_MIN_IMPACT, 4), now - delay, now - 3 * 3600_000, env.HEURISTIC_ALERTS === "1" ? 1 : 0).all<any>();
+       AND (ai = 1 OR ?4 = 1) AND (impact >= 5 OR ?5 = 1)
+     ORDER BY impact DESC, score DESC LIMIT 10`,
+  ).bind(num(env.FREE_MIN_IMPACT, 3), now - delay, now - 3 * 3600_000, env.HEURISTIC_ALERTS === "1" ? 1 : 0, gapOk ? 1 : 0).all<any>();
+  // No repetir la misma historia contada por otro medio (últimas 12 h)
+  const recent = await recentHeadlines(env, "alerted_free", now);
+  const pick = q.results.find((n) => !recent.some((t) => sameStory(t, n.headline_es ?? n.title)));
+  const dupes = q.results.filter((n) => n !== pick && recent.some((t) => sameStory(t, n.headline_es ?? n.title)));
+  if (dupes.length) await env.DB.batch(dupes.map((d) => env.DB.prepare("UPDATE news SET alerted_free = 1 WHERE id = ?").bind(d.id)));
   let sent = 0;
-  for (const n of q.results) {
+  for (const n of pick ? [pick] : []) {
     await sendAlert(env, env.TELEGRAM_FREE_CHAT, {
       id: n.id, title: n.title, image: n.image, category: n.category,
       headline: n.headline_es ?? n.title, brief: n.brief_es, link: n.link, source: n.source_name,
       impact: n.impact, scope: n.scope,
     }, { pro: false }, true);
-    await env.DB.prepare("UPDATE news SET alerted_free = 1 WHERE id = ?").bind(n.id).run();
+    await env.DB.batch([
+      env.DB.prepare("UPDATE news SET alerted_free = 1 WHERE id = ?").bind(n.id),
+      env.DB.prepare("INSERT INTO flags (k, v) VALUES (?1, '1') ON CONFLICT(k) DO UPDATE SET v = CAST(v AS INTEGER) + 1").bind(`free:${day}`),
+      env.DB.prepare("INSERT INTO flags (k, v) VALUES ('free:last', ?1) ON CONFLICT(k) DO UPDATE SET v = ?1").bind(String(now)),
+    ]);
     sent++;
   }
   return sent;

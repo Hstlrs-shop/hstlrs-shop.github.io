@@ -8,11 +8,14 @@ export interface Env {
   SITE_URL: string;
   COUNTRY: string;
   CLAUDE_MODEL: string;        // clasificación, edición diaria y /analiza
+  CLAUDE_CLASSIFY_MODEL?: string; // clasificación de noticias (por defecto claude-haiku-5-5)
   CLAUDE_FAST_MODEL?: string;  // preguntas rápidas a Lana (por defecto claude-haiku-5-5)
   AI_MIN_SCORE: string;        // puntuación heurística mínima para pasar por IA
   PRO_MIN_IMPACT: string;      // impacto mínimo para alerta instantánea al canal Pro
   FREE_MIN_IMPACT: string;     // impacto mínimo para el canal gratuito
-  FREE_DELAY_MIN: string;      // minutos de retraso para gratis (web, RSS y canal)
+  FREE_DELAY_MIN: string;
+  FREE_DAILY_MAX?: string;     // máx. alertas al día en el canal gratis (8)
+  FREE_GAP_MIN?: string;       // minutos mínimos entre alertas del canal gratis (40)      // minutos de retraso para gratis (web, RSS y canal)
   TELEGRAM_FREE_CHAT: string;  // @canal_publico o -100...
   TELEGRAM_PRO_CHAT: string;   // -100... (canal privado de pago)
   MP_PLAN_PRO?: string;        // id del plan de suscripción Pro en Mercado Pago

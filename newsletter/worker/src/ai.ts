@@ -64,18 +64,16 @@ function client(env: Env): Anthropic {
 /** Analiza un lote de titulares en una sola llamada (más barato y rápido). */
 export async function analyze(env: Env, batch: Candidate[]): Promise<Analysis[]> {
   if (!env.ANTHROPIC_API_KEY || batch.length === 0) return [];
-  const response = await client(env).beta.messages.create({
-    model: env.CLAUDE_MODEL,
-    max_tokens: 8000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: {
-      effort: "low",
-      format: { type: "json_schema", schema: ANALYSIS_SCHEMA },
-    },
-    system: SYSTEM_CLASSIFY,
-    messages: [{ role: "user", content: JSON.stringify(batch) }],
-  });
+  // Clasificar es tarea sencilla y de mucho volumen: modelo rápido por defecto (CLAUDE_CLASSIFY_MODEL)
+  const model = env.CLAUDE_CLASSIFY_MODEL || "claude-haiku-5-5";
+  const params = {
+    model, max_tokens: 8000, system: SYSTEM_CLASSIFY,
+    output_config: { effort: "low" as const, format: { type: "json_schema" as const, schema: ANALYSIS_SCHEMA } },
+    messages: [{ role: "user" as const, content: JSON.stringify(batch) }],
+  };
+  const response = model.startsWith("claude-haiku")
+    ? await client(env).messages.create(params)
+    : await client(env).beta.messages.create({ ...params, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" });
   if (response.stop_reason === "refusal" || response.stop_reason === "max_tokens") return [];
   const text = response.content.find((b) => b.type === "text");
   if (!text || text.type !== "text") return [];
