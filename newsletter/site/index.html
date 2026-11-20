@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulso Mercados · Las noticias que mueven el mercado</title>
+<meta name="description" content="Las noticias que mueven los mercados, globales y nacionales, en español. Alertas al instante en Telegram y un newsletter diario de 5 minutos.">
+<link rel="stylesheet" href="styles.css">
+<link rel="alternate" type="application/rss+xml" title="Pulso Mercados" href="https://pulso-news.REEMPLAZAR.workers.dev/rss.xml">
+<script src="config.js"></script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="index.html">Pulso<span>●</span>Mercados</a>
+  <nav><a href="index.html#ediciones" class="hide-sm">Ediciones</a><a data-link="TELEGRAM_FREE" class="hide-sm">Telegram</a><a href="precios.html">Pro</a></nav>
+</div></header>
+<main class="wrap">
+<section class="hero">
+  <h1>Las noticias que mueven el mercado,<br>antes de que se muevan los precios.</h1>
+  <p>Leemos bancos centrales, reguladores y agencias cada minuto. Recibe lo importante, global y de tu país, en 5 minutos al día. Gratis.</p>
+  <form class="sub"><input type="email" required placeholder="tu@email.com" aria-label="Email"><button class="btn">Suscribirme gratis</button></form>
+  <p class="note">Edición diaria antes de la apertura · Sin spam · <a data-link="TELEGRAM_FREE">Canal gratuito en Telegram</a></p>
+</section>
+<div class="grid">
+  <section class="panel">
+    <h2>Lo último que mueve mercados <span id="delay" class="pill">…</span></h2>
+    <div class="tabs"><button data-scope="" aria-pressed="true">Todo</button><button data-scope="global" aria-pressed="false">Global</button><button data-scope="nacional" aria-pressed="false">Nacional</button></div>
+    <ul id="news" class="news"><li class="note">Cargando…</li></ul>
+    <div class="lock">⚡ Los miembros <b>Pro</b> reciben estas alertas en Telegram <b>al instante</b>, con activos afectados y sesgo probable. <a href="precios.html">Ver Pro →</a></div>
+  </section>
+  <aside>
+    <section class="panel" id="ediciones">
+      <h2>Ediciones del newsletter</h2>
+      <ul id="archive" class="news"><li class="note">Cargando…</li></ul>
+    </section>
+  </aside>
+</div>
+</main>
+<footer><div class="wrap">
+  Pulso Mercados publica información, no asesoría de inversión. Los titulares enlazan a sus fuentes originales; resúmenes de redacción propia.
+</div></footer>
+<script src="app.js"></script>
+</body>
+</html>

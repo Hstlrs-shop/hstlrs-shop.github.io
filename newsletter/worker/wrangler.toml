@@ -1,0 +1,43 @@
+name = "pulso-news"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Cada minuto: ingesta + alertas. Lun-Vie 11:17 UTC: edición diaria del newsletter
+# (≈ 5:17 Ciudad de México / 12:17 Madrid). Si cambias la segunda, cambia DIGEST_CRON en src/index.ts.
+[triggers]
+crons = ["* * * * *", "17 11 * * 1-5"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pulso-db"
+database_id = "REEMPLAZAR_CON_ID_DE_D1"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "REEMPLAZAR_CON_ID_DE_KV"
+
+[vars]
+BRAND = "Pulso Mercados"
+SITE_URL = "https://REEMPLAZAR.github.io/pulso-mercados"
+COUNTRY = "MX"                # MX | ES | CO | AR | VE | CL | PE (ver src/sources.ts)
+CLAUDE_MODEL = "claude-opus-5-5"
+AI_MIN_SCORE = "45"
+PRO_MIN_IMPACT = "4"
+FREE_MIN_IMPACT = "4"
+FREE_DELAY_MIN = "15"
+TELEGRAM_FREE_CHAT = "@REEMPLAZAR_canal_publico"
+TELEGRAM_PRO_CHAT = "-100REEMPLAZAR"
+STRIPE_PRO_LINK = "https://buy.stripe.com/REEMPLAZAR"
+STRIPE_API_LINK = "https://buy.stripe.com/REEMPLAZAR"
+
+[observability]
+enabled = true
+
+# Secretos (no van aquí):
+#   npx wrangler secret put TELEGRAM_BOT_TOKEN
+#   npx wrangler secret put ANTHROPIC_API_KEY
+#   npx wrangler secret put STRIPE_WEBHOOK_SECRET
+#   npx wrangler secret put ADMIN_TOKEN
+#   npx wrangler secret put TELEGRAM_FORWARD_SECRET
+#   npx wrangler secret put DIGEST_WEBHOOK_URL   (opcional)
