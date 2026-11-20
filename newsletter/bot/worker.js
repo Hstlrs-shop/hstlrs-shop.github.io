@@ -3,6 +3,7 @@
 // Variable opcional: CANAL_ID (texto, p. ej. @lanaconcafe) para publicar en el canal. El bot debe ser administrador del canal.
 // v5: las publicaciones del canal llevan botones que abren el bot; /menucanal publica un menú para fijar.
 // v6: resumen automático 7:30 am y encuesta diaria en el canal (resultado 8 pm, hora de Querétaro); /stats y /probarcanal para el administrador.
+// v12: bienvenida con botones de radar de un toque (callback_query) y secuencia día 1 / día 3 / fin de prueba.
 // v11: IA de Lana v2: modelo rápido con 100 preguntas/día en Pro, /analiza (análisis profundo), memoria de 3
 //      intercambios (/nueva para olvidar), usa tu radar, y botón "¿Qué significa para mí?" (/start q_<id>).
 // v10: suscripción de pago con Telegram Stars al canal Pro (/crearsuscripcion), el ID del canal Pro se obtiene
@@ -146,6 +147,10 @@ export default {
       }
       return new Response("ok");
     }
+    if (update.callback_query) {
+      try { await manejarBoton(update.callback_query, env); } catch (e) { console.log("botón:", e && e.stack || e); }
+      return new Response("ok");
+    }
     try { await manejar(update, env); } catch (e) {
       console.log("Error:", e && e.stack || e);
       const c = update && update.message && update.message.chat && update.message.chat.id;
@@ -259,6 +264,35 @@ export function parsear(texto) {
   return { cmd, args: partes.slice(1) };
 }
 
+// ---------- Bienvenida (v12) ----------
+const TEMAS_INICIO = [["💵 Dólar / peso", "peso"], ["🏦 Banxico", "banxico"], ["₿ Bitcoin", "bitcoin"], ["📈 Nvidia", "nvidia"], ["🛢️ Petróleo", "petroleo"], ["🏛️ Fed", "fed"]];
+const BIENVENIDA =
+`☕ <b>¡Bienvenido a Lana con Café!</b>
+
+Te aviso de las noticias que mueven tu dinero y te las explico en español claro.
+
+<b>1️⃣ Elige qué quieres seguir</b> (toca uno) y te aviso cuando salga algo:
+
+<b>2️⃣ Pregúntame lo que quieras</b>, como a un amigo que sabe de dinero:
+<i>“¿Me conviene ahorrar en dólares?”</i> · <i>“¿Qué pasa si Banxico baja la tasa?”</i>`;
+const tecladoTemas = () => ({ inline_keyboard: [0, 2, 4].map((i) => TEMAS_INICIO.slice(i, i + 2).map(([t, k]) => ({ text: t, callback_data: `radar:${k}` }))) });
+
+async function manejarBoton(q, env) {
+  const from = q.from && q.from.id, chat = q.message && q.message.chat && q.message.chat.id;
+  const [tipo, valor] = String(q.data || "").split(":");
+  if (tipo === "radar" && from && chat) {
+    const r = await news(env, "/bot/radar", { tg: from, op: "add", term: valor });
+    const etiqueta = (TEMAS_INICIO.find(([, k]) => k === valor) || [valor])[0];
+    if (r.error && !r.terms) return tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: r.error, show_alert: true });
+    if (r.error) {
+      await tg(env, "answerCallbackQuery", { callback_query_id: q.id });
+      return enviar(env, chat, `🎯 ${esc(r.error)}\nTu radar: ${esc((r.terms || []).join(", "))}${SUBE_A_PRO}`);
+    }
+    return tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: `✅ ${etiqueta} agregado a tu radar (${(r.terms || []).length}/${r.limit})` });
+  }
+  return tg(env, "answerCallbackQuery", { callback_query_id: q.id });
+}
+
 // ID del canal Pro: variable PRO_CANAL_ID o el que el admin registró reenviando un mensaje del canal
 async function canalPro(env) {
   return env.PRO_CANAL_ID || (await env.DB.get("pro_canal")) || null;
@@ -291,6 +325,7 @@ async function manejar(update, env) {
   // registrar usuario (para difusiones y /stats): guarda la fecha en que llegó, solo la primera vez
   const nuevo = !(await env.DB.get(`u:${chat}`));
   if (nuevo) await env.DB.put(`u:${chat}`, horaLocal().fecha);
+  if (nuevo && msg.chat.type === "private") await news(env, "/bot/welcome", { tg: msg.from && msg.from.id }); // secuencia día 1 / día 3
   const from = msg.from && msg.from.id;
   const privado = msg.chat.type === "private";
 
@@ -307,8 +342,16 @@ async function manejar(update, env) {
   }
 
   switch (cmd) {
-    case "/start": case "/ayuda": case "/help":
+    case "/start":
+      if (nuevo && privado) {
+        await tg(env, "sendMessage", { chat_id: chat, text: "☕", reply_markup: TECLADO }); // deja el teclado de abajo
+        return tg(env, "sendMessage", { chat_id: chat, text: BIENVENIDA, parse_mode: "HTML", reply_markup: tecladoTemas() });
+      }
       return tg(env, "sendMessage", { chat_id: chat, text: AYUDA, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: TECLADO });
+    case "/ayuda": case "/help":
+      return tg(env, "sendMessage", { chat_id: chat, text: AYUDA, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: TECLADO });
+    case "/temas":
+      return tg(env, "sendMessage", { chat_id: chat, text: "🎯 Toca lo que quieras seguir:", reply_markup: tecladoTemas() });
 
     case "/configurar": {
       if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
@@ -316,7 +359,7 @@ async function manejar(update, env) {
       // v8: pedir a Telegram también los avisos de altas en canales (chat_member), conservando la URL y el secreto actuales
       const info = await tg(env, "getWebhookInfo", {});
       const w = info && info.ok && info.result && info.result.url
-        ? await tg(env, "setWebhook", { url: info.result.url, secret_token: env.WEBHOOK_SECRET, allowed_updates: ["message", "chat_member"] })
+        ? await tg(env, "setWebhook", { url: info.result.url, secret_token: env.WEBHOOK_SECRET, allowed_updates: ["message", "chat_member", "callback_query"] })
         : { ok: false };
       return enviar(env, chat, (r.ok ? "✅ Menú azul configurado. Cierra y vuelve a abrir el chat para verlo." : "No se pudo configurar el menú.") +
         (w.ok ? "\n✅ Webhook: altas del canal Pro activadas." : "\n⚠️ No pude actualizar el webhook (avisos del canal Pro)."));

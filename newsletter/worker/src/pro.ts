@@ -299,10 +299,70 @@ export async function morningBriefing(env: Env, force = false): Promise<number> 
   return ids.length;
 }
 
+// ---------- Secuencia de bienvenida y fin de prueba ----------
+async function proLink(env: Env): Promise<string> {
+  return (await env.BOT_KV?.get("pro_link")) ?? `${env.SITE_URL}/precios.html`;
+}
+
+async function trialSummary(env: Env, tg: number): Promise<string> {
+  const [asks, radar] = await env.DB.batch([
+    env.DB.prepare("SELECT COALESCE(SUM(n), 0) n FROM usage WHERE tg = ?1").bind(tg),
+    env.DB.prepare("SELECT label FROM watch WHERE tg = ?1 ORDER BY created_at").bind(tg),
+  ]);
+  const n = Number((asks.results[0] as any)?.n ?? 0);
+  const terms = (radar.results as any[]).map((r) => r.label);
+  return [
+    n ? `🤖 Le hiciste ${n} pregunta${n === 1 ? "" : "s"} a Lana` : "",
+    terms.length ? `🎯 Tu radar sigue ${terms.length} tema${terms.length === 1 ? "" : "s"}: ${esc(terms.join(", "))}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+async function runDrip(env: Env) {
+  const now = Date.now();
+  const due = await env.DB.prepare("SELECT tg, step FROM drip WHERE next_at <= ?1 AND step < 3 LIMIT 15").bind(now).all<{ tg: number; step: number }>();
+  for (const d of due.results) {
+    const { plan } = await planOf(env, d.tg);
+    if (d.step === 1) {
+      const asked = await env.DB.prepare("SELECT 1 FROM usage WHERE tg = ?1 LIMIT 1").bind(d.tg).first();
+      const radar = await env.DB.prepare("SELECT 1 FROM watch WHERE tg = ?1 LIMIT 1").bind(d.tg).first();
+      if (!asked || !radar) {
+        await enqueue(env, [d.tg], `☕ <b>¿Ya probaste esto?</b>\n\n` +
+          (!asked ? `🤖 Escríbeme cualquier duda, como si fuera un amigo que sabe de dinero:\n<i>“¿Me conviene ahorrar en dólares?”</i>\n<i>“¿Qué pasa si Banxico baja la tasa?”</i>\n\n` : "") +
+          (!radar ? `🎯 Dime qué seguir y te aviso cuando salga algo: <code>/radar peso</code>, <code>/radar bitcoin</code>, <code>/radar nvidia</code>` : ""));
+      }
+      await env.DB.prepare("UPDATE drip SET step = 2, next_at = ?2 WHERE tg = ?1").bind(d.tg, d.step === 1 ? now + 2 * DAY : now).run();
+    } else if (d.step === 2) {
+      const t = await env.DB.prepare("SELECT used_trial FROM trials WHERE tg = ?1").bind(d.tg).first<{ used_trial: number }>();
+      if (plan === "gratis" && !t?.used_trial) {
+        await enqueue(env, [d.tg], `🎁 <b>Te regalo 3 días de Lana con Café Pro</b>\n\n⚡ Alertas al instante (no 15 min tarde)\n🎯 Radar de 10 temas\n🤖 30 preguntas al día y /analiza\n☀️ Tu briefing personal a las 7:00\n\nActívalo con /prueba — sin tarjeta.`);
+      }
+      await env.DB.prepare("UPDATE drip SET step = 3 WHERE tg = ?1").bind(d.tg).run();
+    }
+  }
+
+  // Fin de la prueba: aviso 12 h antes y al terminar (una sola vez cada uno)
+  const ending = await env.DB.prepare("SELECT tg, until FROM trials WHERE until > ?1 AND until < ?2").bind(now, now + 12 * 3600_000).all<{ tg: number; until: number }>();
+  const ended = await env.DB.prepare("SELECT tg, until FROM trials WHERE until <= ?1 AND until > ?2").bind(now, now - 3 * 3600_000).all<{ tg: number; until: number }>();
+  for (const [rows, kind] of [[ending.results, "ending"], [ended.results, "ended"]] as const) {
+    for (const t of rows) {
+      const first = await env.DB.prepare("INSERT OR IGNORE INTO flags (k, v) VALUES (?1, '1')").bind(`trial:${kind}:${t.tg}:${t.until}`).run();
+      if (!first.meta.changes) continue;
+      const { plan } = await planOf(env, t.tg);
+      if (plan === "pro" || plan === "api") continue;
+      const resumen = await trialSummary(env, t.tg);
+      const link = await proLink(env);
+      await enqueue(env, [t.tg], kind === "ending"
+        ? `⏳ <b>Tu prueba Pro termina en unas horas</b>\n\n${resumen ? resumen + "\n\n" : ""}Mañana vuelves a recibir las alertas 15 min tarde y con límites.\n\n⭐ <a href="${esc(link)}">Sigue con Pro</a> y no te pierdas nada.`
+        : `☕ <b>Terminó tu prueba Pro</b>\n\n${resumen ? resumen + "\n\n" : ""}Las alertas del canal gratis te llegan con 15 min de retraso. Los Pro las reciben al instante.\n\n⭐ <a href="${esc(link)}">Suscribirme a Pro</a> · o invita a 3 amigos con /invita y gana 7 días`);
+    }
+  }
+}
+
 /** Tareas Pro del cron (cada minuto). */
 export async function proTick(env: Env) {
   await eventReminders(env).catch((e) => console.warn("eventos", e));
   await morningBriefing(env).catch((e) => console.warn("briefing", e));
+  await runDrip(env).catch((e) => console.warn("bienvenida", e));
   await flushOutbox(env).catch((e) => console.warn("outbox", e));
 }
 
@@ -341,6 +401,10 @@ export async function handleBotApi(req: Request, env: Env, path: string): Promis
     case "/bot/ask":
       if (!needTg()) break;
       return Response.json(await ask(env, tg, String(b.q ?? ""), { deep: !!b.deep, newsId: b.news_id ? String(b.news_id) : undefined }));
+    case "/bot/welcome":
+      if (!needTg()) break;
+      await env.DB.prepare("INSERT OR IGNORE INTO drip (tg, step, next_at, started_at) VALUES (?1, 1, ?2, ?3)").bind(tg, Date.now() + DAY, Date.now()).run();
+      return Response.json({ ok: true });
     case "/bot/forget":
       if (!needTg()) break;
       await env.DB.prepare("DELETE FROM convo WHERE tg = ?1").bind(tg).run();
