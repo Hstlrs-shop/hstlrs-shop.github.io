@@ -3,11 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --test-scheduled",
-    "deploy": "wrangler deploy",
-    "typecheck": "tsc --noEmit",
+    "dev": "npm run build:site && wrangler dev --test-scheduled",
+    "deploy": "npm run build:site && wrangler deploy",
+    "typecheck": "npm run build:site && tsc --noEmit",
     "test": "node --experimental-strip-types --test test/*.test.ts",
-    "db:init": "wrangler d1 execute lanaconcafe-news-db --remote --file=schema.sql"
+    "db:init": "wrangler d1 execute lanaconcafe-news-db --remote --file=schema.sql",
+    "build:site": "node scripts/build-site.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0"

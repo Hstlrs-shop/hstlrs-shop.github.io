@@ -2,6 +2,7 @@ import { buildDigest } from "./digest";
 import { num, type Env } from "./env";
 import { flushFreeQueue, ingest, syncBotNoticias } from "./ingest";
 import { handleAccess, handleChatMember, handleMercadoPago } from "./payments";
+import { SITE } from "./site-files";
 import { esc } from "./telegram";
 
 const DIGEST_CRON = "17 11 * * 1-5"; // debe coincidir con wrangler.toml
@@ -60,6 +61,9 @@ export default {
     const url = new URL(req.url);
     const p = url.pathname;
     if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+
+    const page = req.method === "GET" ? SITE[p] : undefined;
+    if (page) return new Response(page.body, { headers: { "content-type": page.type, "cache-control": "public, max-age=300" } });
 
     if (p === "/health") return json({ ok: true, brand: env.BRAND });
 

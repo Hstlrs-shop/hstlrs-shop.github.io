@@ -1,6 +1,7 @@
 // Cambia estos valores al desplegar.
 window.LCC = {
-  API: "https://lanaconcafe-news.gt2hf24n6t.workers.dev",
+  // Misma URL que el Worker (la web se sirve desde él). Si mueves la web a otro dominio, pon aquí la URL del Worker.
+  API: location.hostname.endsWith("workers.dev") || location.hostname === "localhost" ? location.origin : "https://lanaconcafe-news.gt2hf24n6t.workers.dev",
   BRAND: "Lana con Café",
   TELEGRAM_FREE: "https://t.me/LanaconCafe",
   // Enlaces de checkout de tus planes de Mercado Pago Suscripciones
