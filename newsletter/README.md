@@ -17,7 +17,7 @@ Newsletter + alertas de Telegram con las noticias que mueven los mercados (globa
   Telegram PRO (pago)  Telegram público   Edición diaria → web + Telegram + email
          ▲              + web + RSS
          │
-  Stripe → webhook → enlace de invitación único + API key
+  Mercado Pago (suscripción) → enlace de invitación único + API key
 ```
 
 ## Estructura
@@ -28,7 +28,7 @@ Newsletter + alertas de Telegram con las noticias que mueven los mercados (globa
 | `worker/src/sources.ts` | Fuentes y presets por país (`COUNTRY`: MX, ES, CO, AR, VE, CL, PE) |
 | `worker/src/scoring.ts` | Puntuación heurística de impacto (instantánea, sin coste) |
 | `worker/src/ai.ts` | Claude: clasificación en lote y redacción de la edición |
-| `worker/src/stripe.ts` | Webhook de pagos → acceso al canal Pro |
+| `worker/src/payments.ts` | Mercado Pago Suscripciones → acceso al canal Pro |
 | `site/` | Web estática (portada con feed, precios, ediciones, gracias) |
 | `docs/MODELO-NEGOCIO.md` | Monetización, precios, embudo, métricas, legal, hoja de ruta |
 | `docs/DESPLIEGUE.md` | Puesta en marcha paso a paso |
@@ -42,8 +42,8 @@ Newsletter + alertas de Telegram con las noticias que mueven los mercados (globa
 | GET | `/rss.xml` | RSS público (con retraso) |
 | GET | `/api/digests` · `/api/digest/:fecha\|latest` | Ediciones del newsletter |
 | POST | `/api/subscribe` | `{ email }` → tabla `leads` |
-| GET | `/api/acceso?session_id=cs_…` | Enlace al canal Pro tras pagar |
-| POST | `/stripe/webhook` | Webhook de Stripe (firma verificada) |
+| GET | `/api/acceso?preapproval_id=…` | Enlace al canal Pro tras pagar (consulta Mercado Pago) |
+| POST | `/mp/webhook` | Webhook de Mercado Pago (firma verificada; cancelaciones) |
 | POST | `/telegram/chat-member` | Updates reenviados por tu bot (para expulsar al cancelar) |
 | POST | `/admin/run?task=ingest\|free\|digest\|stats` | Tareas manuales (`ADMIN_TOKEN`) |
 

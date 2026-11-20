@@ -42,13 +42,12 @@ CREATE TABLE IF NOT EXISTS leads (
   source       TEXT                        -- utm / página de origen
 );
 
--- Suscriptores de pago (Stripe) y su acceso al canal privado de Telegram
+-- Suscriptores de pago (Mercado Pago) y su acceso al canal privado de Telegram
 CREATE TABLE IF NOT EXISTS members (
-  stripe_customer     TEXT PRIMARY KEY,
-  checkout_session    TEXT UNIQUE,
+  id                  TEXT PRIMARY KEY,    -- preapproval_id de Mercado Pago
   email               TEXT,
   plan                TEXT NOT NULL,       -- pro | api
-  status              TEXT NOT NULL,       -- active | canceled
+  status              TEXT NOT NULL,       -- authorized | paused | cancelled
   invite_link         TEXT,
   telegram_user_id    INTEGER,
   api_key             TEXT UNIQUE,

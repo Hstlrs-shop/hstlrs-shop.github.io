@@ -24,10 +24,10 @@ Contenido gratis (X, TikTok/Reels, Telegram público, SEO del archivo)
 Newsletter gratis (email)  ← activo principal: la lista es tuya
         │  CTA en cada edición y en cada alerta con retraso
         ▼
-Pro ($12/mes) — alertas instantáneas en Telegram privado
+Pro ($199 MXN/mes) — alertas instantáneas en Telegram privado
         │
         ▼
-API / Equipos ($79/mes) — traders, mesas, medios, bots
+API / Equipos ($1,490 MXN/mes) — traders, mesas, medios, bots
 ```
 
 Cada alerta del canal gratuito termina con: *"⚡ Los miembros Pro recibieron esto al instante"*. Ese retraso de 15 min es el producto: el usuario gratuito *siente* lo que se pierde.
@@ -36,8 +36,8 @@ Cada alerta del canal gratuito termina con: *"⚡ Los miembros Pro recibieron es
 
 | # | Ingreso | Precio orientativo | Cuándo activarlo |
 |---|---------|--------------------|------------------|
-| 1 | **Suscripción Pro** (Telegram privado instantáneo + resumen semanal ampliado) | $12/mes · $99/año | Desde el día 1 (aunque tengas pocos usuarios: valida la disposición a pagar) |
-| 2 | **API / Equipos** | $79/mes · plan a medida para medios | Desde ~1.000 suscriptores o cuando alguien lo pida |
+| 1 | **Suscripción Pro** (Telegram privado instantáneo + resumen semanal ampliado) | $199 MXN/mes (anual opcional ~$1,990 MXN) | Desde el día 1 (aunque tengas pocos usuarios: valida la disposición a pagar) |
+| 2 | **API / Equipos** | $1,490 MXN/mes · plan a medida para medios | Desde ~1.000 suscriptores o cuando alguien lo pida |
 | 3 | **Patrocinio del newsletter** (1 bloque por edición) | CPM $25–60 en nicho finanzas | Desde ~2.000–3.000 suscriptores activos (apertura > 40 %) |
 | 4 | **Afiliados** (brokers, apps de inversión, cursos) | CPA $50–200 por cuenta fondeada | Con cuidado legal (ver §7). Mejor en el newsletter que en las alertas |
 | 5 | **Informes premium puntuales** (ej. "Guía Banxico 2027", "Calendario de resultados") | $9–29 c/u | Cuando tengas lista; buen producto para quien no quiere suscripción |
@@ -45,11 +45,11 @@ Cada alerta del canal gratuito termina con: *"⚡ Los miembros Pro recibieron es
 
 ### Proyección orientativa (12 meses)
 
-| Mes | Suscriptores email | Pro (conv. 2–4 %) | API | Patrocinio/mes | MRR aprox. |
+| Mes | Suscriptores email | Pro (conv. 2–4 %) | API | Patrocinio/mes | Ingreso mensual aprox. (MXN) |
 |-----|--------------------|--------------------|-----|----------------|------------|
-| 3 | 1.000 | 20 | 0 | – | $240 |
-| 6 | 4.000 | 100 | 3 | $600 | $2.000 |
-| 12 | 12.000 | 360 | 10 | $2.500 | $7.600 |
+| 3 | 1.000 | 20 | 0 | – | $3,980 |
+| 6 | 4.000 | 100 | 3 | $10,000 | $34,370 |
+| 12 | 12.000 | 360 | 10 | $45,000 | $131,540 |
 
 ### Costes mensuales estimados
 
@@ -58,7 +58,7 @@ Cada alerta del canal gratuito termina con: *"⚡ Los miembros Pro recibieron es
 | Cloudflare Workers Paid (cron/minuto, D1, KV) | ~$5 |
 | Claude API (≈20 análisis/min en horas de mercado en lotes de 10 + 1 edición diaria) | $30–150 según volumen y modelo (ajusta `AI_MIN_SCORE` para controlarlo) |
 | Plataforma de email (Beehiiv/Buttondown/Kit) | $0–50 al inicio |
-| Stripe | 2,9 % + $0,30 por cobro (aprox., depende del país) |
+| Mercado Pago | comisión por cobro (≈ 3–4 % + IVA según plazo de liberación; revisa tu tarifa en el panel) |
 | Dominio | ~$1 |
 
 Margen bruto > 85 % desde ~100 miembros Pro.
@@ -103,7 +103,7 @@ Todo esto ya está implementado en el Worker: los parámetros `FREE_DELAY_MIN`, 
 - **Derechos de autor**: solo titular + resumen propio + enlace a la fuente. Nunca copiamos el artículo (la IA está instruida para redactar con palabras propias).
 - **Afiliados de brokers**: decláralos como publicidad y elige brokers regulados en el país del lector.
 - **Datos personales**: política de privacidad y baja en un clic en el email (lo da la plataforma de email).
-- **Pagos**: Stripe no opera en todos los países (p. ej. Colombia, Argentina, Venezuela). Alternativas: Lemon Squeezy, Paddle, Mercado Pago o Hotmart. El webhook de `src/stripe.ts` se adapta cambiando la verificación de firma y los nombres de eventos.
+- **Pagos**: Mercado Pago Suscripciones (México). Emite tus comprobantes/facturas según tu régimen fiscal ante el SAT; Mercado Pago no factura por ti.
 
 ## 8. Hoja de ruta
 
@@ -111,7 +111,7 @@ Todo esto ya está implementado en el Worker: los parámetros `FREE_DELAY_MIN`, 
 - Desplegar Worker + web (ver `DESPLIEGUE.md`). Elegir país en `COUNTRY`.
 - Crear canal público y canal Pro privado en Telegram; añadir el bot como admin en ambos.
 - Conectar la plataforma de email al `DIGEST_WEBHOOK_URL`.
-- Crear los Payment Links de Stripe (Pro mensual/anual, API).
+- Crear los planes de Mercado Pago Suscripciones (Pro y API).
 - 30 primeros suscriptores a mano (amigos, grupos, X).
 
 **Fase 2 — Ventaja de velocidad (semanas 3–8)**

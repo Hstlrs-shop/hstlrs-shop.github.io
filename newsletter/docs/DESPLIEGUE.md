@@ -1,6 +1,6 @@
 # Despliegue paso a paso
 
-Tiempo estimado: 45–60 minutos. Necesitas: cuenta de Cloudflare (plan Workers Paid de $5 recomendado por el cron cada minuto), tu bot de Telegram, cuenta de Stripe y una API key de Anthropic.
+Tiempo estimado: 45–60 minutos. Necesitas: cuenta de Cloudflare (plan Workers Paid de $5 recomendado por el cron cada minuto), tu bot de Telegram, cuenta de Mercado Pago (vendedor) y una API key de Anthropic.
 
 ## 1. Telegram
 
@@ -36,13 +36,14 @@ npm run db:init                              # crea las tablas
 
 npx wrangler secret put TELEGRAM_BOT_TOKEN
 npx wrangler secret put ANTHROPIC_API_KEY
-npx wrangler secret put STRIPE_WEBHOOK_SECRET   # después del paso 3
+npx wrangler secret put MP_ACCESS_TOKEN         # paso 3
+npx wrangler secret put MP_WEBHOOK_SECRET       # paso 3
 npx wrangler secret put ADMIN_TOKEN             # cualquier cadena larga aleatoria
 npx wrangler secret put TELEGRAM_FORWARD_SECRET # otra cadena aleatoria (la misma en tu bot)
 npx wrangler secret put DIGEST_WEBHOOK_URL      # opcional, paso 4
 ```
 
-Edita `[vars]` en `wrangler.toml` (`BRAND`, `SITE_URL`, `COUNTRY`, canales, enlaces de Stripe) y despliega:
+Edita `[vars]` en `wrangler.toml` (`BRAND`, `SITE_URL`, `COUNTRY`, canales, ids de planes de Mercado Pago) y despliega:
 
 ```bash
 npm run deploy
@@ -53,16 +54,20 @@ La **primera** lectura de cada fuente se guarda sin alertar (para no inundar el 
 
 Tareas manuales disponibles en `/admin/run?task=`: `ingest`, `free`, `digest`, `stats`.
 
-## 3. Stripe
+## 3. Mercado Pago (Suscripciones)
 
-1. Crea los productos: **Pro mensual** ($12), **Pro anual** ($99), **API** ($79).
-2. Crea un **Payment Link** para cada uno:
-   - En *Después del pago* → redirigir a `https://TU-SITIO/gracias.html?session_id={CHECKOUT_SESSION_ID}`.
-   - En *Metadatos* añade `plan = pro` (o `plan = api`).
-3. Webhook: *Desarrolladores → Webhooks → Añadir endpoint* `https://lanaconcafe-news.TU-SUBDOMINIO.workers.dev/stripe/webhook` con los eventos `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copia el *signing secret* (`whsec_…`) a `STRIPE_WEBHOOK_SECRET`.
-4. Activa el **portal de clientes** para que puedan cancelar solos.
+1. En [Mercado Pago Developers](https://www.mercadopago.com.mx/developers/panel) → *Tus integraciones* → crea una aplicación (producto: **Suscripciones**).
+2. Copia la **credencial de producción** *Access Token* (`APP_USR-…`) → secreto `MP_ACCESS_TOKEN` del Worker.
+3. Crea los **planes de suscripción** (desde el panel de Mercado Pago o pídemelo y los creo por API):
+   - **Pro**: $199 MXN/mes.
+   - **API**: $1,490 MXN/mes.
+   - *URL de retorno* (`back_url`) de ambos: `https://TU-SITIO/gracias.html`.
+   Copia el `id` de cada plan a `MP_PLAN_PRO` / `MP_PLAN_API` en `wrangler.toml`, y el enlace de checkout de cada uno a `site/config.js` (`MP_PRO` / `MP_API`).
+4. *Webhooks* → URL `https://lanaconcafe-news.gt2hf24n6t.workers.dev/mp/webhook`, evento **Planes y suscripciones** (`subscription_preapproval`). Copia la **clave secreta** → secreto `MP_WEBHOOK_SECRET`.
 
-Flujo resultante: paga → Stripe llama al webhook → el Worker crea un enlace de invitación de **un solo uso** (caduca en 7 días) y una API key → la página `gracias.html` los muestra. Al cancelar → se revoca el enlace y se expulsa al usuario del canal.
+Flujo resultante: paga → Mercado Pago lo regresa a `gracias.html?preapproval_id=…` → el Worker consulta esa suscripción en la API de Mercado Pago; si está `authorized`, crea un enlace de invitación de **un solo uso** (caduca en 7 días) y, para el plan API, una API key. Si cancela o se pausa por falta de pago → el webhook avisa, se revoca el enlace y se expulsa al usuario del canal.
+
+Prueba primero con las credenciales y usuarios **de prueba** de Mercado Pago.
 
 ## 4. Email (newsletter)
 
@@ -75,7 +80,7 @@ Los emails que capta la web quedan en la tabla `leads`; impórtalos periódicame
 
 ## 5. Web (GitHub Pages)
 
-1. Edita `site/config.js` con la URL de tu Worker, canal y enlaces de Stripe.
+1. Edita `site/config.js` con la URL de tu Worker, canal y enlaces de checkout de Mercado Pago.
 2. Si este proyecto vive en su propio repositorio, el workflow `.github/workflows/pages.yml` publica `site/` automáticamente. Activa *Settings → Pages → Source: GitHub Actions*.
 3. Para desplegar el Worker desde GitHub, añade los secretos `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` (workflow `deploy-worker.yml`).
 
@@ -86,4 +91,4 @@ Los emails que capta la web quedan en la tabla `leads`; impórtalos periódicame
 - [ ] Llega una alerta al canal Pro cuando hay noticia de impacto ≥ 4.
 - [ ] El canal público la recibe ~15 min después con el CTA a Pro.
 - [ ] `task=digest` genera la edición y aparece en la web.
-- [ ] Un pago de prueba (modo test de Stripe) muestra el enlace en `gracias.html`.
+- [ ] Una suscripción de prueba (usuario de prueba de Mercado Pago) muestra el enlace en `gracias.html`.

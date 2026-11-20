@@ -13,15 +13,16 @@ export interface Env {
   FREE_DELAY_MIN: string;      // minutos de retraso para gratis (web, RSS y canal)
   TELEGRAM_FREE_CHAT: string;  // @canal_publico o -100...
   TELEGRAM_PRO_CHAT: string;   // -100... (canal privado de pago)
-  STRIPE_PRO_LINK: string;     // Payment Link Pro
-  STRIPE_API_LINK: string;     // Payment Link API
+  MP_PLAN_PRO?: string;        // id del plan de suscripción Pro en Mercado Pago
+  MP_PLAN_API?: string;        // id del plan de suscripción API
   ROTATE?: string;             // "3" en plan gratuito, "1" en Workers Paid
   BOT_NOTICIAS?: string;       // "1" = actualizar /noticias del bot cada hora
 
   // Secretos (wrangler secret put ...)
   TELEGRAM_BOT_TOKEN: string;
   ANTHROPIC_API_KEY?: string;
-  STRIPE_WEBHOOK_SECRET?: string;
+  MP_ACCESS_TOKEN?: string;     // Mercado Pago: credencial de producción (APP_USR-…)
+  MP_WEBHOOK_SECRET?: string;   // Mercado Pago: clave secreta de Webhooks
   ADMIN_TOKEN?: string;
   DIGEST_WEBHOOK_URL?: string;  // opcional: tu ESP (Beehiiv/Buttondown/Make/Zapier)
   TELEGRAM_FORWARD_SECRET?: string;

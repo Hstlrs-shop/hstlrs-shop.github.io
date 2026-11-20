@@ -31,8 +31,8 @@ ROTATE = "3"                # plan gratuito (10 ms CPU): fuentes no oficiales ca
 TELEGRAM_FREE_CHAT = "@LanaconCafe"
 BOT_NOTICIAS = "0"          # pon "1" para que /noticias del bot se llene solo cada hora
 TELEGRAM_PRO_CHAT = "-100REEMPLAZAR"
-STRIPE_PRO_LINK = "https://buy.stripe.com/REEMPLAZAR"
-STRIPE_API_LINK = "https://buy.stripe.com/REEMPLAZAR"
+MP_PLAN_PRO = ""                # id del plan Pro en Mercado Pago (preapproval_plan_id)
+MP_PLAN_API = ""                # id del plan API
 
 [observability]
 enabled = true
@@ -40,7 +40,8 @@ enabled = true
 # Secretos (no van aquí):
 #   npx wrangler secret put TELEGRAM_BOT_TOKEN
 #   npx wrangler secret put ANTHROPIC_API_KEY
-#   npx wrangler secret put STRIPE_WEBHOOK_SECRET
+#   npx wrangler secret put MP_ACCESS_TOKEN
+#   npx wrangler secret put MP_WEBHOOK_SECRET
 #   npx wrangler secret put ADMIN_TOKEN
 #   npx wrangler secret put TELEGRAM_FORWARD_SECRET
 #   npx wrangler secret put DIGEST_WEBHOOK_URL   (opcional)

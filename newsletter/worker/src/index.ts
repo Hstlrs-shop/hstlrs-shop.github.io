@@ -1,7 +1,7 @@
 import { buildDigest } from "./digest";
 import { num, type Env } from "./env";
 import { flushFreeQueue, ingest, syncBotNoticias } from "./ingest";
-import { handleChatMember, handleStripe } from "./stripe";
+import { handleAccess, handleChatMember, handleMercadoPago } from "./payments";
 import { esc } from "./telegram";
 
 const DIGEST_CRON = "17 11 * * 1-5"; // debe coincidir con wrangler.toml
@@ -19,7 +19,7 @@ const json = (data: unknown, status = 200, extra: Record<string, string> = {}) =
 async function memberFromAuth(req: Request, env: Env): Promise<string | null> {
   const key = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!key?.startsWith("pk_")) return null;
-  const m = await env.DB.prepare("SELECT plan FROM members WHERE api_key = ?1 AND status = 'active'").bind(key).first<{ plan: string }>();
+  const m = await env.DB.prepare("SELECT plan FROM members WHERE api_key = ?1 AND status = 'authorized'").bind(key).first<{ plan: string }>();
   return m?.plan ?? null;
 }
 
@@ -101,16 +101,17 @@ export default {
       return json({ ok: true });
     }
 
-    // Página de éxito de Stripe: success_url = SITE_URL/gracias.html?session_id={CHECKOUT_SESSION_ID}
+    // Al volver de Mercado Pago: back_url = SITE_URL/gracias.html (llega con ?preapproval_id=…)
     if (p === "/api/acceso") {
-      const sid = url.searchParams.get("session_id") ?? "";
-      if (!sid.startsWith("cs_")) return json({ error: "sesión inválida" }, 400);
-      const m = await env.DB.prepare("SELECT plan, invite_link, api_key, status FROM members WHERE checkout_session = ?1").bind(sid).first<any>();
-      if (!m) return json({ pending: true }, 202); // el webhook aún no llegó: la página reintenta
-      return json({ plan: m.plan, status: m.status, invite_link: m.invite_link, api_key: m.api_key }, 200, { "cache-control": "no-store" });
+      const r = await handleAccess(url, env).catch((e: Error) => {
+        console.error("acceso", e.message);
+        return Response.json({ error: "no se pudo verificar el pago, intenta en un minuto" }, { status: 503 });
+      });
+      const h = new Headers(r.headers); for (const [k, v] of Object.entries(CORS)) h.set(k, v); h.set("cache-control", "no-store");
+      return new Response(r.body, { status: r.status, headers: h });
     }
 
-    if (p === "/stripe/webhook" && req.method === "POST") return handleStripe(req, env);
+    if (p === "/mp/webhook" && req.method === "POST") return handleMercadoPago(req, env);
     if (p === "/telegram/chat-member" && req.method === "POST") return handleChatMember(req, env);
 
     if (p === "/admin/run" && req.method === "POST") {
@@ -124,7 +125,7 @@ export default {
         const s = await env.DB.batch([
           env.DB.prepare("SELECT COUNT(*) n FROM news WHERE detected_at > ?1").bind(Date.now() - 86400_000),
           env.DB.prepare("SELECT COUNT(*) n FROM leads"),
-          env.DB.prepare("SELECT plan, COUNT(*) n FROM members WHERE status='active' GROUP BY plan"),
+          env.DB.prepare("SELECT plan, status, COUNT(*) n FROM members GROUP BY plan, status"),
         ]);
         return json({ news_24h: s[0].results[0], leads: s[1].results[0], members: s[2].results });
       }

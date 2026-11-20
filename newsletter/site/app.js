@@ -86,21 +86,24 @@ if (ed) {
   }).catch(() => (ed.innerHTML = "<p>Edición no encontrada.</p>"));
 }
 
-// Página de gracias tras el pago
+// Página de gracias tras el pago (Mercado Pago regresa con ?preapproval_id=…)
 const acc = $("#access");
 if (acc) {
-  const sid = new URLSearchParams(location.search).get("session_id");
+  const id = new URLSearchParams(location.search).get("preapproval_id");
   let tries = 0;
   const poll = async () => {
-    const r = await fetch(`${C.API}/api/acceso?session_id=${encodeURIComponent(sid)}`);
+    const r = await fetch(`${C.API}/api/acceso?preapproval_id=${encodeURIComponent(id)}`);
     const d = await r.json();
-    if (r.status === 202 && tries++ < 20) return setTimeout(poll, 3000);
-    if (!d.invite_link) return (acc.innerHTML = `<p>No encontramos tu pago todavía. Escríbenos y lo resolvemos.</p>`);
+    if (r.status === 202 && tries++ < 40) {
+      acc.innerHTML = "<p>Mercado Pago está confirmando tu pago… no cierres esta página.</p>";
+      return setTimeout(poll, 3000);
+    }
+    if (!d.invite_link) return (acc.innerHTML = `<p>Aún no vemos tu suscripción como pagada (${esc(d.error || "pendiente")}). Recarga en unos minutos o escríbenos por Telegram.</p>`);
     acc.innerHTML = `
       <p><a class="btn" href="${esc(d.invite_link)}">Entrar al canal Pro de Telegram</a></p>
-      <p class="note">El enlace es de un solo uso y caduca en 7 días. No lo compartas.</p>
-      ${d.plan === "api" ? `<p>Tu API key (guárdala):</p><code class="key">${esc(d.api_key)}</code>
+      <p class="note">El enlace es de un solo uso y caduca en 7 días. No lo compartas. Puedes volver a esta página para verlo de nuevo.</p>
+      ${d.api_key ? `<p>Tu API key (guárdala):</p><code class="key">${esc(d.api_key)}</code>
       <p class="note">Uso: <code>GET ${esc(C.API)}/api/news</code> con cabecera <code>Authorization: Bearer TU_KEY</code></p>` : ""}`;
   };
-  sid ? poll() : (acc.innerHTML = "<p>Falta el identificador de pago.</p>");
+  id ? poll() : (acc.innerHTML = "<p>Falta el identificador de la suscripción.</p>");
 }
