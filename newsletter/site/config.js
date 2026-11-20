@@ -4,7 +4,10 @@ window.LCC = {
   API: location.hostname.endsWith("workers.dev") || location.hostname === "localhost" ? location.origin : "https://lanaconcafe-news.gt2hf24n6t.workers.dev",
   BRAND: "Lana con Café",
   TELEGRAM_FREE: "https://t.me/LanaconCafe",
-  // Enlaces de checkout de tus planes de Mercado Pago Suscripciones
+  // Suscripción Pro: enlace de Telegram Stars (lo crea /crearsuscripcion en el bot)
+  PRO_LINK: "https://t.me/+iqsOgPTZe8plZDlh",
+  BOT: "https://t.me/LanaconcafeBot",
+  // Mercado Pago (para más adelante): enlaces de checkout de los planes
   MP_PRO: "https://www.mercadopago.com.mx/subscriptions/checkout?preapproval_plan_id=REEMPLAZAR",
   MP_API: "https://www.mercadopago.com.mx/subscriptions/checkout?preapproval_plan_id=REEMPLAZAR",
 };

@@ -79,7 +79,7 @@ export async function sendAlert(env: Env, chatId: string, n: AlertNews, opts: { 
   const page = n.id ? `${env.SITE_URL}${newsPath({ id: n.id, headline_es: n.headline, title: n.title ?? n.headline })}` : null;
   const buttons = [
     ...(page ? [[{ text: "☕ Leer en Lana con Café", url: page }]] : []),
-    ...(opts.pro ? [] : [[{ text: "⚡ Recíbelas al instante con Pro", url: `${env.SITE_URL}/precios.html` }]]),
+    ...(opts.pro ? [] : [[{ text: "⚡ Recíbelas al instante con Pro", url: (await env.BOT_KV?.get("pro_link")) ?? `${env.SITE_URL}/precios.html` }]]),
   ];
   const reply_markup = buttons.length ? { inline_keyboard: buttons } : undefined;
   const photo = n.image ?? (n.category !== undefined ? catImage(env, n.category) : null);
