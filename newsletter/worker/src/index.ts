@@ -4,6 +4,7 @@ import { backfillImages, enrichRecent, flushFreeQueue, ingest, syncBotNoticias }
 import { handleAccess, handleChatMember, handleMercadoPago } from "./payments";
 import { flushOutbox, handleBotApi, morningBriefing, proTick } from "./pro";
 import { articlePage, catSlug, newsPath, robots, sitemap } from "./pages";
+import { affiliateRedirect } from "./growth";
 import { marketPage } from "./seo";
 import { SITE } from "./site-files";
 import { esc } from "./telegram";
@@ -85,6 +86,8 @@ export default {
     const art = p.match(/^\/n\/([0-9a-f]{32})(?:-[a-z0-9-]*)?$/);
     if (art && req.method === "GET") return articlePage(env, art[1], req, ctx);
     if (p === "/sitemap.xml") return sitemap(env);
+    const aff = p.match(/^\/r\/([a-z0-9_]{3,20})$/);
+    if (aff) return affiliateRedirect(env, aff[1]);
     if (p === "/dolar-hoy" || p === "/precio-dolar-hoy") return marketPage(env, "dolar");
     if (p === "/bitcoin-hoy" || p === "/precio-bitcoin-hoy") return marketPage(env, "bitcoin");
     if (p === "/robots.txt") return robots(env);

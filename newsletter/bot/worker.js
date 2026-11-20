@@ -3,6 +3,7 @@
 // Variable opcional: CANAL_ID (texto, p. ej. @lanaconcafe) para publicar en el canal. El bot debe ser administrador del canal.
 // v5: las publicaciones del canal llevan botones que abren el bot; /menucanal publica un menú para fijar.
 // v6: resumen automático 7:30 am y encuesta diaria en el canal (resultado 8 pm, hora de Querétaro); /stats y /probarcanal para el administrador.
+// v13: afiliados para creadores (/start a_<código>, /afiliado, /afiliados, /comisiones) y /kit (contenido diario).
 // v12: bienvenida con botones de radar de un toque (callback_query) y secuencia día 1 / día 3 / fin de prueba.
 // v11: IA de Lana v2: modelo rápido con 100 preguntas/día en Pro, /analiza (análisis profundo), memoria de 3
 //      intercambios (/nueva para olvidar), usa tu radar, y botón "¿Qué significa para mí?" (/start q_<id>).
@@ -335,6 +336,12 @@ async function manejar(update, env) {
     return preguntar(env, chat, from, "", { news_id: args[0].slice(2) });
   }
 
+  // v13: llegó con el enlace de un creador aliado (/start a_codigo): se le atribuye (solo usuarios nuevos)
+  if (cmd === "/start" && args[0] && /^a_[a-z0-9_]{3,20}$/.test(args[0])) {
+    if (nuevo) await news(env, "/bot/attribute", { tg: from, code: args[0].slice(2) });
+    args = [];
+  }
+
   // v9: llegó con el enlace de un amigo (/start ref_123)
   if (cmd === "/start" && args[0] && /^ref_\d+$/.test(args[0])) {
     if (nuevo) await news(env, "/bot/referral", { referrer: Number(args[0].slice(4)), tg: from });
@@ -488,6 +495,43 @@ async function manejar(update, env) {
       await env.DB.put("pro_link", r.result.invite_link);
       await env.DB.put("pro_stars", String(estrellas));
       return enviar(env, chat, `✅ <b>Suscripción creada</b>: ${estrellas} ⭐ al mes\n${r.result.invite_link}\n\nYa aparece en /pro. Quien pague entra al canal y se le activa Pro en el bot; si deja de pagar, Telegram lo saca y se le desactiva.`);
+    }
+
+    // ---- v13: crecimiento ----
+    case "/kit": {
+      if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+      await enviar(env, chat, "🎬 Generando el kit de contenido…");
+      const r = await news(env, "/bot/kit", {});
+      return r.sent ? undefined : enviar(env, chat, `No se pudo generar: ${esc(r.reason || r.error || "error")}`);
+    }
+
+    case "/afiliado": {
+      if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+      // /afiliado codigo [pct] [id_telegram] [Nombre del creador]
+      const [codigo, ...resto] = args;
+      if (!codigo) return enviar(env, chat, "Uso: <code>/afiliado juanfinanzas 40 123456789 Juan Finanzas</code>\n(código, % de comisión, ID de Telegram del creador si lo tienes, nombre)");
+      const pct = /^\d{1,2}$/.test(resto[0] || "") ? Number(resto.shift()) : 40;
+      const tgId = /^\d{5,}$/.test(resto[0] || "") ? Number(resto.shift()) : undefined;
+      const r = await news(env, "/bot/aff-create", { code: codigo.toLowerCase(), pct, tg: tgId, name: resto.join(" ") || codigo });
+      if (r.error) return enviar(env, chat, esc(r.error));
+      return enviar(env, chat, `✅ <b>Afiliado ${esc(r.code)}</b> · ${r.pct}% de comisión\n\nEnlaces para que comparta:\n🌐 ${esc(r.web)}\n🤖 ${esc(r.bot || "")}\n\nQuien entre por ahí y se suscriba a Pro le cuenta a este creador. ${tgId ? "Puede ver sus números con /comisiones." : "Si me das su ID de Telegram, podrá ver sus números con /comisiones."}`);
+    }
+
+    case "/afiliados": {
+      if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+      const r = await news(env, "/bot/aff-report", {});
+      const filas = (r.affiliates || []).filter(Boolean);
+      if (!filas.length) return enviar(env, chat, "Aún no hay afiliados. Crea uno con /afiliado");
+      const total = filas.reduce((a, f) => a + f.commission_mxn, 0);
+      return enviar(env, chat, `🤝 <b>Afiliados · este mes</b>\n<i>Comisión = suscriptores Pro activos × $${r.net_mxn} neto × %</i>\n\n` +
+        filas.map((f) => `<b>${esc(f.name)}</b> (${esc(f.code)}, ${f.pct}%)\n👆 ${f.clicks} clics · 👤 ${f.users} usuarios · ⭐ ${f.pro} Pro → <b>$${f.commission_mxn} MXN</b>`).join("\n\n") +
+        `\n\n<b>Total a pagar: $${total} MXN</b>`);
+    }
+
+    case "/comisiones": {
+      const r = await news(env, "/bot/aff-mine", { tg: from });
+      if (r.error) return enviar(env, chat, esc(r.error));
+      return enviar(env, chat, `🤝 <b>Tus números, ${esc(r.name)}</b>\n👆 ${r.clicks} clics · 👤 ${r.users} personas llegaron con tu enlace · ⭐ ${r.pro} Pro activos\n💰 Comisión estimada este mes: <b>$${r.commission_mxn} MXN</b> (${r.pct}%)\n\nTus enlaces:\n🌐 ${esc(r.web)}\n🤖 ${esc(r.bot || "")}`);
     }
 
     case "/miid":

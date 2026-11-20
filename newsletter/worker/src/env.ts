@@ -23,6 +23,8 @@ export interface Env {
   PRICE_FOUNDER_MXN?: string;  // precio de fundador mostrado (99)
   PRICE_MXN?: string;          // precio normal mostrado (149)
   FOUNDERS_TOTAL?: string;     // lugares de fundador (100)
+  ADMIN_CHAT_ID?: string;      // tu Telegram: recibe el kit de contenido diario
+  AFF_NET_MXN?: string;        // lo que te queda por suscriptor al mes (base de comisiones), ~55
   ROTATE?: string;             // "3" en plan gratuito, "1" en Workers Paid
   BOT_NOTICIAS?: string;       // "1" = actualizar /noticias del bot cada hora
   HEURISTIC_ALERTS?: string;   // "1" = publicar en canales aunque la IA no haya revisado la noticia

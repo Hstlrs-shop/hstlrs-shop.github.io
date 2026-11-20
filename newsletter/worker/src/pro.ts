@@ -3,6 +3,7 @@
 // El bot llama a estas rutas por service binding (/bot/*) con INTERNAL_SECRET.
 
 import { answerQuestion } from "./ai";
+import { contentKit, handleAffiliateApi } from "./growth";
 import { num, type Env } from "./env";
 import { newsPath } from "./pages";
 import { askLink, esc, proChatId, tgCall } from "./telegram";
@@ -363,6 +364,7 @@ export async function proTick(env: Env) {
   await eventReminders(env).catch((e) => console.warn("eventos", e));
   await morningBriefing(env).catch((e) => console.warn("briefing", e));
   await runDrip(env).catch((e) => console.warn("bienvenida", e));
+  await contentKit(env).catch((e) => console.warn("kit", e));
   await flushOutbox(env).catch((e) => console.warn("outbox", e));
 }
 
@@ -462,5 +464,7 @@ export async function handleBotApi(req: Request, env: Env, path: string): Promis
       return Response.json({ members: m.results, trials: t.results[0], radar: w.results[0], outbox: o.results[0], asks_today: u.results[0] });
     }
   }
+  const growth = await handleAffiliateApi(env, path, b);
+  if (growth) return growth;
   return Response.json({ error: "petición inválida" }, { status: 400 });
 }

@@ -165,3 +165,43 @@ export async function answerQuestion(env: Env, input: AskInput): Promise<string 
   if (stop === "refusal") return "Esa no la puedo responder. Pregúntame sobre mercados, economía o tu dinero ☕";
   return content.map((b) => (b.type === "text" ? b.text ?? "" : "")).join("").trim() || null;
 }
+
+// ---------- Kit de contenido diario para redes (TikTok/Reels/Shorts y WhatsApp) ----------
+export interface ContentKit {
+  hook: string;          // primera frase del video (0-3 s)
+  script: string;        // guion completo de ~45 s
+  caption: string;       // descripción para TikTok/Instagram
+  hashtags: string[];
+  whatsapp: string;      // texto para el Canal de WhatsApp
+}
+
+const KIT_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["hook", "script", "caption", "hashtags", "whatsapp"],
+  properties: {
+    hook: { type: "string" }, script: { type: "string" }, caption: { type: "string" },
+    hashtags: { type: "array", items: { type: "string" } }, whatsapp: { type: "string" },
+  },
+} as const;
+
+const SYSTEM_KIT = `Eres el productor de contenido de "Lana con Café", marca mexicana de noticias que mueven tu dinero (tono: cercano, claro, de México, con café ☕; nunca alarmista ni de "hazte rico").
+Con las 3 noticias que te paso escribe:
+- hook: primera frase del video, máx. 12 palabras, que detenga el scroll (pregunta o dato fuerte, sin clickbait falso).
+- script: guion para video vertical de 40-50 s hablado a cámara: hook, luego "1.", "2.", "3." (una noticia cada una: qué pasó y qué significa para el bolsillo, 2 frases), y cierre: "Te aviso al instante en Telegram, link en mi perfil. ¡Salud con café! ☕". Texto plano, frases cortas para leer en voz alta. Marca pausas con " / ".
+- caption: 1-2 líneas para TikTok/Instagram con una pregunta para comentarios.
+- hashtags: 6-8 relevantes en español (sin #), mezcla de amplios (finanzaspersonales) y del tema (banxico, dolar).
+- whatsapp: mensaje para Canal de WhatsApp: "☕ *Lo que mueve tu dinero hoy*" y luego las 3 noticias con emoji, 1 frase cada una y un espacio para su enlace marcado como {LINK1}, {LINK2}, {LINK3}; termina con "⚡ Alertas al instante: {BOT}". Usa *negritas* estilo WhatsApp.
+Es información, no asesoría: nunca digas "compra" o "vende". No inventes cifras que no estén en las noticias.`;
+
+export async function writeContentKit(env: Env, news: { title: string; brief: string | null; source: string }[]): Promise<ContentKit | null> {
+  if (!env.ANTHROPIC_API_KEY || news.length === 0) return null;
+  const r = await client(env).beta.messages.create({
+    model: env.CLAUDE_MODEL, max_tokens: 8000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+    output_config: { effort: "medium", format: { type: "json_schema", schema: KIT_SCHEMA } },
+    system: SYSTEM_KIT,
+    messages: [{ role: "user", content: news.map((n, i) => `${i + 1}. ${n.title}${n.brief ? ` — ${n.brief}` : ""} (${n.source})`).join("\n") }],
+  });
+  if (r.stop_reason === "refusal" || r.stop_reason === "max_tokens") return null;
+  const t = r.content.find((b) => b.type === "text");
+  return t && t.type === "text" ? (JSON.parse(t.text) as ContentKit) : null;
+}
