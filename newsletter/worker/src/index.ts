@@ -1,6 +1,6 @@
 import { buildDigest } from "./digest";
 import { num, type Env } from "./env";
-import { flushFreeQueue, ingest } from "./ingest";
+import { flushFreeQueue, ingest, syncBotNoticias } from "./ingest";
 import { handleChatMember, handleStripe } from "./stripe";
 import { esc } from "./telegram";
 
@@ -119,6 +119,7 @@ export default {
       if (task === "ingest") return json(await ingest(env));
       if (task === "free") return json({ sent: await flushFreeQueue(env) });
       if (task === "digest") return json(await buildDigest(env));
+      if (task === "bot") return json({ updated: await syncBotNoticias(env) });
       if (task === "stats") {
         const s = await env.DB.batch([
           env.DB.prepare("SELECT COUNT(*) n FROM news WHERE detected_at > ?1").bind(Date.now() - 86400_000),
@@ -127,7 +128,7 @@ export default {
         ]);
         return json({ news_24h: s[0].results[0], leads: s[1].results[0], members: s[2].results });
       }
-      return json({ error: "task = ingest | free | digest | stats" }, 400);
+      return json({ error: "task = ingest | free | digest | bot | stats" }, 400);
     }
 
     return json({ error: "no encontrado" }, 404);
@@ -140,6 +141,7 @@ export default {
     }
     const r = await ingest(env);
     if (r.errors.length) console.warn("ingest errors", r.errors);
-    await flushFreeQueue(env);
+    await flushFreeQueue(env).catch((e) => console.warn("free queue", e));
+    if (new Date(event.scheduledTime).getUTCMinutes() === 0) await syncBotNoticias(env).catch((e) => console.warn("bot noticias", e));
   },
 } satisfies ExportedHandler<Env>;

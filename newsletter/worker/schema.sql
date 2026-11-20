@@ -55,3 +55,11 @@ CREATE TABLE IF NOT EXISTS members (
   created_at          INTEGER NOT NULL,
   updated_at          INTEGER NOT NULL
 );
+
+-- Estado de cada fuente (ETag / Last-Modified) para descargas condicionales
+CREATE TABLE IF NOT EXISTS feeds (
+  id             TEXT PRIMARY KEY,
+  etag           TEXT,
+  last_modified  TEXT,
+  updated_at     INTEGER NOT NULL
+);

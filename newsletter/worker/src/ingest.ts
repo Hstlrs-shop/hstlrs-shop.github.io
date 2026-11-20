@@ -5,7 +5,7 @@ import { num, type Env } from "./env";
 import { parseFeed, type FeedItem } from "./rss";
 import { fingerprint, scoreItem } from "./scoring";
 import { sourcesFor, type Source } from "./sources";
-import { formatAlert, sendMessage } from "./telegram";
+import { esc, formatAlert, sendMessage } from "./telegram";
 
 const UA = "Mozilla/5.0 (compatible; LanaConCafeBot/1.0)";
 const MAX_AGE_MS = 36 * 3600 * 1000;   // ignoramos noticias viejas
@@ -19,20 +19,39 @@ async function sha256(s: string): Promise<string> {
 
 const normLink = (l: string) => l.replace(/[?#].*$/, "").replace(/\/$/, "").toLowerCase();
 
-/** Descarga un feed usando ETag/Last-Modified: si no cambió, cuesta casi nada. */
+/** Descarga un feed usando ETag/Last-Modified: si no cambió, cuesta casi nada.
+ *  El estado vive en D1 (el plan gratuito de KV solo permite 1.000 escrituras/día). */
 async function fetchSource(env: Env, s: Source): Promise<{ items: FeedItem[]; firstRun: boolean }> {
-  const metaKey = `feedmeta:${s.id}`;
-  const meta = (await env.CACHE.get<{ etag?: string; lm?: string }>(metaKey, "json")) ?? null;
+  const meta = await env.DB.prepare("SELECT etag, last_modified FROM feeds WHERE id = ?1").bind(s.id)
+    .first<{ etag: string | null; last_modified: string | null }>();
   const headers: Record<string, string> = { "user-agent": UA, accept: "application/rss+xml, application/xml, text/xml, */*" };
   if (meta?.etag) headers["if-none-match"] = meta.etag;
-  if (meta?.lm) headers["if-modified-since"] = meta.lm;
+  if (meta?.last_modified) headers["if-modified-since"] = meta.last_modified;
 
   const res = await fetch(s.url, { headers, signal: AbortSignal.timeout(8000), cf: { cacheTtl: 0 } });
   if (res.status === 304) return { items: [], firstRun: false };
   if (!res.ok) throw new Error(`${s.id}: HTTP ${res.status}`);
   const xml = await res.text();
-  await env.CACHE.put(metaKey, JSON.stringify({ etag: res.headers.get("etag") ?? undefined, lm: res.headers.get("last-modified") ?? undefined }));
+  const etag = res.headers.get("etag"), lm = res.headers.get("last-modified");
+  if (!meta || meta.etag !== etag || meta.last_modified !== lm) {
+    await env.DB.prepare("INSERT OR REPLACE INTO feeds (id, etag, last_modified, updated_at) VALUES (?1, ?2, ?3, ?4)")
+      .bind(s.id, etag, lm, Date.now()).run();
+  }
   return { items: parseFeed(xml), firstRun: meta === null };
+}
+
+/** Actualiza la clave "noticias" del KV de tu bot para que /noticias se llene solo. */
+export async function syncBotNoticias(env: Env): Promise<boolean> {
+  if (env.BOT_NOTICIAS !== "1" || !env.BOT_KV) return false;
+  const q = await env.DB.prepare(
+    `SELECT title, headline_es, brief_es, link, source_name FROM news
+     WHERE detected_at > ?1 AND impact >= 3 ORDER BY impact DESC, score DESC LIMIT 5`,
+  ).bind(Date.now() - 24 * 3600_000).all<any>();
+  if (q.results.length === 0) return false;
+  const lineas = q.results.map((n, i) =>
+    `${i + 1}. <b>${esc(n.headline_es ?? n.title)}</b>${n.brief_es ? `\n${esc(n.brief_es)}` : ""}\n<a href="${esc(n.link)}">${esc(n.source_name)}</a>`);
+  await env.BOT_KV.put("noticias", `<b>☕ Las 5 noticias que mueven el mercado</b>\n\n${lineas.join("\n\n")}\n\n<i>Información, no asesoría financiera.</i>`);
+  return true;
 }
 
 interface Row {
@@ -42,7 +61,11 @@ interface Row {
 
 export async function ingest(env: Env): Promise<{ fetched: number; inserted: number; alerted: number; errors: string[] }> {
   const now = Date.now();
-  const sources = sourcesFor(env.COUNTRY);
+  // Plan gratuito = 10 ms de CPU por ejecución: las fuentes oficiales (pequeñas y las
+  // más rápidas) cada minuto; el resto, repartido en turnos de ROTATE minutos.
+  const rotate = Math.max(1, num(env.ROTATE, 3));
+  const turn = Math.floor(now / 60_000) % rotate;
+  const sources = sourcesFor(env.COUNTRY).filter((s, i) => s.tier === "oficial" || i % rotate === turn);
   const results = await Promise.allSettled(sources.map((s) => fetchSource(env, s)));
   const errors: string[] = [];
   const raw: { s: Source; item: FeedItem; firstRun: boolean }[] = [];

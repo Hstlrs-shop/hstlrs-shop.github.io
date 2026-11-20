@@ -11,22 +11,25 @@ crons = ["* * * * *", "17 11 * * 1-5"]
 [[d1_databases]]
 binding = "DB"
 database_name = "lanaconcafe-news-db"
-database_id = "REEMPLAZAR_CON_ID_DE_D1"
+database_id = "9ad26b78-509b-403f-b0ba-b72d06b20360"
 
+# KV de tu bot "lanaconcafe": solo se escribe la clave "noticias" (1 vez/hora) si BOT_NOTICIAS = "1"
 [[kv_namespaces]]
-binding = "CACHE"
-id = "REEMPLAZAR_CON_ID_DE_KV"
+binding = "BOT_KV"
+id = "8b002a988c5d49db8dc3ab2820239ed5"
 
 [vars]
 BRAND = "Lana con Café"
-SITE_URL = "https://REEMPLAZAR.github.io/lanaconcafe"
+SITE_URL = "https://lanaconcafe-news.gt2hf24n6t.workers.dev"
 COUNTRY = "MX"                # MX | ES | CO | AR | VE | CL | PE (ver src/sources.ts)
 CLAUDE_MODEL = "claude-opus-5-5"
 AI_MIN_SCORE = "45"
 PRO_MIN_IMPACT = "4"
 FREE_MIN_IMPACT = "4"
 FREE_DELAY_MIN = "15"
-TELEGRAM_FREE_CHAT = "@REEMPLAZAR_canal_publico"
+ROTATE = "3"                # plan gratuito (10 ms CPU): fuentes no oficiales cada 3 min. Con Workers Paid ($5) pon "1"
+TELEGRAM_FREE_CHAT = "@LanaconCafe"
+BOT_NOTICIAS = "0"          # pon "1" para que /noticias del bot se llene solo cada hora
 TELEGRAM_PRO_CHAT = "-100REEMPLAZAR"
 STRIPE_PRO_LINK = "https://buy.stripe.com/REEMPLAZAR"
 STRIPE_API_LINK = "https://buy.stripe.com/REEMPLAZAR"

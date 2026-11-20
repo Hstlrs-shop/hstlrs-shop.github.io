@@ -1,6 +1,6 @@
 export interface Env {
   DB: D1Database;
-  CACHE: KVNamespace;
+  BOT_KV?: KVNamespace;        // KV de tu bot "lanaconcafe" (para llenar /noticias)
 
   // Variables (wrangler.toml [vars])
   BRAND: string;
@@ -15,6 +15,8 @@ export interface Env {
   TELEGRAM_PRO_CHAT: string;   // -100... (canal privado de pago)
   STRIPE_PRO_LINK: string;     // Payment Link Pro
   STRIPE_API_LINK: string;     // Payment Link API
+  ROTATE?: string;             // "3" en plan gratuito, "1" en Workers Paid
+  BOT_NOTICIAS?: string;       // "1" = actualizar /noticias del bot cada hora
 
   // Secretos (wrangler secret put ...)
   TELEGRAM_BOT_TOKEN: string;
