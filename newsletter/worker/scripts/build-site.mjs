@@ -1,5 +1,6 @@
 // Empaqueta ../site (y ../site/assets) dentro del Worker (src/site-files.ts) para
 // servir la web desde la misma URL que la API, sin hosting aparte.
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { extname, join } from "node:path";
 
@@ -20,7 +21,13 @@ function walk(dir, prefix) {
   }
 }
 walk(root, "");
+// Versión de los recursos: cambia en cada despliegue que los modifica (rompe la caché del navegador)
+const V = createHash("sha1").update(["/app.js", "/styles.css", "/config.js"].map((k) => files[k]?.body ?? "").join("")).digest("hex").slice(0, 8);
+for (const f of Object.values(files)) {
+  if (f.type.startsWith("text/html")) f.body = f.body.replace(/"\/(app\.js|styles\.css|config\.js)"/g, `"/$1?v=${V}"`);
+}
 files["/"] = files["/index.html"];
 writeFileSync(new URL("../src/site-files.ts", import.meta.url),
-  "// Generado por scripts/build-site.mjs — no editar a mano.\nexport const SITE: Record<string, { type: string; body?: string; b64?: string }> = " + JSON.stringify(files) + ";\n");
+  `// Generado por scripts/build-site.mjs — no editar a mano.\nexport const ASSET_V = "${V}";\n` +
+  "export const SITE: Record<string, { type: string; body?: string; b64?: string }> = " + JSON.stringify(files) + ";\n");
 console.log(`site empaquetado: ${Object.keys(files).length} archivos, ${Math.round(bytes / 1024)} KB`);

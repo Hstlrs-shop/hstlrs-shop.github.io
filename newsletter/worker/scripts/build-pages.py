@@ -85,7 +85,7 @@ page("index.html","Lana con Café · Las noticias que mueven tu dinero","Noticia
       </div>
       <div class="panel"><h3>🔥 Lo más leído</h3><ol class="rank" id="top"><li class="note">Cargando…</li></ol></div>
       <div class="panel" id="ediciones"><h3>☕ Ediciones del newsletter</h3><ul class="editions" id="archive"><li class="note">Cargando…</li></ul></div>
-      <div class="panel"><h3>⭐ Lana con Café Pro</h3><p class="note">Alertas al instante, radar personal, IA que responde tus dudas y briefing a las 7:00.</p><a class="btn accent" href="/precios.html">Ver Pro · 500 ⭐/mes</a></div>
+      <div class="panel"><h3>⭐ Lana con Café Pro</h3><p class="note">Alertas al instante, radar personal, IA que responde tus dudas y briefing a las 7:00.</p><a class="btn accent" href="/precios.html">Pro · <span data-pro-price>$99</span>/mes</a></div>
     </aside>
   </div>
 </main>''')
@@ -114,7 +114,7 @@ page("mercados.html","Mercados en vivo · Lana con Café","Dólar, peso, bolsa m
   <p class="note">Datos y gráficas de TradingView. Pueden tener retraso según el mercado.</p>
 </main>''',"mercados.html")
 
-page("precios.html","Lana con Café Pro · Precios","Alertas al instante en Telegram, radar personal, IA que responde tus dudas y briefing diario. Desde 500 Stars al mes en Telegram.",'''<main class="wrap">
+page("precios.html","Lana con Café Pro · Precios","Alertas al instante en Telegram, radar personal, IA que responde tus dudas y briefing diario. Precio de fundador: $99 MXN al mes de por vida para los primeros 100.",'''<main class="wrap">
 <section class="page-hero"><h1>Entérate primero.</h1><p>El plan gratis te cuenta qué pasó. Pro te avisa mientras está pasando, y te explica qué significa para tu dinero.</p></section>
 <div class="plans">
   <section class="panel plan">
@@ -124,11 +124,12 @@ page("precios.html","Lana con Café Pro · Precios","Alertas al instante en Tele
     <a class="btn ghost" data-link="TELEGRAM_FREE">Unirme gratis</a>
   </section>
   <section class="panel plan featured">
-    <h3>Pro <span class="chip">Más popular</span></h3>
-    <div class="price">500 ⭐ <small>Stars / mes · ≈ $199 MXN</small></div>
+    <h3>Pro <span class="chip" data-founder-chip>Precio de fundador</span></h3>
+    <div class="price"><span data-pro-price>$99</span> <small>MXN / mes</small> <s class="note" data-pro-regular>$149</s></div>
+    <p class="founders" data-founders>🔥 <b>Precio de fundador de por vida</b> para los primeros 100 suscriptores.</p>
     <ul><li><b>Alertas instantáneas</b> en canal privado de Telegram</li><li>🎯 <b>Radar personal</b>: 10 temas (peso, Banxico, Nvidia…) con aviso al momento</li><li>🤖 <b>Pregúntale a Lana</b>: 100 preguntas al día a la IA, con las noticias de hoy y tu radar, y botón “¿Qué significa para mí?” en cada alerta</li><li>🔬 <b>/analiza</b>: 5 análisis profundos al día</li><li>☀️ <b>Briefing personal</b> a las 7:00 con tu radar y la agenda</li><li>⏰ Recordatorio 15 min antes de cada dato clave</li><li>Activos afectados y sesgo probable en cada alerta</li><li>Cancela cuando quieras</li></ul>
     <a class="btn accent" data-link="PRO_LINK">⭐ Suscribirme en Telegram</a>
-    <p class="note">Se paga dentro de Telegram con Stars (tarjeta, Apple Pay o Google Pay). Entras directo al canal Pro.</p>
+    <p class="note">Se paga dentro de Telegram con Stars (<span data-pro-stars>250</span> ⭐ al mes; tarjeta, Apple Pay o Google Pay). Entras directo al canal Pro y tu precio no sube mientras sigas suscrito.</p>
     <p class="note">¿Primero quieres probar? <a data-link="BOT">3 días gratis en el bot</a> con /prueba.</p>
   </section>
   <section class="panel plan">

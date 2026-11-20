@@ -184,6 +184,8 @@ p.lede { font: 400 21px/1.55 var(--serif); margin: 0 0 22px; }
 .plan.featured { border: 2px solid var(--accent); }
 .plan .price { font: 800 40px var(--serif); }
 .plan .price small { font: 500 14px var(--sans); color: var(--muted); }
+.founders { margin: 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 14%, transparent); font-size: 14px; }
+.plan s { font-size: 16px; }
 .plan ul { padding-left: 18px; margin: 0; color: var(--muted); font-size: 15px; flex: 1; }
 .plan li { margin: 6px 0; }
 .faq { padding-bottom: 64px; max-width: 760px; }

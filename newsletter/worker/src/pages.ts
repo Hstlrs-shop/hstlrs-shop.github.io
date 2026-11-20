@@ -3,6 +3,7 @@
 // sitemap.xml y robots.txt para que Google indexe el sitio.
 
 import type { Env } from "./env";
+import { ASSET_V } from "./site-files";
 import { askLink } from "./telegram";
 
 const CAT_SLUG: [RegExp, string][] = [
@@ -55,8 +56,8 @@ export function layout(env: Env, o: { title: string; description: string; image:
 <link rel="alternate" type="application/rss+xml" title="${h(env.BRAND)}" href="/rss.xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css">
-<script src="/config.js"></script>
+<link rel="stylesheet" href="/styles.css?v=${ASSET_V}">
+<script src="/config.js?v=${ASSET_V}"></script>
 ${o.extraHead ?? ""}
 </head>
 <body>
@@ -72,7 +73,7 @@ ${o.body}
   <div class="links"><a data-link="TELEGRAM_FREE">Telegram</a><a href="/precios.html">Pro</a><a href="/mercados.html">Mercados</a><a href="/dolar-hoy">Dólar hoy</a><a href="/bitcoin-hoy">Bitcoin hoy</a><a href="/marca.html">Marca</a><a href="/rss.xml">RSS</a></div>
   <p class="legal">Información, no asesoría de inversión. Titulares y fotos enlazan a sus fuentes originales; resúmenes de redacción propia. Datos de mercado: TradingView.</p>
 </div></footer>
-<script src="/app.js"></script>
+<script src="/app.js?v=${ASSET_V}"></script>
 </body>
 </html>`;
 }

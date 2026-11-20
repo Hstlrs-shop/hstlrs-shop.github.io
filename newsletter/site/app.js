@@ -12,6 +12,20 @@ const getJSON = (path) => fetch(`${C.API}${path}`).then((r) => r.json());
 // Enlaces configurables (Telegram, Mercado Pago)
 $$("[data-link]").forEach((a) => C[a.dataset.link] && (a.href = C[a.dataset.link]));
 
+// ---------- Precio de Pro (fundadores) ----------
+if ($("[data-pro-price]") || $("[data-link='PRO_LINK']")) {
+  getJSON("/api/pro").then((d) => {
+    if (d.link) $$("[data-link='PRO_LINK']").forEach((a) => (a.href = d.link));
+    $$("[data-pro-price]").forEach((e) => (e.textContent = `$${d.price_mxn}`));
+    $$("[data-pro-stars]").forEach((e) => (e.textContent = d.stars ?? ""));
+    $$("[data-pro-regular]").forEach((e) => (e.hidden = !d.founder));
+    $$("[data-founder-chip]").forEach((e) => (e.textContent = d.founder ? "Precio de fundador" : "Más popular"));
+    $$("[data-founders]").forEach((e) => (e.innerHTML = d.founder
+      ? `🔥 <b>Precio de fundador de por vida:</b> quedan <b>${d.founders_left} de ${d.founders_total}</b> lugares. Después sube a $${d.regular_mxn}.`
+      : ""));
+  }).catch(() => {});
+}
+
 // ---------- TradingView (widgets gratuitos con atribución) ----------
 function tv(el, name, config) {
   if (!el) return;

@@ -20,6 +20,9 @@ export interface Env {
   TELEGRAM_PRO_CHAT: string;   // -100... (canal privado de pago)
   MP_PLAN_PRO?: string;        // id del plan de suscripción Pro en Mercado Pago
   MP_PLAN_API?: string;        // id del plan de suscripción API
+  PRICE_FOUNDER_MXN?: string;  // precio de fundador mostrado (99)
+  PRICE_MXN?: string;          // precio normal mostrado (149)
+  FOUNDERS_TOTAL?: string;     // lugares de fundador (100)
   ROTATE?: string;             // "3" en plan gratuito, "1" en Workers Paid
   BOT_NOTICIAS?: string;       // "1" = actualizar /noticias del bot cada hora
   HEURISTIC_ALERTS?: string;   // "1" = publicar en canales aunque la IA no haya revisado la noticia

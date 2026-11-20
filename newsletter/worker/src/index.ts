@@ -89,6 +89,21 @@ export default {
     if (p === "/bitcoin-hoy" || p === "/precio-bitcoin-hoy") return marketPage(env, "bitcoin");
     if (p === "/robots.txt") return robots(env);
 
+    // Precio y enlace de Pro (lo usan la web y el bot): fundadores = primeros FOUNDERS_TOTAL suscriptores
+    if (p === "/api/pro") {
+      const [link, stars, taken] = await Promise.all([
+        env.BOT_KV?.get("pro_link"), env.BOT_KV?.get("pro_stars"),
+        env.DB.prepare("SELECT COUNT(*) n FROM members WHERE plan IN ('pro', 'api') AND status IN ('authorized', 'cancelled')").first<{ n: number }>(),
+      ]);
+      const total = num(env.FOUNDERS_TOTAL, 100), used = taken?.n ?? 0;
+      const founder = used < total;
+      return json({
+        link: link ?? null, stars: stars ? Number(stars) : null, founder,
+        price_mxn: founder ? num(env.PRICE_FOUNDER_MXN, 99) : num(env.PRICE_MXN, 149),
+        regular_mxn: num(env.PRICE_MXN, 149), founders_total: total, founders_left: Math.max(0, total - used),
+      }, 200, { "cache-control": "public, max-age=60" });
+    }
+
     // Lo más leído (vistas en las páginas /n/)
     if (p === "/api/top") {
       const q = await env.DB.prepare(

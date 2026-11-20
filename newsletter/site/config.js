@@ -5,7 +5,7 @@ window.LCC = {
   BRAND: "Lana con Café",
   TELEGRAM_FREE: "https://t.me/LanaconCafe",
   // Suscripción Pro: enlace de Telegram Stars (lo crea /crearsuscripcion en el bot)
-  PRO_LINK: "https://t.me/+iqsOgPTZe8plZDlh",
+  PRO_LINK: "https://t.me/+fDriiciB1IpiYjUx"  /* se actualiza solo desde /api/pro */,
   BOT: "https://t.me/LanaconcafeBot",
   // Mercado Pago (para más adelante): enlaces de checkout de los planes
   MP_PRO: "https://www.mercadopago.com.mx/subscriptions/checkout?preapproval_plan_id=REEMPLAZAR",

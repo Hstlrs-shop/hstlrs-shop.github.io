@@ -412,8 +412,10 @@ async function manejar(update, env) {
       const c = await news(env, "/bot/account", { tg: from });
       const yaPro = c.plan === "pro" || c.plan === "api";
       const proLink = await env.DB.get("pro_link"), proStars = await env.DB.get("pro_stars");
+      const precio = await news(env, "/api/pro");
       return tg(env, "sendMessage", { chat_id: chat, parse_mode: "HTML", disable_web_page_preview: true,
-        text: `<b>⭐ Lana con Café Pro${proLink ? ` · ${proStars} Stars al mes` : " · $199 MXN/mes"}</b>\n\n` +
+        text: `<b>⭐ Lana con Café Pro · $${precio.price_mxn || 99} MXN/mes</b>${proLink ? ` (${proStars} ⭐)` : ""}\n` +
+          (precio.founder ? `🔥 <b>Precio de fundador de por vida</b>: quedan ${precio.founders_left} de ${precio.founders_total} lugares (después $${precio.regular_mxn}).\n` : "") + `\n` +
           `⚡ <b>Alertas al instante</b> en el canal Pro privado (el gratis las ve 15 min después)\n` +
           `🎯 <b>Radar personal</b> de hasta 10 temas: peso, Banxico, Nvidia, Cetes… te aviso al momento\n` +
           `🤖 <b>Pregúntale a Lana</b>: 100 preguntas al día a la IA, con las noticias de hoy y tu radar\n` +

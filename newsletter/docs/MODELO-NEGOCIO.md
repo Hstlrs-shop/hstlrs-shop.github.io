@@ -24,7 +24,7 @@ Contenido gratis (X, TikTok/Reels, Telegram público, SEO del archivo)
 Newsletter gratis (email)  ← activo principal: la lista es tuya
         │  CTA en cada edición y en cada alerta con retraso
         ▼
-Pro ($199 MXN/mes) — alertas instantáneas en Telegram privado
+Pro ($99 MXN/mes fundadores, luego $149) — alertas instantáneas en Telegram privado
         │
         ▼
 API / Equipos ($1,490 MXN/mes) — traders, mesas, medios, bots
@@ -36,7 +36,7 @@ Cada alerta del canal gratuito termina con: *"⚡ Los miembros Pro recibieron es
 
 | # | Ingreso | Precio orientativo | Cuándo activarlo |
 |---|---------|--------------------|------------------|
-| 1 | **Suscripción Pro** (Telegram privado instantáneo + resumen semanal ampliado) | $199 MXN/mes (anual opcional ~$1,990 MXN) | Desde el día 1 (aunque tengas pocos usuarios: valida la disposición a pagar) |
+| 1 | **Suscripción Pro** (Telegram privado instantáneo + resumen semanal ampliado) | $99 MXN/mes de por vida para los primeros 100 (250 ⭐), luego $149 MXN/mes (~400 ⭐); anual $1,190 MXN con Mercado Pago | Desde el día 1 (aunque tengas pocos usuarios: valida la disposición a pagar) |
 | 2 | **API / Equipos** | $1,490 MXN/mes · plan a medida para medios | Desde ~1.000 suscriptores o cuando alguien lo pida |
 | 3 | **Patrocinio del newsletter** (1 bloque por edición) | CPM $25–60 en nicho finanzas | Desde ~2.000–3.000 suscriptores activos (apertura > 40 %) |
 | 4 | **Afiliados** (brokers, apps de inversión, cursos) | CPA $50–200 por cuenta fondeada | Con cuidado legal (ver §7). Mejor en el newsletter que en las alertas |
