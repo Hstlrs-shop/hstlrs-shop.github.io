@@ -3,6 +3,11 @@
 // Variable opcional: CANAL_ID (texto, p. ej. @lanaconcafe) para publicar en el canal. El bot debe ser administrador del canal.
 // v5: las publicaciones del canal llevan botones que abren el bot; /menucanal publica un menú para fijar.
 // v6: resumen automático 7:30 am y encuesta diaria en el canal (resultado 8 pm, hora de Querétaro); /stats y /probarcanal para el administrador.
+// v9: Pro de verdad. Pregúntale a Lana (IA con las noticias del día; también escribiendo sin comando),
+//     radar personal (/radar peso), termómetro del mercado, /dolar, briefing Pro 7:00, recordatorios de agenda,
+//     prueba Pro de 3 días (/prueba), referidos (/invita: 3 amigos = 7 días Pro), /micuenta.
+//     La lógica Pro vive en el Worker "lanaconcafe-news" (binding NEWS). Este bot le presta su token (/internal/tg).
+//     Secretos nuevos: INTERNAL_SECRET (el mismo en ambos Workers).
 // v8: /difundir por tandas desde el cron (el plan gratuito permite ~50 envíos por ejecución); /pro; conexión con el canal Pro de pago.
 //     Variables nuevas opcionales: PRO_CANAL_ID (-100…), NEWS_URL (URL del Worker lanaconcafe-news) y FORWARD_SECRET (secreta).
 // v7: señales con el tamaño de la regla (0,01 BTC) y solo en el horario de la sesión (lunes a viernes, 8:30–10:30 hora de Querétaro); cada señal recuerda confirmar en 5 min antes de entrar.
@@ -42,10 +47,19 @@ const AYUDA =
 /analisis · lectura actual: precio, VWAP, medias y plan
 /senales on · recibir señales automáticas de lunes a viernes, 8:30–10:30 (/senales off para apagar)
 
-<b>Información</b>
-/noticias · las 5 noticias del día con fuentes
-/agenda · eventos importantes (Fed, inflación, resultados)
-/pro · alertas de noticias al instante (canal Pro)
+<b>🤖 Pregúntale a Lana</b>
+Escríbeme cualquier duda y te respondo con las noticias de hoy. Ej.: <i>¿por qué sube el dólar?</i>
+
+<b>Noticias</b>
+/noticias · las 5 noticias que mueven el mercado
+/termometro · qué tan agitado está el mercado hoy
+/radar peso · te aviso cuando salga algo de lo que sigues
+/dolar · dólar, euro y bitcoin en pesos
+/agenda · eventos importantes con recordatorio
+
+<b>⭐ Pro</b>
+/pro · qué incluye · /prueba · 3 días gratis
+/invita · 3 amigos = 7 días Pro · /micuenta · tu plan
 
 Precios: CoinGecko y Coinbase. Alertas y señales se revisan cada 5 minutos. Las señales son para practicar en demo.` + AVISO;
 
@@ -54,10 +68,12 @@ const BOTONES = {
   "📊 Mercado": "/mercado", "📰 Noticias": "/noticias",
   "🧭 Análisis BTC": "/analisis", "📅 Agenda": "/agenda",
   "🔔 Mis alertas": "/misalertas", "📡 Señales": "/senales",
+  "🌡️ Termómetro": "/termometro", "🎯 Mi radar": "/radar",
+  "💵 Dólar": "/dolar", "⭐ Pro": "/pro",
   "❓ Ayuda": "/ayuda",
 };
 const TECLADO = {
-  keyboard: [["📊 Mercado", "📰 Noticias"], ["🧭 Análisis BTC", "📅 Agenda"], ["🔔 Mis alertas", "📡 Señales"], ["❓ Ayuda"]],
+  keyboard: [["📰 Noticias", "🌡️ Termómetro"], ["🎯 Mi radar", "💵 Dólar"], ["📊 Mercado", "🧭 Análisis BTC"], ["📅 Agenda", "🔔 Mis alertas"], ["⭐ Pro", "❓ Ayuda"]],
   resize_keyboard: true, is_persistent: true,
 };
 // Botones bajo cada publicación del canal: abren el bot con un comando (t.me/<bot>?start=<clave>)
@@ -83,7 +99,14 @@ const MENU = [
   { command: "misalertas", description: "Ver tus alertas" },
   { command: "noticias", description: "Las 5 noticias del día" },
   { command: "agenda", description: "Eventos importantes de la semana" },
-  { command: "pro", description: "Alertas al instante en el canal Pro" },
+  { command: "termometro", description: "Qué tan agitado está el mercado" },
+  { command: "radar", description: "Tu radar: /radar peso" },
+  { command: "dolar", description: "Dólar, euro y bitcoin en pesos" },
+  { command: "pregunta", description: "Pregúntale a Lana (IA)" },
+  { command: "pro", description: "Qué incluye Lana con Café Pro" },
+  { command: "prueba", description: "3 días de Pro gratis" },
+  { command: "invita", description: "3 amigos = 7 días Pro" },
+  { command: "micuenta", description: "Tu plan y tus límites" },
   { command: "ayuda", description: "Ver todos los comandos" },
 ];
 
@@ -91,6 +114,14 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === "GET") return new Response("Lana con Café: bot activo ✅");
+    // v9: el Worker de noticias envía a Telegram a través de este bot (así su token no se copia a otro sitio)
+    if (url.pathname === "/internal/tg") {
+      if (!env.INTERNAL_SECRET || request.headers.get("x-internal-secret") !== env.INTERNAL_SECRET) return new Response("No autorizado", { status: 401 });
+      const { method, body } = await request.json();
+      if (!/^(sendMessage|createChatInviteLink|revokeChatInviteLink|banChatMember|unbanChatMember|sendPoll|stopPoll|getChatMemberCount)$/.test(method || ""))
+        return Response.json({ ok: false, description: "método no permitido" }, { status: 400 });
+      return Response.json(await tg(env, method, body || {}));
+    }
     if (url.pathname !== "/telegram") return new Response("No encontrado", { status: 404 });
     if (request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.WEBHOOK_SECRET)
       return new Response("No autorizado", { status: 401 });
@@ -121,7 +152,7 @@ export default {
 
 // ---------- Telegram ----------
 async function tg(env, metodo, datos) {
-  const r = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/${metodo}`, {
+  const r = await fetch(`${env.TG_API || "https://api.telegram.org"}/bot${env.BOT_TOKEN}/${metodo}`, {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(datos),
   });
   return r.json().catch(() => ({}));
@@ -149,6 +180,32 @@ async function publicarCanal(env, texto) {
 
 const enviar = (env, chat, texto) =>
   tg(env, "sendMessage", { chat_id: chat, text: texto, parse_mode: "HTML", disable_web_page_preview: true });
+
+// ---------- Worker de noticias (Pro) ----------
+async function news(env, ruta, datos) {
+  if (!env.NEWS || !env.INTERNAL_SECRET) return { error: "Esta función se está configurando. Vuelve pronto ☕" };
+  try {
+    const r = await env.NEWS.fetch(`https://news${ruta}`, {
+      method: datos ? "POST" : "GET",
+      headers: { "content-type": "application/json", "x-internal-secret": env.INTERNAL_SECRET },
+      body: datos ? JSON.stringify(datos) : undefined,
+    });
+    return await r.json();
+  } catch (e) {
+    console.log("news", ruta, String(e));
+    return { error: "No pude conectar con el servicio de noticias. Intenta en un minuto." };
+  }
+}
+const PLAN_TXT = { pro: "⭐ Pro", api: "⭐ API", prueba: "🎁 Prueba Pro", gratis: "Gratis" };
+const fechaCorta = (ms) => { const d = new Date(ms - 6 * 3600 * 1000); return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]} ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`; };
+const SUBE_A_PRO = "\n\n⭐ Con <b>Pro</b> tienes más: /pro · o pruébalo gratis 3 días: /prueba";
+
+async function preguntar(env, chat, from, q) {
+  await tg(env, "sendChatAction", { chat_id: chat, action: "typing" });
+  const r = await news(env, "/bot/ask", { tg: from, q });
+  if (r.text) return enviar(env, chat, r.text);
+  return enviar(env, chat, `🤖 ${esc(r.error || "No pude responder.")}${r.upsell ? SUBE_A_PRO : ""}`);
+}
 
 // ---------- Precios ----------
 // Coinbase primero (estable desde Cloudflare); CoinGecko solo para las que Coinbase no tiene
@@ -208,7 +265,16 @@ async function manejar(update, env) {
   const esAdmin = String(msg.from && msg.from.id) === String(env.ADMIN_ID);
 
   // registrar usuario (para difusiones y /stats): guarda la fecha en que llegó, solo la primera vez
-  if (!(await env.DB.get(`u:${chat}`))) await env.DB.put(`u:${chat}`, horaLocal().fecha);
+  const nuevo = !(await env.DB.get(`u:${chat}`));
+  if (nuevo) await env.DB.put(`u:${chat}`, horaLocal().fecha);
+  const from = msg.from && msg.from.id;
+  const privado = msg.chat.type === "private";
+
+  // v9: llegó con el enlace de un amigo (/start ref_123)
+  if (cmd === "/start" && args[0] && /^ref_\d+$/.test(args[0])) {
+    if (nuevo) await news(env, "/bot/referral", { referrer: Number(args[0].slice(4)), tg: from });
+    args = [];
+  }
 
   switch (cmd) {
     case "/start": case "/ayuda": case "/help":
@@ -226,8 +292,101 @@ async function manejar(update, env) {
         (w.ok ? "\n✅ Webhook: altas del canal Pro activadas." : "\n⚠️ No pude actualizar el webhook (avisos del canal Pro)."));
     }
 
-    case "/pro":
-      return enviar(env, chat, `<b>☕ Lana con Café Pro</b>\n\n⚡ Las noticias que mueven el mercado <b>al instante</b> en un canal privado, con activos afectados y contexto.\nEn el canal gratuito llegan 15 minutos después.\n\n👉 ${env.NEWS_URL ? `<a href="${env.NEWS_URL}/precios.html">Ver planes</a>` : "Muy pronto"}` + AVISO);
+    // ---- v9: Pro ----
+    case "/pregunta": case "/lana":
+      if (!args.length) return enviar(env, chat, "🤖 Escríbeme tu pregunta. Ej.: <i>/pregunta ¿qué pasa si Banxico baja la tasa?</i>\nTambién puedes escribirme sin comando.");
+      return preguntar(env, chat, from, args.join(" "));
+
+    case "/termometro": case "/termómetro": {
+      const r = await news(env, "/bot/thermo");
+      return enviar(env, chat, (r.text || esc(r.error || "Sin datos")) + AVISO);
+    }
+
+    case "/radar": case "/sigo": case "/dejar": {
+      const quitar = cmd === "/dejar" || (args[0] || "").toLowerCase() === "quitar";
+      const termino = (quitar && cmd === "/radar" ? args.slice(1) : args).join(" ");
+      const r = await news(env, "/bot/radar", { tg: from, op: termino ? (quitar ? "del" : "add") : "list", term: termino });
+      if (r.error && !r.terms) return enviar(env, chat, `🎯 ${esc(r.error)}${r.upsell ? SUBE_A_PRO : ""}`);
+      const lista = (r.terms || []).length ? r.terms.map((t) => `• ${esc(t)}`).join("\n") : "Todavía no sigues nada.";
+      return enviar(env, chat, `🎯 <b>Tu radar</b> (${(r.terms || []).length}/${r.limit})\n${lista}\n\n` +
+        (r.error ? `⚠️ ${esc(r.error)}\n\n` : "") +
+        `Agregar: <code>/radar nvidia</code> · Quitar: <code>/dejar nvidia</code>\n` +
+        `Te aviso por aquí cuando salga una noticia con esas palabras${r.delay ? ` (con ${r.delay} min de retraso en el plan gratis)` : " al instante ⚡"}.` +
+        (r.error && r.upsell ? SUBE_A_PRO : ""));
+    }
+
+    case "/dolar": case "/dólar": {
+      const r = await fetch("https://api.coinbase.com/v2/exchange-rates?currency=USD", { headers: CABECERAS });
+      const d = r.ok ? (await r.json()).data : null;
+      const mxn = d && parseFloat(d.rates.MXN), eur = d && parseFloat(d.rates.EUR);
+      if (!(mxn > 0)) return enviar(env, chat, "No pude leer el tipo de cambio ahora. Intenta en un minuto.");
+      const btc = (await precios(["bitcoin"])).bitcoin;
+      return enviar(env, chat, `💵 <b>Tipo de cambio</b>\n• Dólar: <b>$${mxn.toFixed(2)} MXN</b>\n• Euro: <b>$${(mxn / eur).toFixed(2)} MXN</b>` +
+        (btc ? `\n• Bitcoin: <b>$${Math.round(btc.usd * mxn).toLocaleString("en-US")} MXN</b>` : "") +
+        `\n\n<i>Referencia de mercado (Coinbase). Tu banco o casa de cambio cobra un margen.</i>` + AVISO);
+    }
+
+    case "/pro": {
+      const c = await news(env, "/bot/account", { tg: from });
+      const yaPro = c.plan === "pro" || c.plan === "api";
+      return tg(env, "sendMessage", { chat_id: chat, parse_mode: "HTML", disable_web_page_preview: true,
+        text: `<b>⭐ Lana con Café Pro · $199 MXN/mes</b>\n\n` +
+          `⚡ <b>Alertas al instante</b> en el canal Pro privado (el gratis las ve 15 min después)\n` +
+          `🎯 <b>Radar personal</b> de hasta 10 temas: peso, Banxico, Nvidia, Cetes… te aviso al momento\n` +
+          `🤖 <b>Pregúntale a Lana</b>: 30 preguntas al día a la IA con las noticias de hoy\n` +
+          `☀️ <b>Briefing personal</b> a las 7:00 con tu radar y la agenda del día\n` +
+          `⏰ <b>Recordatorios</b> 15 min antes de cada dato importante (inflación, Banxico, Fed)\n` +
+          `🌡️ Activos afectados y sesgo probable en cada alerta\n\n` +
+          (yaPro ? "✅ Ya eres Pro. ¡Gracias por apoyar Lana con Café!" : c.plan === "prueba" ? `🎁 Tienes prueba Pro hasta el ${fechaCorta(c.until)}.` : "Pruébalo gratis 3 días con /prueba") + AVISO,
+        reply_markup: yaPro ? undefined : { inline_keyboard: [[{ text: "⭐ Hazte Pro", url: `${env.NEWS_URL || "https://lanaconcafe-news.gt2hf24n6t.workers.dev"}/precios.html` }]] },
+      });
+    }
+
+    case "/prueba": {
+      const r = await news(env, "/bot/trial", { tg: from });
+      if (r.error) return enviar(env, chat, `🎁 ${esc(r.error)}`);
+      return enviar(env, chat, `🎁 <b>¡Tienes Pro gratis hasta el ${fechaCorta(r.until)}!</b>\n\nPrueba:\n• <code>/radar peso</code> y <code>/radar banxico</code>\n• Escríbeme cualquier pregunta sobre el mercado\n• Mañana a las 7:00 te llega tu briefing personal ☀️`);
+    }
+
+    case "/invita": {
+      const u = await usuarioBot(env);
+      const c = await news(env, "/bot/account", { tg: from });
+      const n = c.referrals || 0;
+      const enlace = `https://t.me/${u}?start=ref_${from}`;
+      return tg(env, "sendMessage", { chat_id: chat, parse_mode: "HTML", disable_web_page_preview: true,
+        text: `🎁 <b>Invita y gana Pro</b>\nPor cada 3 amigos que entren con tu enlace ganas <b>7 días Pro</b>.\n\nTu enlace:\n${enlace}\n\nLlevas <b>${n}</b> (${n % 3}/3 para el siguiente premio).`,
+        reply_markup: { inline_keyboard: [[{ text: "📤 Compartir", url: `https://t.me/share/url?url=${encodeURIComponent(enlace)}&text=${encodeURIComponent("☕ Las noticias que mueven tu dinero, en Telegram:")}` }]] },
+      });
+    }
+
+    case "/micuenta": {
+      const c = await news(env, "/bot/account", { tg: from });
+      if (c.error) return enviar(env, chat, esc(c.error));
+      return enviar(env, chat, `👤 <b>Tu cuenta</b>\nPlan: <b>${PLAN_TXT[c.plan] || c.plan}</b>${c.until ? ` (hasta el ${fechaCorta(c.until)})` : ""}\n` +
+        `🤖 Preguntas hoy: ${c.asks_today}/${c.limits.asks}\n🎯 Radar: ${c.terms.length}/${c.limits.radar}${c.terms.length ? ` (${esc(c.terms.join(", "))})` : ""}\n` +
+        `🎁 Amigos invitados: ${c.referrals}` + (c.plan === "gratis" ? (c.trial_used ? "\n\nGana días Pro con /invita" : "\n\nPrueba Pro gratis: /prueba") : ""));
+    }
+
+    // ---- v9: agenda con recordatorios (admin) ----
+    case "/evento": {
+      if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+      const r = await news(env, "/bot/event", { date: args[0], time: args[1], title: args.slice(2).join(" ") });
+      return enviar(env, chat, r.ok ? `✅ Evento guardado: ${r.when}. Los Pro reciben recordatorio 15 min antes.` : esc(r.error || "Error"));
+    }
+    case "/borraevento": {
+      if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+      await news(env, "/bot/event-del", { id: Number(args[0]) });
+      return enviar(env, chat, "🗑️ Listo.");
+    }
+    case "/regalar": {
+      if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+      const r = await news(env, "/bot/gift", { tg: Number(args[0]), days: Number(args[1] || 7) });
+      return enviar(env, chat, r.ok ? `🎁 Pro regalado hasta ${fechaCorta(r.until)}.` : "Uso: /regalar ID_DE_TELEGRAM DIAS");
+    }
+    case "/prostats": {
+      if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+      return enviar(env, chat, `<pre>${esc(JSON.stringify(await news(env, "/bot/stats"), null, 1))}</pre>`);
+    }
 
     case "/miid":
       return enviar(env, chat, `Tu ID es: <code>${msg.from.id}</code>`);
@@ -287,8 +446,13 @@ async function manejar(update, env) {
     case "/noticias":
       return enviarSeguro(env, chat, (await env.DB.get("noticias")) || "Aún no hay noticias de hoy. Vuelve más tarde.");
 
-    case "/agenda":
-      return enviarSeguro(env, chat, (await env.DB.get("agenda")) || "La agenda de la semana todavía no está publicada.");
+    case "/agenda": {
+      const ev = await news(env, "/bot/events", { days: 7 });
+      const lista = (ev.events || []).map((e) => `• <b>${e.when}</b> · ${esc(e.title)}`).join("\n");
+      const texto = await env.DB.get("agenda");
+      if (!lista && !texto) return enviar(env, chat, "La agenda de la semana todavía no está publicada.");
+      return enviarSeguro(env, chat, (lista ? `📅 <b>Próximos eventos</b> (hora CDMX)\n${lista}\n\n⏰ Los Pro reciben recordatorio 15 min antes.` : "") + (texto ? `${lista ? "\n\n" : ""}${texto}` : ""));
+    }
 
     // ---- Solo administrador ----
     case "/setnoticias": case "/setagenda": {
@@ -357,6 +521,8 @@ async function manejar(update, env) {
 
     default:
       if (cmd.startsWith("/")) return enviar(env, chat, "No conozco ese comando. Escribe /ayuda");
+      // v9: texto libre en privado = pregunta para Lana
+      if (privado && msg.text.trim().length >= 3) return preguntar(env, chat, from, msg.text);
   }
 }
 

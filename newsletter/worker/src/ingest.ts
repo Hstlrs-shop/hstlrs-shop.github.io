@@ -5,6 +5,7 @@ import { num, type Env } from "./env";
 import { parseFeed, type FeedItem } from "./rss";
 import { fingerprint, scoreItem } from "./scoring";
 import { sourcesFor, type Source } from "./sources";
+import { queueRadar } from "./pro";
 import { esc, formatAlert, sendMessage } from "./telegram";
 
 const UA = "Mozilla/5.0 (compatible; LanaConCafeBot/1.0)";
@@ -121,10 +122,21 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
   );
   for (let i = 0; i < stmts.length; i += 50) await env.DB.batch(stmts.slice(i, i + 50));
 
-  // 4) Alerta instantánea al canal Pro
+  // 4) Radar personal de cada usuario (DM por el bot; Pro al instante, gratis con retraso)
+  try {
+    await queueRadar(env, rows.filter((r) => !r.silent).map((r) => ({
+      id: r.id, title: r.item.title, summary: r.item.summary, headline_es: r.ai?.headline_es, brief_es: r.ai?.brief_es,
+      link: r.item.link, source: r.s.name, impact: r.ai?.impact ?? r.impact,
+    })));
+  } catch (e) {
+    errors.push(`radar: ${(e as Error).message}`);
+  }
+
+  // 5) Alerta instantánea al canal Pro (solo noticias revisadas por la IA, salvo HEURISTIC_ALERTS = "1")
   const proMin = num(env.PRO_MIN_IMPACT, 4);
+  const proReady = /^-100\d+$/.test(env.TELEGRAM_PRO_CHAT);
   const toAlert = rows
-    .filter((r) => !r.silent && (r.ai?.impact ?? r.impact) >= proMin)
+    .filter((r) => proReady && !r.silent && (r.ai || env.HEURISTIC_ALERTS === "1") && (r.ai?.impact ?? r.impact) >= proMin)
     .sort((a, b) => (b.ai?.impact ?? b.impact) - (a.ai?.impact ?? a.impact) || b.score - a.score)
     .slice(0, MAX_PRO_ALERTS_PER_RUN);
   let alerted = 0;
@@ -149,8 +161,9 @@ export async function flushFreeQueue(env: Env): Promise<number> {
   const delay = num(env.FREE_DELAY_MIN, 15) * 60_000;
   const q = await env.DB.prepare(
     `SELECT * FROM news WHERE alerted_free = 0 AND impact >= ?1 AND detected_at <= ?2 AND detected_at > ?3
+       AND (ai = 1 OR ?4 = 1)
      ORDER BY impact DESC, score DESC LIMIT 3`,
-  ).bind(num(env.FREE_MIN_IMPACT, 4), now - delay, now - 3 * 3600_000).all<any>();
+  ).bind(num(env.FREE_MIN_IMPACT, 4), now - delay, now - 3 * 3600_000, env.HEURISTIC_ALERTS === "1" ? 1 : 0).all<any>();
   let sent = 0;
   for (const n of q.results) {
     await sendMessage(env, env.TELEGRAM_FREE_CHAT, formatAlert({

@@ -15,6 +15,11 @@ binding = "DB"
 database_name = "lanaconcafe-news-db"
 database_id = "9ad26b78-509b-403f-b0ba-b72d06b20360"
 
+# El bot "lanaconcafe" envía a Telegram por este Worker (así su token no se copia aquí)
+[[services]]
+binding = "BOT"
+service = "lanaconcafe"
+
 # KV de tu bot "lanaconcafe": solo se escribe la clave "noticias" (1 vez/hora) si BOT_NOTICIAS = "1"
 [[kv_namespaces]]
 binding = "BOT_KV"
@@ -40,7 +45,7 @@ MP_PLAN_API = ""                # id del plan API
 enabled = true
 
 # Secretos (no van aquí):
-#   npx wrangler secret put TELEGRAM_BOT_TOKEN
+#   npx wrangler secret put INTERNAL_SECRET   (el mismo valor en el bot)
 #   npx wrangler secret put ANTHROPIC_API_KEY
 #   npx wrangler secret put MP_ACCESS_TOKEN
 #   npx wrangler secret put MP_WEBHOOK_SECRET

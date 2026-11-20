@@ -1,5 +1,5 @@
-// Envío a Telegram con la Bot API. Usa el MISMO token de tu bot actual:
-// sendMessage no interfiere con el webhook que ya tienes en Cloudflare.
+// Envío a Telegram. Por defecto pasa por tu bot "lanaconcafe" (service binding),
+// así el token nunca se copia a este Worker.
 
 import type { Env } from "./env";
 
@@ -8,16 +8,29 @@ const BIAS_ICON: Record<string, string> = { alcista: "📈", bajista: "📉", mi
 
 export const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-async function call<T = unknown>(env: Env, method: string, body: Record<string, unknown>): Promise<T> {
-  const res = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/${method}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = (await res.json()) as { ok: boolean; result: T; description?: string; parameters?: { retry_after?: number } };
+/** Llama a la Bot API. Con el binding BOT, la llamada la hace el propio bot con su token. */
+export async function tgCall<T = unknown>(env: Env, method: string, body: Record<string, unknown>): Promise<T> {
+  let res: Response;
+  if (env.BOT && env.INTERNAL_SECRET) {
+    res = await env.BOT.fetch("https://bot/internal/tg", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-internal-secret": env.INTERNAL_SECRET },
+      body: JSON.stringify({ method, body }),
+    });
+  } else if (env.TELEGRAM_BOT_TOKEN) {
+    res = await fetch(`${env.TG_API ?? "https://api.telegram.org"}/bot${env.TELEGRAM_BOT_TOKEN}/${method}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } else {
+    throw new Error("Telegram sin configurar (falta el binding BOT o TELEGRAM_BOT_TOKEN)");
+  }
+  const data = (await res.json().catch(() => ({ ok: false, description: `HTTP ${res.status}` }))) as { ok: boolean; result: T; description?: string };
   if (!data.ok) throw new Error(`Telegram ${method}: ${data.description ?? res.status}`);
   return data.result;
 }
+const call = tgCall;
 
 export interface AlertNews {
   headline: string;

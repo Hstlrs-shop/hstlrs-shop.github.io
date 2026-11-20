@@ -62,3 +62,54 @@ CREATE TABLE IF NOT EXISTS feeds (
   last_modified  TEXT,
   updated_at     INTEGER NOT NULL
 );
+
+-- ===== Funciones Pro del bot =====
+-- Radar personal: palabras/tickers que cada usuario sigue
+CREATE TABLE IF NOT EXISTS watch (
+  tg          INTEGER NOT NULL,
+  term        TEXT NOT NULL,          -- normalizado (minúsculas, sin acentos)
+  label       TEXT NOT NULL,          -- como lo escribió el usuario
+  created_at  INTEGER NOT NULL,
+  PRIMARY KEY (tg, term)
+);
+-- Pruebas Pro (3 días al pedirla, +7 días por cada 3 referidos, regalos del admin)
+CREATE TABLE IF NOT EXISTS trials (
+  tg          INTEGER PRIMARY KEY,
+  until       INTEGER NOT NULL,
+  used_trial  INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS referrals (
+  new_tg      INTEGER PRIMARY KEY,
+  referrer    INTEGER NOT NULL,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ref_referrer ON referrals(referrer);
+-- Uso diario de la IA (límite por plan)
+CREATE TABLE IF NOT EXISTS usage (
+  tg   INTEGER NOT NULL,
+  day  TEXT NOT NULL,
+  n    INTEGER NOT NULL,
+  PRIMARY KEY (tg, day)
+);
+-- Cola de mensajes a Telegram (se envían por tandas desde el cron)
+CREATE TABLE IF NOT EXISTS outbox (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  chat_id     TEXT NOT NULL,
+  text        TEXT NOT NULL,
+  send_after  INTEGER NOT NULL,       -- epoch ms (los gratis reciben el radar con retraso)
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_outbox_due ON outbox(send_after);
+-- Agenda económica (la carga el admin con /evento) con recordatorio 15 min antes
+CREATE TABLE IF NOT EXISTS events (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  at          INTEGER NOT NULL,       -- epoch ms
+  title       TEXT NOT NULL,
+  notified    INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_events_at ON events(at);
+-- Banderas varias (p. ej. último briefing enviado)
+CREATE TABLE IF NOT EXISTS flags (
+  k  TEXT PRIMARY KEY,
+  v  TEXT NOT NULL
+);

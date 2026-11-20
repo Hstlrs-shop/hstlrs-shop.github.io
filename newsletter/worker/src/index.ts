@@ -2,6 +2,7 @@ import { buildDigest } from "./digest";
 import { num, type Env } from "./env";
 import { flushFreeQueue, ingest, syncBotNoticias } from "./ingest";
 import { handleAccess, handleChatMember, handleMercadoPago } from "./payments";
+import { flushOutbox, handleBotApi, morningBriefing, proTick } from "./pro";
 import { SITE } from "./site-files";
 import { esc } from "./telegram";
 
@@ -65,6 +66,8 @@ export default {
     const page = req.method === "GET" ? SITE[p] : undefined;
     if (page) return new Response(page.body, { headers: { "content-type": page.type, "cache-control": "public, max-age=300" } });
 
+    if (p.startsWith("/bot/")) return handleBotApi(req, env, p);
+
     if (p === "/health") return json({ ok: true, brand: env.BRAND });
 
     if (p === "/api/news" && req.method === "GET") {
@@ -125,6 +128,7 @@ export default {
       if (task === "free") return json({ sent: await flushFreeQueue(env) });
       if (task === "digest") return json(await buildDigest(env));
       if (task === "bot") return json({ updated: await syncBotNoticias(env) });
+      if (task === "brief") { const n = await morningBriefing(env, true); return json({ queued: n, sent: await flushOutbox(env) }); }
       if (task === "stats") {
         const s = await env.DB.batch([
           env.DB.prepare("SELECT COUNT(*) n FROM news WHERE detected_at > ?1").bind(Date.now() - 86400_000),
@@ -133,7 +137,7 @@ export default {
         ]);
         return json({ news_24h: s[0].results[0], leads: s[1].results[0], members: s[2].results });
       }
-      return json({ error: "task = ingest | free | digest | bot | stats" }, 400);
+      return json({ error: "task = ingest | free | digest | bot | brief | stats" }, 400);
     }
 
     return json({ error: "no encontrado" }, 404);
@@ -147,6 +151,7 @@ export default {
     const r = await ingest(env);
     if (r.errors.length) console.warn("ingest errors", r.errors);
     await flushFreeQueue(env).catch((e) => console.warn("free queue", e));
+    await proTick(env);
     if (new Date(event.scheduledTime).getUTCMinutes() === 0) await syncBotNoticias(env).catch((e) => console.warn("bot noticias", e));
   },
 } satisfies ExportedHandler<Env>;

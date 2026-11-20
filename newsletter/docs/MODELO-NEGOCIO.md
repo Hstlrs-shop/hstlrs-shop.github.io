@@ -65,6 +65,18 @@ Margen bruto > 85 % desde ~100 miembros Pro.
 
 ## 4. Planes y qué incluye cada uno
 
+> Implementado en el bot v9 (`bot/worker.js`) + `worker/src/pro.ts`. Límites en `LIMITS` de `pro.ts`.
+
+| Función del bot | Gratis | Prueba (3 días) | Pro | API |
+|---|---|---|---|---|
+| 🤖 Pregúntale a Lana (IA con noticias del día; también sin comando) | 3/día | 15/día | 30/día | 60/día |
+| 🎯 Radar personal (aviso por DM) | 1 tema, +15 min | 10 temas, al instante | 10, al instante | 25 |
+| ☀️ Briefing personal 7:00 | – | ✅ | ✅ | ✅ |
+| ⏰ Recordatorio 15 min antes de cada evento (`/evento` del admin) | – | ✅ | ✅ | ✅ |
+| 🌡️ Termómetro, 💵 dólar, noticias, agenda | ✅ | ✅ | ✅ | ✅ |
+| 🎁 Referidos: 3 amigos con `/invita` = 7 días Pro | ✅ | ✅ | – | – |
+
+
 | | Gratis | Pro | API |
 |---|---|---|---|
 | Newsletter diario | ✅ | ✅ | ✅ |

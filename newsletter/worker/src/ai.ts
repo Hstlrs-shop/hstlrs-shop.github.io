@@ -110,3 +110,28 @@ export async function writeDigest(env: Env, items: unknown[]): Promise<string | 
   if (response.stop_reason === "refusal") return null;
   return response.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim() || null;
 }
+
+const SYSTEM_ASK = `Eres "Lana", la analista de Lana con Café: explicas en español de México, claro y cercano, qué está pasando en los mercados y cómo puede afectar al bolsillo.
+Reglas:
+- Responde en máximo 900 caracteres, texto plano (sin Markdown ni HTML). Puedes usar 1-2 emojis.
+- Apóyate en las noticias numeradas que te paso y cítalas así: [3]. Si no hay noticias sobre lo que preguntan, dilo y da contexto general educativo.
+- No inventes cifras ni hechos que no estén en las noticias.
+- Nunca digas "compra" o "vende" ni des recomendaciones personalizadas. Explica escenarios e impactos posibles.
+- Si preguntan algo que no es de economía, finanzas o mercados, redirige amablemente.`;
+
+/** Respuesta de la IA a una pregunta libre, usando las noticias recientes como contexto. */
+export async function answerQuestion(env: Env, question: string, news: { title: string; brief: string | null; source: string }[]): Promise<string | null> {
+  if (!env.ANTHROPIC_API_KEY) return null;
+  const context = news.map((n, i) => `[${i + 1}] ${n.title}${n.brief ? ` — ${n.brief}` : ""} (${n.source})`).join("\n");
+  const response = await client(env).beta.messages.create({
+    model: env.CLAUDE_MODEL,
+    max_tokens: 4000,
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    output_config: { effort: "low" },
+    system: SYSTEM_ASK,
+    messages: [{ role: "user", content: `Noticias recientes:\n${context}\n\nPregunta del usuario: ${question}` }],
+  });
+  if (response.stop_reason === "refusal") return "Esa no la puedo responder. Pregúntame sobre mercados, economía o tu dinero ☕";
+  return response.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim() || null;
+}

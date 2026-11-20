@@ -1,6 +1,7 @@
 export interface Env {
   DB: D1Database;
   BOT_KV?: KVNamespace;        // KV de tu bot "lanaconcafe" (para llenar /noticias)
+  BOT?: Fetcher;               // service binding al bot: envía a Telegram con SU token (no hace falta copiarlo)
 
   // Variables (wrangler.toml [vars])
   BRAND: string;
@@ -17,9 +18,12 @@ export interface Env {
   MP_PLAN_API?: string;        // id del plan de suscripción API
   ROTATE?: string;             // "3" en plan gratuito, "1" en Workers Paid
   BOT_NOTICIAS?: string;       // "1" = actualizar /noticias del bot cada hora
+  HEURISTIC_ALERTS?: string;   // "1" = publicar en canales aunque la IA no haya revisado la noticia
+  TG_API?: string;             // solo pruebas locales: API de Telegram simulada
 
   // Secretos (wrangler secret put ...)
-  TELEGRAM_BOT_TOKEN: string;
+  TELEGRAM_BOT_TOKEN?: string;  // opcional si existe el binding BOT
+  INTERNAL_SECRET?: string;     // secreto compartido bot <-> Worker de noticias
   ANTHROPIC_API_KEY?: string;
   MP_ACCESS_TOKEN?: string;     // Mercado Pago: credencial de producción (APP_USR-…)
   MP_WEBHOOK_SECRET?: string;   // Mercado Pago: clave secreta de Webhooks
