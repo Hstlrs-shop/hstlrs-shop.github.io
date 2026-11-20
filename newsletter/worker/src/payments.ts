@@ -114,10 +114,28 @@ export async function handleChatMember(req: Request, env: Env): Promise<Response
   const cm = update.chat_member;
   const link: string | undefined = cm?.invite_link?.invite_link;
   const userId: number | undefined = cm?.new_chat_member?.user?.id;
-  if (link && userId && cm.new_chat_member.status === "member") {
-    const prefix = link.replace(/\.\.\.$/, ""); // Telegram puede recortar el enlace
-    await env.DB.prepare("UPDATE members SET telegram_user_id = ?1, updated_at = ?2 WHERE invite_link LIKE ?3 AND status = 'authorized'")
-      .bind(userId, Date.now(), prefix + "%").run();
+  const status: string | undefined = cm?.new_chat_member?.status;
+  if (!userId || !status) return new Response("ok");
+  const now = Date.now();
+  if (["member", "administrator", "creator"].includes(status)) {
+    // Suscripción de Mercado Pago: el enlace de un solo uso identifica al cliente
+    let linked = 0;
+    if (link) {
+      const prefix = link.replace(/\.\.\.$/, ""); // Telegram puede recortar el enlace
+      const r = await env.DB.prepare("UPDATE members SET telegram_user_id = ?1, updated_at = ?2 WHERE invite_link LIKE ?3 AND status = 'authorized'")
+        .bind(userId, now, prefix + "%").run();
+      linked = r.meta.changes ?? 0;
+    }
+    // Suscripción con Telegram Stars (o alta manual): estar en el canal Pro = ser Pro
+    if (!linked) {
+      await env.DB.prepare(
+        `INSERT INTO members (id, plan, status, telegram_user_id, created_at, updated_at) VALUES (?1, 'pro', 'authorized', ?2, ?3, ?3)
+         ON CONFLICT(id) DO UPDATE SET status = 'authorized', updated_at = ?3`,
+      ).bind(`tg:${userId}`, userId, now).run();
+    }
+  } else if (status === "left" || status === "kicked") {
+    // Dejó de pagar las Stars (Telegram lo saca) o salió del canal
+    await env.DB.prepare("UPDATE members SET status = 'cancelled', updated_at = ?2 WHERE id = ?1").bind(`tg:${userId}`, now).run();
   }
   return new Response("ok");
 }

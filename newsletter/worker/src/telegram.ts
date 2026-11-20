@@ -7,6 +7,13 @@ import { catImage, newsPath } from "./pages";
 const IMPACT_ICON = ["", "⚪", "🔵", "🟡", "🟠", "🔴"];
 const BIAS_ICON: Record<string, string> = { alcista: "📈", bajista: "📉", mixto: "↔️", neutral: "➖" };
 
+/** ID del canal Pro: variable TELEGRAM_PRO_CHAT o el que el admin registró en el bot (KV "pro_canal"). */
+export async function proChatId(env: Env): Promise<string | null> {
+  if (/^-100\d+$/.test(env.TELEGRAM_PRO_CHAT ?? "")) return env.TELEGRAM_PRO_CHAT;
+  const v = await env.BOT_KV?.get("pro_canal");
+  return v && /^-100\d+$/.test(v) ? v : null;
+}
+
 export const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /** Llama a la Bot API. Con el binding BOT, la llamada la hace el propio bot con su token. */
@@ -99,7 +106,7 @@ export function sendMessage(env: Env, chatId: string, html: string, silent = fal
 /** Enlace de invitación de un solo uso para el canal privado. */
 export async function createInvite(env: Env, name: string): Promise<string> {
   const r = await call<{ invite_link: string }>(env, "createChatInviteLink", {
-    chat_id: env.TELEGRAM_PRO_CHAT,
+    chat_id: await proChatId(env),
     name: name.slice(0, 32),
     member_limit: 1,
     expire_date: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
@@ -107,12 +114,13 @@ export async function createInvite(env: Env, name: string): Promise<string> {
   return r.invite_link;
 }
 
-export function revokeInvite(env: Env, link: string) {
-  return call(env, "revokeChatInviteLink", { chat_id: env.TELEGRAM_PRO_CHAT, invite_link: link });
+export async function revokeInvite(env: Env, link: string) {
+  return call(env, "revokeChatInviteLink", { chat_id: await proChatId(env), invite_link: link });
 }
 
 /** Expulsa sin banear de por vida (ban + unban) cuando se cancela la suscripción. */
 export async function removeMember(env: Env, userId: number) {
-  await call(env, "banChatMember", { chat_id: env.TELEGRAM_PRO_CHAT, user_id: userId });
-  await call(env, "unbanChatMember", { chat_id: env.TELEGRAM_PRO_CHAT, user_id: userId, only_if_banned: true });
+  const chat = await proChatId(env);
+  await call(env, "banChatMember", { chat_id: chat, user_id: userId });
+  await call(env, "unbanChatMember", { chat_id: chat, user_id: userId, only_if_banned: true });
 }

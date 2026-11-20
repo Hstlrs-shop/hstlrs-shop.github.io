@@ -3,7 +3,7 @@
 
 import { writeDigest } from "./ai";
 import type { Env } from "./env";
-import { esc, sendMessage } from "./telegram";
+import { esc, proChatId, sendMessage } from "./telegram";
 
 /** Markdown → HTML mínimo y seguro (escapa todo antes de transformar). */
 export function mdToHtml(md: string): string {
@@ -53,7 +53,8 @@ export async function buildDigest(env: Env): Promise<{ id: string; subject: stri
   const url = `${env.SITE_URL}/edicion.html?id=${id}`;
   const teaser = `🗞 <b>${esc(subject)}</b>\n\nYa está la edición de hoy: lo que mueve el mercado en 5 minutos.\n\n👉 <a href="${esc(url)}">Leer gratis</a>`;
   await sendMessage(env, env.TELEGRAM_FREE_CHAT, teaser).catch(() => {});
-  await sendMessage(env, env.TELEGRAM_PRO_CHAT, teaser).catch(() => {});
+  const proChat = await proChatId(env);
+  if (proChat) await sendMessage(env, proChat, teaser).catch(() => {});
 
   if (env.DIGEST_WEBHOOK_URL) {
     // Conecta aquí Beehiiv / Buttondown / Make / Zapier para el envío por email

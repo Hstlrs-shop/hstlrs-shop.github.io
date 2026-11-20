@@ -3,6 +3,8 @@
 // Variable opcional: CANAL_ID (texto, p. ej. @lanaconcafe) para publicar en el canal. El bot debe ser administrador del canal.
 // v5: las publicaciones del canal llevan botones que abren el bot; /menucanal publica un menú para fijar.
 // v6: resumen automático 7:30 am y encuesta diaria en el canal (resultado 8 pm, hora de Querétaro); /stats y /probarcanal para el administrador.
+// v10: suscripción de pago con Telegram Stars al canal Pro (/crearsuscripcion), el ID del canal Pro se obtiene
+//      reenviando al bot un mensaje del canal (lo guarda en KV "pro_canal"); entrar/salir del canal activa/desactiva Pro.
 // v9: Pro de verdad. Pregúntale a Lana (IA con las noticias del día; también escribiendo sin comando),
 //     radar personal (/radar peso), termómetro del mercado, /dolar, briefing Pro 7:00, recordatorios de agenda,
 //     prueba Pro de 3 días (/prueba), referidos (/invita: 3 amigos = 7 días Pro), /micuenta.
@@ -129,7 +131,8 @@ export default {
     try { update = await request.json(); } catch { return new Response("ok"); }
     // v8: altas en el canal Pro → se avisan al Worker de noticias (para poder sacar a quien cancele)
     if (update.chat_member) {
-      if (env.PRO_CANAL_ID && env.NEWS_URL && env.FORWARD_SECRET && String(update.chat_member.chat.id) === String(env.PRO_CANAL_ID)) {
+      const pro = await canalPro(env);
+      if (pro && env.NEWS_URL && env.FORWARD_SECRET && String(update.chat_member.chat.id) === String(pro)) {
         try {
           await fetch(`${env.NEWS_URL}/telegram/chat-member`, {
             method: "POST", headers: { "content-type": "application/json", "x-forward-secret": env.FORWARD_SECRET }, body: JSON.stringify(update),
@@ -251,9 +254,25 @@ export function parsear(texto) {
   return { cmd, args: partes.slice(1) };
 }
 
+// ID del canal Pro: variable PRO_CANAL_ID o el que el admin registró reenviando un mensaje del canal
+async function canalPro(env) {
+  return env.PRO_CANAL_ID || (await env.DB.get("pro_canal")) || null;
+}
+
 async function manejar(update, env) {
   const msg = update.message;
-  if (!msg || !msg.text) return;
+  if (!msg) return;
+  // v10: el admin reenvía un mensaje de un canal → el bot le dice su ID y lo guarda como canal Pro
+  const origen = msg.forward_origin && msg.forward_origin.type === "channel" ? msg.forward_origin.chat : (msg.forward_from_chat && msg.forward_from_chat.type === "channel" ? msg.forward_from_chat : null);
+  if (origen && msg.chat.type === "private") {
+    if (String(msg.from && msg.from.id) !== String(env.ADMIN_ID)) return;
+    if (env.CANAL_ID && origen.username && ("@" + origen.username).toLowerCase() === String(env.CANAL_ID).toLowerCase())
+      return enviar(env, msg.chat.id, `Ese es tu canal <b>público</b> (${esc(env.CANAL_ID)}). Reenvíame un mensaje del canal <b>Pro privado</b>.`);
+    await env.DB.put("pro_canal", String(origen.id));
+    await env.DB.put("pro_canal_titulo", origen.title || "");
+    return enviar(env, msg.chat.id, `✅ Canal Pro registrado: <b>${esc(origen.title || "")}</b>\nID: <code>${origen.id}</code>\n\nAhora crea la suscripción con Stars, por ejemplo:\n<code>/crearsuscripcion 500</code>\n\nY escribe /configurar para activar los avisos de altas y bajas del canal.`);
+  }
+  if (!msg.text) return;
   const chat = msg.chat.id;
   const boton = BOTONES[msg.text.trim()];
   let { cmd, args } = parsear(boton || msg.text);
@@ -329,8 +348,9 @@ async function manejar(update, env) {
     case "/pro": {
       const c = await news(env, "/bot/account", { tg: from });
       const yaPro = c.plan === "pro" || c.plan === "api";
+      const proLink = await env.DB.get("pro_link"), proStars = await env.DB.get("pro_stars");
       return tg(env, "sendMessage", { chat_id: chat, parse_mode: "HTML", disable_web_page_preview: true,
-        text: `<b>⭐ Lana con Café Pro · $199 MXN/mes</b>\n\n` +
+        text: `<b>⭐ Lana con Café Pro${proLink ? ` · ${proStars} Stars al mes` : " · $199 MXN/mes"}</b>\n\n` +
           `⚡ <b>Alertas al instante</b> en el canal Pro privado (el gratis las ve 15 min después)\n` +
           `🎯 <b>Radar personal</b> de hasta 10 temas: peso, Banxico, Nvidia, Cetes… te aviso al momento\n` +
           `🤖 <b>Pregúntale a Lana</b>: 30 preguntas al día a la IA con las noticias de hoy\n` +
@@ -338,7 +358,9 @@ async function manejar(update, env) {
           `⏰ <b>Recordatorios</b> 15 min antes de cada dato importante (inflación, Banxico, Fed)\n` +
           `🌡️ Activos afectados y sesgo probable en cada alerta\n\n` +
           (yaPro ? "✅ Ya eres Pro. ¡Gracias por apoyar Lana con Café!" : c.plan === "prueba" ? `🎁 Tienes prueba Pro hasta el ${fechaCorta(c.until)}.` : "Pruébalo gratis 3 días con /prueba") + AVISO,
-        reply_markup: yaPro ? undefined : { inline_keyboard: [[{ text: "⭐ Hazte Pro", url: `${env.NEWS_URL || "https://lanaconcafe-news.gt2hf24n6t.workers.dev"}/precios.html` }]] },
+        reply_markup: yaPro ? undefined : { inline_keyboard: [[proLink
+          ? { text: `⭐ Suscribirme · ${proStars} Stars al mes`, url: proLink }
+          : { text: "⭐ Hazte Pro", url: `${env.NEWS_URL || "https://lanaconcafe-news.gt2hf24n6t.workers.dev"}/precios.html` }]] },
       });
     }
 
@@ -386,6 +408,19 @@ async function manejar(update, env) {
     case "/prostats": {
       if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
       return enviar(env, chat, `<pre>${esc(JSON.stringify(await news(env, "/bot/stats"), null, 1))}</pre>`);
+    }
+
+    case "/crearsuscripcion": {
+      if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+      const pro = await canalPro(env);
+      if (!pro) return enviar(env, chat, "Primero reenvíame cualquier mensaje del canal Pro privado para registrar su ID.");
+      const estrellas = parseInt(args[0], 10);
+      if (!(estrellas >= 1 && estrellas <= 10000)) return enviar(env, chat, "Uso: /crearsuscripcion 500  (precio mensual en Stars ⭐)");
+      const r = await tg(env, "createChatSubscriptionInviteLink", { chat_id: pro, name: "Lana con Café Pro", subscription_period: 2592000, subscription_price: estrellas });
+      if (!r || !r.ok) return enviar(env, chat, `⚠️ Telegram no creó la suscripción: ${esc((r && r.description) || "error")}\nRevisa que el bot sea administrador del canal Pro con permiso de <b>invitar usuarios</b>.`);
+      await env.DB.put("pro_link", r.result.invite_link);
+      await env.DB.put("pro_stars", String(estrellas));
+      return enviar(env, chat, `✅ <b>Suscripción creada</b>: ${estrellas} ⭐ al mes\n${r.result.invite_link}\n\nYa aparece en /pro. Quien pague entra al canal y se le activa Pro en el bot; si deja de pagar, Telegram lo saca y se le desactiva.`);
     }
 
     case "/miid":

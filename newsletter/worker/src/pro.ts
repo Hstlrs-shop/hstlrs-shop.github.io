@@ -5,7 +5,7 @@
 import { answerQuestion } from "./ai";
 import { num, type Env } from "./env";
 import { newsPath } from "./pages";
-import { esc, tgCall } from "./telegram";
+import { esc, proChatId, tgCall } from "./telegram";
 import { matchesTerm, normalize, parseCdmx, validTerm } from "./textutil";
 
 const DAY = 86_400_000;
@@ -89,9 +89,17 @@ export interface RadarItem { id: string; title: string; summary: string; headlin
 /** Llamado por la ingesta con las noticias nuevas: avisa a quien sigue esos temas. */
 export async function queueRadar(env: Env, items: RadarItem[]): Promise<number> {
   if (items.length === 0) return 0;
-  const w = await env.DB.prepare("SELECT tg, term, label FROM watch").all<{ tg: number; term: string; label: string }>();
-  if (w.results.length === 0) return 0;
+  const all = await env.DB.prepare("SELECT tg, term, label FROM watch ORDER BY created_at").all<{ tg: number; term: string; label: string }>();
+  if (all.results.length === 0) return 0;
   const { paid, trial } = await proSets(env);
+  // Si alguien deja de ser Pro, conserva sus temas pero solo funcionan los que permite su plan actual
+  const used = new Map<number, number>();
+  const w = { results: all.results.filter((r) => {
+    const plan: Plan = paid.get(r.tg) ?? (trial.has(r.tg) ? "prueba" : "gratis");
+    const n = (used.get(r.tg) ?? 0) + 1;
+    used.set(r.tg, n);
+    return n <= LIMITS[plan].radar;
+  }) };
   let queued = 0;
   for (const it of items) {
     const text = normalize(`${it.title} ${it.summary} ${it.headline_es ?? ""}`);
@@ -206,7 +214,8 @@ async function eventReminders(env: Env) {
     const mins = Math.max(0, Math.round((e.at - now) / 60_000));
     const text = `⏰ <b>${mins > 0 ? `En ${mins} min` : "Ahora"}: ${esc(e.title)}</b>\n\nPrepárate: es un dato que puede mover el mercado. Te mando la noticia en cuanto salga.`;
     await enqueue(env, ids, text);
-    if (/^-100\d+$/.test(env.TELEGRAM_PRO_CHAT)) await enqueue(env, [env.TELEGRAM_PRO_CHAT], text);
+    const proChat = await proChatId(env);
+    if (proChat) await enqueue(env, [proChat], text);
     await env.DB.prepare("UPDATE events SET notified = 1 WHERE id = ?1").bind(e.id).run();
   }
 }

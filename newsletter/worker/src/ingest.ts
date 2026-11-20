@@ -7,7 +7,7 @@ import { fingerprint, scoreItem } from "./scoring";
 import { sourcesFor, type Source } from "./sources";
 import { queueRadar } from "./pro";
 import { newsPath } from "./pages";
-import { esc, sendAlert } from "./telegram";
+import { esc, proChatId, sendAlert } from "./telegram";
 
 const UA = "Mozilla/5.0 (compatible; LanaConCafeBot/1.0)";
 const MAX_AGE_MS = 36 * 3600 * 1000;   // ignoramos noticias viejas
@@ -135,7 +135,8 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
 
   // 5) Alerta instantánea al canal Pro (solo noticias revisadas por la IA, salvo HEURISTIC_ALERTS = "1")
   const proMin = num(env.PRO_MIN_IMPACT, 4);
-  const proReady = /^-100\d+$/.test(env.TELEGRAM_PRO_CHAT);
+  const proChat = await proChatId(env);
+  const proReady = !!proChat;
   const toAlert = rows
     .filter((r) => proReady && !r.silent && (r.ai || env.HEURISTIC_ALERTS === "1") && (r.ai?.impact ?? r.impact) >= proMin)
     .sort((a, b) => (b.ai?.impact ?? b.impact) - (a.ai?.impact ?? a.impact) || b.score - a.score)
@@ -143,7 +144,7 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
   let alerted = 0;
   for (const r of toAlert) {
     try {
-      await sendAlert(env, env.TELEGRAM_PRO_CHAT, {
+      await sendAlert(env, proChat!, {
         id: r.id, title: r.item.title, image: r.item.image, category: r.ai?.category ?? r.category,
         headline: r.ai?.headline_es ?? r.item.title, brief: r.ai?.brief_es, link: r.item.link, source: r.s.name,
         impact: r.ai?.impact ?? r.impact, bias: r.ai?.bias, assets: r.ai?.assets, scope: r.s.scope,
