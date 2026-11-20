@@ -7,7 +7,7 @@ import { fingerprint, scoreItem } from "./scoring";
 import { sourcesFor, type Source } from "./sources";
 import { formatAlert, sendMessage } from "./telegram";
 
-const UA = "Mozilla/5.0 (compatible; PulsoNewsBot/1.0)";
+const UA = "Mozilla/5.0 (compatible; LanaConCafeBot/1.0)";
 const MAX_AGE_MS = 36 * 3600 * 1000;   // ignoramos noticias viejas
 const MAX_AI_PER_RUN = 20;
 const MAX_PRO_ALERTS_PER_RUN = 8;       // Telegram limita ~20 msg/min por canal

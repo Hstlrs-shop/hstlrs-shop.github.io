@@ -1,5 +1,5 @@
 -- Esquema D1 del newsletter. Aplicar con:
---   npx wrangler d1 execute pulso-db --remote --file=schema.sql
+--   npx wrangler d1 execute lanaconcafe-news-db --remote --file=schema.sql
 
 CREATE TABLE IF NOT EXISTS news (
   id            TEXT PRIMARY KEY,          -- sha256 del enlace normalizado

@@ -1,4 +1,4 @@
-# Pulso Mercados
+# Lana con Café
 
 Newsletter + alertas de Telegram con las noticias que mueven los mercados (globales y nacionales), en español, con modelo de monetización freemium.
 
@@ -53,7 +53,7 @@ Newsletter + alertas de Telegram con las noticias que mueven los mercados (globa
 cd worker
 npm install
 npm run typecheck && npm test
-npx wrangler d1 execute pulso-db --local --file=schema.sql
+npx wrangler d1 execute lanaconcafe-news-db --local --file=schema.sql
 npm run dev
 ```
 

@@ -1,5 +1,5 @@
 {
-  "name": "pulso-news-worker",
+  "name": "lanaconcafe-worker",
   "private": true,
   "type": "module",
   "scripts": {
@@ -7,7 +7,7 @@
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test test/*.test.ts",
-    "db:init": "wrangler d1 execute pulso-db --remote --file=schema.sql"
+    "db:init": "wrangler d1 execute lanaconcafe-news-db --remote --file=schema.sql"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0"

@@ -5,7 +5,7 @@ Tiempo estimado: 45–60 minutos. Necesitas: cuenta de Cloudflare (plan Workers 
 ## 1. Telegram
 
 1. Crea **dos canales**:
-   - Público, p. ej. `@pulsomercados` → será `TELEGRAM_FREE_CHAT`.
+   - Público, p. ej. `@lanaconcafe` → será `TELEGRAM_FREE_CHAT`.
    - Privado (Pro) → obtén su id `-100…` (reenvía un mensaje del canal a `@userinfobot` o mira el `chat.id` en los updates de tu bot) → `TELEGRAM_PRO_CHAT`.
 2. Añade **tu bot actual** como administrador en ambos, con permisos para *publicar mensajes*, *invitar usuarios mediante enlace* y *banear usuarios*.
 3. Este Worker usa el **mismo token** solo para *enviar* (`sendMessage`, `createChatInviteLink`…). No toca el webhook de tu bot, así que tu automatización actual sigue igual.
@@ -14,7 +14,7 @@ Tiempo estimado: 45–60 minutos. Necesitas: cuenta de Cloudflare (plan Workers 
    ```js
    // dentro del handler del webhook de tu bot
    if (update.chat_member && String(update.chat_member.chat.id) === env.TELEGRAM_PRO_CHAT) {
-     ctx.waitUntil(fetch("https://pulso-news.TU-SUBDOMINIO.workers.dev/telegram/chat-member", {
+     ctx.waitUntil(fetch("https://lanaconcafe-news.TU-SUBDOMINIO.workers.dev/telegram/chat-member", {
        method: "POST",
        headers: { "content-type": "application/json", "x-forward-secret": env.TELEGRAM_FORWARD_SECRET },
        body: JSON.stringify(update),
@@ -30,7 +30,7 @@ Tiempo estimado: 45–60 minutos. Necesitas: cuenta de Cloudflare (plan Workers 
 cd worker
 npm install
 npx wrangler login
-npx wrangler d1 create pulso-db              # copia el database_id a wrangler.toml
+npx wrangler d1 create lanaconcafe-news-db              # copia el database_id a wrangler.toml
 npx wrangler kv namespace create CACHE       # copia el id a wrangler.toml
 npm run db:init                              # crea las tablas
 
@@ -46,7 +46,7 @@ Edita `[vars]` en `wrangler.toml` (`BRAND`, `SITE_URL`, `COUNTRY`, canales, enla
 
 ```bash
 npm run deploy
-curl -X POST -H "authorization: Bearer $ADMIN_TOKEN" "https://pulso-news.TU-SUBDOMINIO.workers.dev/admin/run?task=ingest"
+curl -X POST -H "authorization: Bearer $ADMIN_TOKEN" "https://lanaconcafe-news.TU-SUBDOMINIO.workers.dev/admin/run?task=ingest"
 ```
 
 La **primera** lectura de cada fuente se guarda sin alertar (para no inundar el canal con noticias viejas). A partir del minuto siguiente solo se alerta lo nuevo.
@@ -59,7 +59,7 @@ Tareas manuales disponibles en `/admin/run?task=`: `ingest`, `free`, `digest`, `
 2. Crea un **Payment Link** para cada uno:
    - En *Después del pago* → redirigir a `https://TU-SITIO/gracias.html?session_id={CHECKOUT_SESSION_ID}`.
    - En *Metadatos* añade `plan = pro` (o `plan = api`).
-3. Webhook: *Desarrolladores → Webhooks → Añadir endpoint* `https://pulso-news.TU-SUBDOMINIO.workers.dev/stripe/webhook` con los eventos `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copia el *signing secret* (`whsec_…`) a `STRIPE_WEBHOOK_SECRET`.
+3. Webhook: *Desarrolladores → Webhooks → Añadir endpoint* `https://lanaconcafe-news.TU-SUBDOMINIO.workers.dev/stripe/webhook` con los eventos `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copia el *signing secret* (`whsec_…`) a `STRIPE_WEBHOOK_SECRET`.
 4. Activa el **portal de clientes** para que puedan cancelar solos.
 
 Flujo resultante: paga → Stripe llama al webhook → el Worker crea un enlace de invitación de **un solo uso** (caduca en 7 días) y una API key → la página `gracias.html` los muestra. Al cancelar → se revoca el enlace y se expulsa al usuario del canal.

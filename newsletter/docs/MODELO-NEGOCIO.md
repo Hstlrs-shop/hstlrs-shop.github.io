@@ -1,4 +1,4 @@
-# Modelo de negocio · Pulso Mercados
+# Modelo de negocio · Lana con Café
 
 > Las cifras son estimaciones para planificar, no promesas. Revísalas cada mes con los datos reales de `/admin/run?task=stats`.
 

@@ -33,7 +33,7 @@ Edita `worker/src/sources.ts`. Prioriza en este orden:
 Prueba un feed antes de añadirlo:
 
 ```bash
-curl -s -A "Mozilla/5.0 (compatible; PulsoNewsBot/1.0)" "URL_DEL_FEED" | grep -c "<item\|<entry"
+curl -s -A "Mozilla/5.0 (compatible; LanaConCafeBot/1.0)" "URL_DEL_FEED" | grep -c "<item\|<entry"
 ```
 
 Evita feeds de un único item fijo (como `bls_latest.rss`): el enlace nunca cambia y no generan alertas.

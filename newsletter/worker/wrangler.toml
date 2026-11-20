@@ -1,4 +1,4 @@
-name = "pulso-news"
+name = "lanaconcafe-news"
 main = "src/index.ts"
 compatibility_date = "2026-11-01"
 compatibility_flags = ["nodejs_compat"]
@@ -10,7 +10,7 @@ crons = ["* * * * *", "17 11 * * 1-5"]
 
 [[d1_databases]]
 binding = "DB"
-database_name = "pulso-db"
+database_name = "lanaconcafe-news-db"
 database_id = "REEMPLAZAR_CON_ID_DE_D1"
 
 [[kv_namespaces]]
@@ -18,8 +18,8 @@ binding = "CACHE"
 id = "REEMPLAZAR_CON_ID_DE_KV"
 
 [vars]
-BRAND = "Pulso Mercados"
-SITE_URL = "https://REEMPLAZAR.github.io/pulso-mercados"
+BRAND = "Lana con Café"
+SITE_URL = "https://REEMPLAZAR.github.io/lanaconcafe"
 COUNTRY = "MX"                # MX | ES | CO | AR | VE | CL | PE (ver src/sources.ts)
 CLAUDE_MODEL = "claude-opus-5-5"
 AI_MIN_SCORE = "45"
