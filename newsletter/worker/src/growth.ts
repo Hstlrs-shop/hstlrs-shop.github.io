@@ -11,7 +11,7 @@ const CDMX = 6 * 3600_000;
 const cdmxDate = (ms = Date.now()) => new Date(ms - CDMX).toISOString().slice(0, 10);
 
 // ---------- Kit de contenido diario ----------
-export async function contentKit(env: Env, force = false): Promise<{ sent: boolean; reason?: string }> {
+export async function contentKit(env: Env, force = false, silent = false): Promise<{ sent: boolean; reason?: string; kit?: unknown }> {
   const admin = env.ADMIN_CHAT_ID;
   if (!admin) return { sent: false, reason: "falta ADMIN_CHAT_ID" };
   const now = Date.now();
@@ -43,6 +43,18 @@ export async function contentKit(env: Env, force = false): Promise<{ sent: boole
   let wa = kit.whatsapp.replace(/\{BOT\}/g, bot ? `https://t.me/${bot}` : env.SITE_URL);
   links.forEach((l, i) => (wa = wa.replace(new RegExp(`\\{LINK${i + 1}\\}`, "g"), l)));
   wa = wa.replace(/\{LINK\d\}/g, "");
+  // Se guarda para el generador de Reels y carruseles (GET /bot/kit-data)
+  const stored = {
+    date: cdmxDate(now), kit,
+    news: picked.map((n, i) => ({
+      id: n.id, headline: n.headline_es ?? n.title, brief: n.brief_es, source: n.source_name, category: n.category,
+      impact: n.impact, bias: n.bias, assets: JSON.parse(n.assets ?? "[]"), image: n.image, cat_image: catImage(env, n.category), url: links[i],
+    })),
+    bot: bot ? `https://t.me/${bot}` : null, site: env.SITE_URL,
+  };
+  await env.DB.prepare("INSERT INTO flags (k, v) VALUES ('kit:last', ?1) ON CONFLICT(k) DO UPDATE SET v = ?1").bind(JSON.stringify(stored)).run();
+  if (silent) return { sent: false, kit: stored };
+
   const send = (text: string) => tgCall(env, "sendMessage", { chat_id: admin, text, parse_mode: "HTML", link_preview_options: { is_disabled: true } });
 
   await send(`🎬 <b>Kit de contenido · ${cdmxDate(now)}</b>\n\nGraba un video vertical de ~45 s (TikTok, Reels y Shorts con el mismo archivo).\n\n<b>Primera frase (0-3 s):</b>\n${esc(kit.hook)}\n\n<b>Guion</b> (las “/” son pausas):\n${esc(kit.script)}`);
@@ -115,7 +127,11 @@ export async function handleAffiliateApi(env: Env, path: string, b: Record<strin
       return Response.json({ ...(await affStats(env, a.code)), web: `${env.SITE_URL}/r/${a.code}`, bot: bot ? `https://t.me/${bot}?start=a_${a.code}` : null });
     }
     case "/bot/kit":
-      return Response.json(await contentKit(env, true));
+      return Response.json(await contentKit(env, true, !!b.silent));
+    case "/bot/kit-data": {
+      const r = await env.DB.prepare("SELECT v FROM flags WHERE k = 'kit:last'").first<{ v: string }>();
+      return r ? new Response(r.v, { headers: { "content-type": "application/json" } }) : Response.json({ error: "sin kit" }, { status: 404 });
+    }
   }
   return null;
 }
