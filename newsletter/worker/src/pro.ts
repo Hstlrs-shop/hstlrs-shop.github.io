@@ -5,7 +5,7 @@
 import { answerQuestion } from "./ai";
 import { num, type Env } from "./env";
 import { newsPath } from "./pages";
-import { esc, proChatId, tgCall } from "./telegram";
+import { askLink, esc, proChatId, tgCall } from "./telegram";
 import { matchesTerm, normalize, parseCdmx, validTerm } from "./textutil";
 
 const DAY = 86_400_000;
@@ -13,12 +13,14 @@ const CDMX_OFFSET = 6 * 3600_000; // Centro de México: UTC−6 todo el año
 
 export type Plan = "pro" | "api" | "prueba" | "gratis";
 
-export const LIMITS: Record<Plan, { radar: number; asks: number; radarDelayMin: number }> = {
-  api: { radar: 25, asks: 60, radarDelayMin: 0 },
-  pro: { radar: 10, asks: 30, radarDelayMin: 0 },
-  prueba: { radar: 10, asks: 15, radarDelayMin: 0 },
-  gratis: { radar: 1, asks: 3, radarDelayMin: 15 },
+// asks: preguntas rápidas al día (modelo rápido, muy barato). deep: /analiza al día (modelo profundo).
+export const LIMITS: Record<Plan, { radar: number; asks: number; deep: number; radarDelayMin: number }> = {
+  api: { radar: 25, asks: 200, deep: 10, radarDelayMin: 0 },
+  pro: { radar: 10, asks: 100, deep: 5, radarDelayMin: 0 },
+  prueba: { radar: 10, asks: 30, deep: 2, radarDelayMin: 0 },
+  gratis: { radar: 1, asks: 5, deep: 0, radarDelayMin: 15 },
 };
+const MEMORY_MS = 2 * 3600_000; // la conversación se olvida tras 2 h sin preguntar
 
 export const cdmxDay = (ms = Date.now()) => new Date(ms - CDMX_OFFSET).toISOString().slice(0, 10);
 
@@ -108,9 +110,11 @@ export async function queueRadar(env: Env, items: RadarItem[]): Promise<number> 
     for (const [tg, labels] of hits) {
       const plan: Plan = paid.get(tg) ?? (trial.has(tg) ? "prueba" : "gratis");
       const delay = LIMITS[plan].radarDelayMin;
+      const askUrl = await askLink(env, it.id);
       const msg = `🎯 <b>Tu radar: ${esc(labels.join(", "))}</b>\n\n<b>${esc(it.headline_es ?? it.title)}</b>` +
         (it.brief_es ? `\n${esc(it.brief_es)}` : "") +
         `\n\n☕ <a href="${esc(env.SITE_URL + newsPath({ id: it.id, headline_es: it.headline_es, title: it.title }))}">Leer en Lana con Café</a> · <a href="${esc(it.link)}">${esc(it.source)}</a>` +
+        (askUrl ? `\n🤖 <a href="${esc(askUrl)}">¿Qué significa para mí?</a>` : "") +
         (delay ? `\n\n⏱ Te llegó con ${delay} min de retraso. Con <b>Pro</b> llega al instante → /pro` : "");
       await enqueue(env, [tg], msg, delay);
       queued++;
@@ -137,30 +141,65 @@ async function radarOp(env: Env, tg: number, op: string, raw: string) {
 }
 
 // ---------- IA ----------
-async function ask(env: Env, tg: number, q: string) {
-  const question = q.trim().slice(0, 500);
-  if (question.length < 3) return { error: "Escríbeme tu pregunta. Ej.: ¿por qué sube el dólar hoy?" };
+async function ask(env: Env, tg: number, q: string, opts: { deep?: boolean; newsId?: string } = {}) {
+  const deep = !!opts.deep;
+  let question = q.trim().slice(0, 600);
+  const focusRow = opts.newsId && /^[0-9a-f]{32}$/.test(opts.newsId)
+    ? await env.DB.prepare("SELECT * FROM news WHERE id = ?1").bind(opts.newsId).first<any>()
+    : null;
+  if (opts.newsId && !focusRow) return { error: "Esa noticia ya no está disponible. Pregúntame lo que quieras sobre el mercado." };
+  if (!question && focusRow) question = "¿Qué significa esta noticia para mí y para mi dinero?";
+  if (question.length < 3) return { error: deep ? "Escribe qué quieres analizar. Ej.: /analiza ¿cómo afecta la decisión de Banxico a los Cetes?" : "Escríbeme tu pregunta. Ej.: ¿por qué sube el dólar hoy?" };
+
   const { plan } = await planOf(env, tg);
-  const day = cdmxDay();
-  const used = (await env.DB.prepare("SELECT n FROM usage WHERE tg = ?1 AND day = ?2").bind(tg, day).first<{ n: number }>())?.n ?? 0;
-  const limit = LIMITS[plan].asks;
-  if (used >= limit) return { error: `Llegaste a tus ${limit} preguntas de hoy (plan ${plan}).`, upsell: plan === "gratis" || plan === "prueba" };
+  const today = cdmxDay();
+  const dayKey = deep ? `${today}:deep` : today;
+  const used = (await env.DB.prepare("SELECT n FROM usage WHERE tg = ?1 AND day = ?2").bind(tg, dayKey).first<{ n: number }>())?.n ?? 0;
+  const limit = deep ? LIMITS[plan].deep : LIMITS[plan].asks;
+  if (used >= limit) {
+    return deep && limit === 0
+      ? { error: "/analiza (análisis profundo) es para Pro. Mientras, escríbeme tu pregunta normal y te respondo.", upsell: true }
+      : { error: `Llegaste a tus ${limit} ${deep ? "análisis" : "preguntas"} de hoy (plan ${plan}). Mañana se reinicia.`, upsell: plan === "gratis" || plan === "prueba" };
+  }
   if (!env.ANTHROPIC_API_KEY) return { error: "La IA se está configurando. Vuelve a intentarlo pronto ☕" };
 
-  const news = await env.DB.prepare(
-    `SELECT title, headline_es, brief_es, source_name, link FROM news WHERE detected_at > ?1 AND impact >= 2
-     ORDER BY impact DESC, score DESC LIMIT 30`,
-  ).bind(Date.now() - 36 * 3600_000).all<any>();
-  const ctx = news.results.map((n) => ({ title: n.headline_es ?? n.title, brief: n.brief_es, source: n.source_name }));
-  const answer = await answerQuestion(env, question, ctx);
-  if (!answer) return { error: "No pude responder ahora. Intenta en un minuto." };
-  await env.DB.prepare(
-    "INSERT INTO usage (tg, day, n) VALUES (?1, ?2, 1) ON CONFLICT(tg, day) DO UPDATE SET n = n + 1",
-  ).bind(tg, day).run();
+  const now = Date.now();
+  const [newsQ, radarQ, histQ] = await env.DB.batch([
+    env.DB.prepare(
+      `SELECT id, title, headline_es, brief_es, source_name, link FROM news WHERE detected_at > ?1 AND impact >= 2 AND id != ?2
+       ORDER BY impact DESC, score DESC LIMIT ?3`,
+    ).bind(now - (deep ? 72 : 36) * 3600_000, opts.newsId ?? "", deep ? 60 : 30),
+    env.DB.prepare("SELECT label FROM watch WHERE tg = ?1 ORDER BY created_at LIMIT ?2").bind(tg, LIMITS[plan].radar),
+    env.DB.prepare("SELECT role, text FROM convo WHERE tg = ?1 AND at > ?2 ORDER BY id DESC LIMIT 6").bind(tg, now - MEMORY_MS),
+  ]);
+  const news = newsQ.results as any[];
+  const history = (histQ.results as { role: "user" | "assistant"; text: string }[]).reverse();
+  // La conversación debe empezar con el usuario y alternar turnos
+  while (history.length && history[0].role !== "user") history.shift();
 
-  const cited = [...new Set([...answer.matchAll(/\[(\d{1,2})\]/g)].map((m) => Number(m[1])))].filter((i) => news.results[i - 1]).slice(0, 4);
-  const sources = cited.map((i) => `[${i}] <a href="${esc(news.results[i - 1].link)}">${esc(news.results[i - 1].source_name)}</a>`).join("\n");
-  const text = `🤖 ${esc(answer)}${sources ? `\n\n<b>Fuentes</b>\n${sources}` : ""}\n\n<i>Te quedan ${limit - used - 1} preguntas hoy · Información, no asesoría.</i>`;
+  const answer = await answerQuestion(env, {
+    question, deep, history,
+    news: news.map((n) => ({ title: n.headline_es ?? n.title, brief: n.brief_es, source: n.source_name })),
+    focus: focusRow ? { title: focusRow.headline_es ?? focusRow.title, brief: focusRow.brief_es ?? focusRow.summary, source: focusRow.source_name, assets: JSON.parse(focusRow.assets ?? "[]"), bias: focusRow.bias } : null,
+    radar: (radarQ.results as any[]).map((r) => r.label),
+  });
+  if (!answer) return { error: "No pude responder ahora. Intenta en un minuto." };
+
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO usage (tg, day, n) VALUES (?1, ?2, 1) ON CONFLICT(tg, day) DO UPDATE SET n = n + 1").bind(tg, dayKey),
+    env.DB.prepare("INSERT INTO convo (tg, role, text, at) VALUES (?1, 'user', ?2, ?3)").bind(tg, (focusRow ? `[Sobre: ${focusRow.headline_es ?? focusRow.title}] ` : "") + question, now),
+    env.DB.prepare("INSERT INTO convo (tg, role, text, at) VALUES (?1, 'assistant', ?2, ?3)").bind(tg, answer.slice(0, 1500), now + 1),
+    env.DB.prepare("DELETE FROM convo WHERE tg = ?1 AND id NOT IN (SELECT id FROM convo WHERE tg = ?1 ORDER BY id DESC LIMIT 6)").bind(tg),
+  ]);
+
+  const cited = [...new Set([...answer.matchAll(/\[(\d{1,2})\]/g)].map((m) => Number(m[1])))].filter((i) => news[i - 1]).slice(0, 4);
+  const links = [
+    ...(focusRow ? [`☕ <a href="${esc(env.SITE_URL + newsPath(focusRow))}">${esc(focusRow.headline_es ?? focusRow.title)}</a>`] : []),
+    ...cited.map((i) => `[${i}] <a href="${esc(env.SITE_URL + newsPath(news[i - 1]))}">${esc(news[i - 1].headline_es ?? news[i - 1].title)}</a> · ${esc(news[i - 1].source_name)}`),
+  ].join("\n");
+  const left = limit - used - 1;
+  const text = `${deep ? "🔬 <b>Análisis</b>\n\n" : "🤖 "}${esc(answer)}${links ? `\n\n<b>Fuentes</b>\n${links}` : ""}` +
+    `\n\n<i>${left} ${deep ? "análisis" : "preguntas"} más hoy · Recuerdo esta charla 2 h (/nueva para empezar de cero) · Información, no asesoría.</i>`;
   return { text };
 }
 
@@ -280,9 +319,10 @@ export async function handleBotApi(req: Request, env: Env, path: string): Promis
     case "/bot/account": {
       if (!needTg()) break;
       const { plan, until } = await planOf(env, tg);
-      const [terms, used, refs, tr] = await env.DB.batch([
+      const [terms, used, deepUsed, refs, tr] = await env.DB.batch([
         env.DB.prepare("SELECT label FROM watch WHERE tg = ?1 ORDER BY created_at").bind(tg),
         env.DB.prepare("SELECT n FROM usage WHERE tg = ?1 AND day = ?2").bind(tg, cdmxDay()),
+        env.DB.prepare("SELECT n FROM usage WHERE tg = ?1 AND day = ?2").bind(tg, `${cdmxDay()}:deep`),
         env.DB.prepare("SELECT COUNT(*) n FROM referrals WHERE referrer = ?1").bind(tg),
         env.DB.prepare("SELECT used_trial FROM trials WHERE tg = ?1").bind(tg),
       ]);
@@ -290,6 +330,7 @@ export async function handleBotApi(req: Request, env: Env, path: string): Promis
         plan, until, limits: LIMITS[plan],
         terms: (terms.results as any[]).map((r) => r.label),
         asks_today: (used.results[0] as any)?.n ?? 0,
+        deep_today: (deepUsed.results[0] as any)?.n ?? 0,
         referrals: (refs.results[0] as any)?.n ?? 0,
         trial_used: !!(tr.results[0] as any)?.used_trial,
       });
@@ -299,7 +340,11 @@ export async function handleBotApi(req: Request, env: Env, path: string): Promis
       return Response.json(await radarOp(env, tg, String(b.op ?? "list"), String(b.term ?? "")));
     case "/bot/ask":
       if (!needTg()) break;
-      return Response.json(await ask(env, tg, String(b.q ?? "")));
+      return Response.json(await ask(env, tg, String(b.q ?? ""), { deep: !!b.deep, newsId: b.news_id ? String(b.news_id) : undefined }));
+    case "/bot/forget":
+      if (!needTg()) break;
+      await env.DB.prepare("DELETE FROM convo WHERE tg = ?1").bind(tg).run();
+      return Response.json({ ok: true });
     case "/bot/thermo":
       return Response.json({ text: await thermometer(env) });
     case "/bot/trial": {

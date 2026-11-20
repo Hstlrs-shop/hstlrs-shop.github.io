@@ -7,6 +7,12 @@ import { catImage, newsPath } from "./pages";
 const IMPACT_ICON = ["", "⚪", "🔵", "🟡", "🟠", "🔴"];
 const BIAS_ICON: Record<string, string> = { alcista: "📈", bajista: "📉", mixto: "↔️", neutral: "➖" };
 
+/** Enlace que abre el bot y le pregunta a Lana por una noticia concreta (t.me/<bot>?start=q_<id>). */
+export async function askLink(env: Env, id: string): Promise<string | null> {
+  const bot = await env.BOT_KV?.get("botuser");
+  return bot ? `https://t.me/${bot}?start=q_${id}` : null;
+}
+
 /** ID del canal Pro: variable TELEGRAM_PRO_CHAT o el que el admin registró en el bot (KV "pro_canal"). */
 export async function proChatId(env: Env): Promise<string | null> {
   if (/^-100\d+$/.test(env.TELEGRAM_PRO_CHAT ?? "")) return env.TELEGRAM_PRO_CHAT;
@@ -77,8 +83,10 @@ export function formatAlert(n: AlertNews, opts: { pro: boolean; brand: string; s
 export async function sendAlert(env: Env, chatId: string, n: AlertNews, opts: { pro: boolean }, silent = false) {
   const caption = formatAlert(n, { ...opts, brand: env.BRAND, siteUrl: env.SITE_URL });
   const page = n.id ? `${env.SITE_URL}${newsPath({ id: n.id, headline_es: n.headline, title: n.title ?? n.headline })}` : null;
+  const ask = n.id ? await askLink(env, n.id) : null;
   const buttons = [
     ...(page ? [[{ text: "☕ Leer en Lana con Café", url: page }]] : []),
+    ...(ask ? [[{ text: "🤖 ¿Qué significa para mí?", url: ask }]] : []),
     ...(opts.pro ? [] : [[{ text: "⚡ Recíbelas al instante con Pro", url: (await env.BOT_KV?.get("pro_link")) ?? `${env.SITE_URL}/precios.html` }]]),
   ];
   const reply_markup = buttons.length ? { inline_keyboard: buttons } : undefined;

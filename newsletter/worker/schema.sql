@@ -125,3 +125,13 @@ CREATE TABLE IF NOT EXISTS flags (
   k  TEXT PRIMARY KEY,
   v  TEXT NOT NULL
 );
+
+-- Memoria corta de "Pregúntale a Lana" (últimos 3 intercambios por usuario, 2 h)
+CREATE TABLE IF NOT EXISTS convo (
+  id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  tg    INTEGER NOT NULL,
+  role  TEXT NOT NULL,        -- user | assistant
+  text  TEXT NOT NULL,
+  at    INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_convo_tg ON convo(tg, id);

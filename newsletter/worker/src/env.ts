@@ -7,7 +7,8 @@ export interface Env {
   BRAND: string;
   SITE_URL: string;
   COUNTRY: string;
-  CLAUDE_MODEL: string;
+  CLAUDE_MODEL: string;        // clasificación, edición diaria y /analiza
+  CLAUDE_FAST_MODEL?: string;  // preguntas rápidas a Lana (por defecto claude-haiku-5-5)
   AI_MIN_SCORE: string;        // puntuación heurística mínima para pasar por IA
   PRO_MIN_IMPACT: string;      // impacto mínimo para alerta instantánea al canal Pro
   FREE_MIN_IMPACT: string;     // impacto mínimo para el canal gratuito

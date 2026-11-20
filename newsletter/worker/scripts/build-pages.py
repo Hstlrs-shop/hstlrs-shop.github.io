@@ -120,13 +120,13 @@ page("precios.html","Lana con Café Pro · Precios","Alertas al instante en Tele
   <section class="panel plan">
     <h3>Gratis</h3>
     <div class="price">$0 <small>MXN</small></div>
-    <ul><li>Newsletter diario (lun–vie)</li><li>Canal de Telegram con 15 min de retraso</li><li>Radar de 1 tema (con retraso) y 3 preguntas al día a la IA</li><li>Mercados en vivo en la web</li><li>3 días de Pro gratis con /prueba en el bot</li></ul>
+    <ul><li>Newsletter diario (lun–vie)</li><li>Canal de Telegram con 15 min de retraso</li><li>Radar de 1 tema (con retraso) y 5 preguntas al día a la IA</li><li>Mercados en vivo en la web</li><li>3 días de Pro gratis con /prueba en el bot</li></ul>
     <a class="btn ghost" data-link="TELEGRAM_FREE">Unirme gratis</a>
   </section>
   <section class="panel plan featured">
     <h3>Pro <span class="chip">Más popular</span></h3>
     <div class="price">500 ⭐ <small>Stars / mes · ≈ $199 MXN</small></div>
-    <ul><li><b>Alertas instantáneas</b> en canal privado de Telegram</li><li>🎯 <b>Radar personal</b>: 10 temas (peso, Banxico, Nvidia…) con aviso al momento</li><li>🤖 <b>Pregúntale a Lana</b>: 30 preguntas al día a la IA con las noticias de hoy</li><li>☀️ <b>Briefing personal</b> a las 7:00 con tu radar y la agenda</li><li>⏰ Recordatorio 15 min antes de cada dato clave</li><li>Activos afectados y sesgo probable en cada alerta</li><li>Cancela cuando quieras</li></ul>
+    <ul><li><b>Alertas instantáneas</b> en canal privado de Telegram</li><li>🎯 <b>Radar personal</b>: 10 temas (peso, Banxico, Nvidia…) con aviso al momento</li><li>🤖 <b>Pregúntale a Lana</b>: 100 preguntas al día a la IA, con las noticias de hoy y tu radar, y botón “¿Qué significa para mí?” en cada alerta</li><li>🔬 <b>/analiza</b>: 5 análisis profundos al día</li><li>☀️ <b>Briefing personal</b> a las 7:00 con tu radar y la agenda</li><li>⏰ Recordatorio 15 min antes de cada dato clave</li><li>Activos afectados y sesgo probable en cada alerta</li><li>Cancela cuando quieras</li></ul>
     <a class="btn accent" data-link="PRO_LINK">⭐ Suscribirme en Telegram</a>
     <p class="note">Se paga dentro de Telegram con Stars (tarjeta, Apple Pay o Google Pay). Entras directo al canal Pro.</p>
     <p class="note">¿Primero quieres probar? <a data-link="BOT">3 días gratis en el bot</a> con /prueba.</p>

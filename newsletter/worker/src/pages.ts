@@ -3,6 +3,7 @@
 // sitemap.xml y robots.txt para que Google indexe el sitio.
 
 import type { Env } from "./env";
+import { askLink } from "./telegram";
 
 const CAT_SLUG: [RegExp, string][] = [
   [/banco|central|monetari/i, "bancos-centrales"],
@@ -97,6 +98,7 @@ export async function articlePage(env: Env, id: string, req: Request, ctx: Execu
     `SELECT id, title, headline_es, image, category, source_name, detected_at FROM news
      WHERE id != ?1 AND detected_at > ?2 AND impact >= 3 ORDER BY (category = ?3) DESC, impact DESC, detected_at DESC LIMIT 4`,
   ).bind(id, Date.now() - 3 * 86400_000, n.category).all<any>();
+  const ask = await askLink(env, id);
   const share = encodeURIComponent(`${title} ☕`);
   const shareUrl = encodeURIComponent(url);
 
@@ -110,6 +112,7 @@ export async function articlePage(env: Env, id: string, req: Request, ctx: Execu
     ${assets.length ? `<section class="assets"><h2>Qué puede moverse</h2><div>${assets.map((a) => `<span class="asset ${h(n.bias ?? "")}">${h(a)} <b>${h(BIAS[n.bias] ?? "")}</b></span>`).join("")}</div><p class="note">Sesgo probable según el análisis de la noticia. No es una recomendación.</p></section>` : ""}
     ${n.title !== title ? `<p class="orig">Titular original: <i>${h(n.title)}</i></p>` : ""}
     <p><a class="btn" href="${h(n.link)}" target="_blank" rel="noopener">Leer la nota completa en ${h(n.source_name)} ↗</a></p>
+    ${ask ? `<a class="ask-lana" href="${h(ask)}"><img src="/assets/logo-mark-light.svg" alt="" width="36" height="36"><span><b>🤖 ¿Qué significa para mí?</b><small>Pregúntale a Lana en Telegram: te lo explica en 30 segundos, con tu radar.</small></span></a>` : ""}
     <section class="react" data-id="${h(n.id)}"><span>¿Te sirvió?</span><button data-v="1">👍 <b>${n.likes}</b></button><button data-v="-1">👎 <b>${n.dislikes}</b></button></section>
     <section class="share"><span>Compártela</span>
       <a href="https://wa.me/?text=${share}%20${shareUrl}" target="_blank" rel="noopener">WhatsApp</a>

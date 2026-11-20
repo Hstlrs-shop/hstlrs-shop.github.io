@@ -164,6 +164,9 @@ p.lede { font: 400 21px/1.55 var(--serif); margin: 0 0 22px; }
 .assets h2 { font-size: 18px; }
 .asset { display: inline-flex; gap: 6px; align-items: center; margin: 4px 6px 4px 0; padding: 7px 12px; border-radius: 999px; background: var(--bg); font-weight: 600; font-size: 14px; }
 .asset.alcista b { color: var(--up); } .asset.bajista b { color: var(--down); } .asset b { font-weight: 600; color: var(--muted); }
+.ask-lana { display: flex; align-items: center; gap: 14px; margin: 18px 0; padding: 14px 18px; border-radius: 14px; background: var(--ink); color: var(--bg); text-decoration: none; transition: transform .15s; }
+.ask-lana:hover { transform: translateY(-2px); }
+.ask-lana small { display: block; color: color-mix(in srgb, var(--bg) 70%, transparent); font-size: 13px; }
 .react, .share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 18px 0; color: var(--muted); font-size: 14px; }
 .react button, .share a, .share button { border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 7px 14px; font: 500 14px var(--sans); cursor: pointer; text-decoration: none; }
 .react button[aria-pressed=true] { border-color: var(--accent); }

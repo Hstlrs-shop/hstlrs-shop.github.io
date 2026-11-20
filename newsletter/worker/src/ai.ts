@@ -113,25 +113,57 @@ export async function writeDigest(env: Env, items: unknown[]): Promise<string | 
 
 const SYSTEM_ASK = `Eres "Lana", la analista de Lana con Café: explicas en español de México, claro y cercano, qué está pasando en los mercados y cómo puede afectar al bolsillo.
 Reglas:
-- Responde en máximo 900 caracteres, texto plano (sin Markdown ni HTML). Puedes usar 1-2 emojis.
+- Texto plano (sin Markdown ni HTML). Puedes usar 1-2 emojis.
 - Apóyate en las noticias numeradas que te paso y cítalas así: [3]. Si no hay noticias sobre lo que preguntan, dilo y da contexto general educativo.
 - No inventes cifras ni hechos que no estén en las noticias.
+- Si te digo qué temas sigue el usuario (su radar) y la noticia los toca, explica la conexión ("como sigues el peso…"). Si no los toca, no los fuerces.
+- Puedes usar la conversación previa para entender preguntas de seguimiento ("¿y eso cómo afecta al dólar?").
 - Nunca digas "compra" o "vende" ni des recomendaciones personalizadas. Explica escenarios e impactos posibles.
 - Si preguntan algo que no es de economía, finanzas o mercados, redirige amablemente.`;
 
-/** Respuesta de la IA a una pregunta libre, usando las noticias recientes como contexto. */
-export async function answerQuestion(env: Env, question: string, news: { title: string; brief: string | null; source: string }[]): Promise<string | null> {
+export interface AskInput {
+  question: string;
+  news: { title: string; brief: string | null; source: string }[];
+  focus?: { title: string; brief: string | null; source: string; assets: string[]; bias: string | null } | null;
+  radar: string[];
+  history: { role: "user" | "assistant"; text: string }[];
+  deep: boolean;
+}
+
+/**
+ * Respuesta de Lana. Rápida (CLAUDE_FAST_MODEL, por defecto Haiku 5.5): barata, para el día a día.
+ * Profunda (/analiza, CLAUDE_MODEL = Opus 5.5): más contexto y más razonamiento.
+ */
+export async function answerQuestion(env: Env, input: AskInput): Promise<string | null> {
   if (!env.ANTHROPIC_API_KEY) return null;
-  const context = news.map((n, i) => `[${i + 1}] ${n.title}${n.brief ? ` — ${n.brief}` : ""} (${n.source})`).join("\n");
-  const response = await client(env).beta.messages.create({
-    model: env.CLAUDE_MODEL,
-    max_tokens: 4000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort: "low" },
-    system: SYSTEM_ASK,
-    messages: [{ role: "user", content: `Noticias recientes:\n${context}\n\nPregunta del usuario: ${question}` }],
-  });
-  if (response.stop_reason === "refusal") return "Esa no la puedo responder. Pregúntame sobre mercados, economía o tu dinero ☕";
-  return response.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim() || null;
+  const context = input.news.map((n, i) => `[${i + 1}] ${n.title}${n.brief ? ` — ${n.brief}` : ""} (${n.source})`).join("\n");
+  const focus = input.focus
+    ? `NOTICIA SOBRE LA QUE PREGUNTA:\n${input.focus.title}${input.focus.brief ? ` — ${input.focus.brief}` : ""} (${input.focus.source})` +
+      (input.focus.assets.length ? `\nActivos expuestos: ${input.focus.assets.join(", ")}${input.focus.bias ? ` (sesgo ${input.focus.bias})` : ""}` : "") + "\n\n"
+    : "";
+  const radar = input.radar.length ? `Temas que sigue el usuario (su radar): ${input.radar.join(", ")}\n\n` : "";
+  const length = input.deep ? "Responde en máximo 1800 caracteres, con estructura: qué pasó, por qué importa, escenarios y qué vigilar." : "Responde en máximo 800 caracteres.";
+  const messages = [
+    ...input.history.map((h) => ({ role: h.role, content: h.text })),
+    { role: "user" as const, content: `${focus}Noticias recientes:\n${context}\n\n${radar}${length}\n\nPregunta: ${input.question}` },
+  ];
+  const system = SYSTEM_ASK;
+
+  let content: { type: string; text?: string }[];
+  let stop: string | null;
+  if (input.deep) {
+    const r = await client(env).beta.messages.create({
+      model: env.CLAUDE_MODEL, max_tokens: 12000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+      output_config: { effort: "medium" }, system, messages,
+    });
+    content = r.content as any; stop = r.stop_reason;
+  } else {
+    const r = await client(env).messages.create({
+      model: env.CLAUDE_FAST_MODEL || "claude-haiku-5-5", max_tokens: 3000,
+      output_config: { effort: "low" }, system, messages,
+    });
+    content = r.content as any; stop = r.stop_reason;
+  }
+  if (stop === "refusal") return "Esa no la puedo responder. Pregúntame sobre mercados, economía o tu dinero ☕";
+  return content.map((b) => (b.type === "text" ? b.text ?? "" : "")).join("").trim() || null;
 }

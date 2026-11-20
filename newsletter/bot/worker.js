@@ -3,6 +3,8 @@
 // Variable opcional: CANAL_ID (texto, p. ej. @lanaconcafe) para publicar en el canal. El bot debe ser administrador del canal.
 // v5: las publicaciones del canal llevan botones que abren el bot; /menucanal publica un menú para fijar.
 // v6: resumen automático 7:30 am y encuesta diaria en el canal (resultado 8 pm, hora de Querétaro); /stats y /probarcanal para el administrador.
+// v11: IA de Lana v2: modelo rápido con 100 preguntas/día en Pro, /analiza (análisis profundo), memoria de 3
+//      intercambios (/nueva para olvidar), usa tu radar, y botón "¿Qué significa para mí?" (/start q_<id>).
 // v10: suscripción de pago con Telegram Stars al canal Pro (/crearsuscripcion), el ID del canal Pro se obtiene
 //      reenviando al bot un mensaje del canal (lo guarda en KV "pro_canal"); entrar/salir del canal activa/desactiva Pro.
 // v9: Pro de verdad. Pregúntale a Lana (IA con las noticias del día; también escribiendo sin comando),
@@ -50,7 +52,8 @@ const AYUDA =
 /senales on · recibir señales automáticas de lunes a viernes, 8:30–10:30 (/senales off para apagar)
 
 <b>🤖 Pregúntale a Lana</b>
-Escríbeme cualquier duda y te respondo con las noticias de hoy. Ej.: <i>¿por qué sube el dólar?</i>
+Escríbeme cualquier duda y te respondo con las noticias de hoy (y recuerdo la charla). Ej.: <i>¿por qué sube el dólar?</i>
+/analiza · análisis profundo (Pro) · /nueva · empezar de cero
 
 <b>Noticias</b>
 /noticias · las 5 noticias que mueven el mercado
@@ -105,6 +108,8 @@ const MENU = [
   { command: "radar", description: "Tu radar: /radar peso" },
   { command: "dolar", description: "Dólar, euro y bitcoin en pesos" },
   { command: "pregunta", description: "Pregúntale a Lana (IA)" },
+  { command: "analiza", description: "Análisis profundo con IA (Pro)" },
+  { command: "nueva", description: "Empezar una charla nueva con Lana" },
   { command: "pro", description: "Qué incluye Lana con Café Pro" },
   { command: "prueba", description: "3 días de Pro gratis" },
   { command: "invita", description: "3 amigos = 7 días Pro" },
@@ -203,9 +208,9 @@ const PLAN_TXT = { pro: "⭐ Pro", api: "⭐ API", prueba: "🎁 Prueba Pro", gr
 const fechaCorta = (ms) => { const d = new Date(ms - 6 * 3600 * 1000); return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]} ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`; };
 const SUBE_A_PRO = "\n\n⭐ Con <b>Pro</b> tienes más: /pro · o pruébalo gratis 3 días: /prueba";
 
-async function preguntar(env, chat, from, q) {
+async function preguntar(env, chat, from, q, extra = {}) {
   await tg(env, "sendChatAction", { chat_id: chat, action: "typing" });
-  const r = await news(env, "/bot/ask", { tg: from, q });
+  const r = await news(env, "/bot/ask", { tg: from, q, ...extra });
   if (r.text) return enviar(env, chat, r.text);
   return enviar(env, chat, `🤖 ${esc(r.error || "No pude responder.")}${r.upsell ? SUBE_A_PRO : ""}`);
 }
@@ -289,6 +294,12 @@ async function manejar(update, env) {
   const from = msg.from && msg.from.id;
   const privado = msg.chat.type === "private";
 
+  // v11: tocó "¿Qué significa para mí?" en una alerta (/start q_<id de la noticia>)
+  if (cmd === "/start" && args[0] && /^q_[0-9a-f]{32}$/.test(args[0])) {
+    if (nuevo) await tg(env, "sendMessage", { chat_id: chat, text: "☕ ¡Bienvenido a Lana con Café! Te explico esa noticia…", reply_markup: TECLADO });
+    return preguntar(env, chat, from, "", { news_id: args[0].slice(2) });
+  }
+
   // v9: llegó con el enlace de un amigo (/start ref_123)
   if (cmd === "/start" && args[0] && /^ref_\d+$/.test(args[0])) {
     if (nuevo) await news(env, "/bot/referral", { referrer: Number(args[0].slice(4)), tg: from });
@@ -312,6 +323,15 @@ async function manejar(update, env) {
     }
 
     // ---- v9: Pro ----
+    case "/analiza": case "/analizar":
+      if (!args.length) return enviar(env, chat, "🔬 <b>Análisis profundo</b> (Pro): escribe qué quieres analizar.\nEj.: <i>/analiza ¿cómo afecta la decisión de Banxico a los Cetes y al dólar?</i>");
+      return preguntar(env, chat, from, args.join(" "), { deep: true });
+
+    case "/nueva": case "/olvidar": {
+      await news(env, "/bot/forget", { tg: from });
+      return enviar(env, chat, "🧹 Listo, empezamos de cero. ¿Qué quieres saber?");
+    }
+
     case "/pregunta": case "/lana":
       if (!args.length) return enviar(env, chat, "🤖 Escríbeme tu pregunta. Ej.: <i>/pregunta ¿qué pasa si Banxico baja la tasa?</i>\nTambién puedes escribirme sin comando.");
       return preguntar(env, chat, from, args.join(" "));
@@ -353,7 +373,9 @@ async function manejar(update, env) {
         text: `<b>⭐ Lana con Café Pro${proLink ? ` · ${proStars} Stars al mes` : " · $199 MXN/mes"}</b>\n\n` +
           `⚡ <b>Alertas al instante</b> en el canal Pro privado (el gratis las ve 15 min después)\n` +
           `🎯 <b>Radar personal</b> de hasta 10 temas: peso, Banxico, Nvidia, Cetes… te aviso al momento\n` +
-          `🤖 <b>Pregúntale a Lana</b>: 30 preguntas al día a la IA con las noticias de hoy\n` +
+          `🤖 <b>Pregúntale a Lana</b>: 100 preguntas al día a la IA, con las noticias de hoy y tu radar\n` +
+          `🔬 <b>/analiza</b>: 5 análisis profundos al día (qué pasó, por qué importa, escenarios)\n` +
+          `💬 Botón <b>"¿Qué significa para mí?"</b> en cada alerta\n` +
           `☀️ <b>Briefing personal</b> a las 7:00 con tu radar y la agenda del día\n` +
           `⏰ <b>Recordatorios</b> 15 min antes de cada dato importante (inflación, Banxico, Fed)\n` +
           `🌡️ Activos afectados y sesgo probable en cada alerta\n\n` +
@@ -385,7 +407,7 @@ async function manejar(update, env) {
       const c = await news(env, "/bot/account", { tg: from });
       if (c.error) return enviar(env, chat, esc(c.error));
       return enviar(env, chat, `👤 <b>Tu cuenta</b>\nPlan: <b>${PLAN_TXT[c.plan] || c.plan}</b>${c.until ? ` (hasta el ${fechaCorta(c.until)})` : ""}\n` +
-        `🤖 Preguntas hoy: ${c.asks_today}/${c.limits.asks}\n🎯 Radar: ${c.terms.length}/${c.limits.radar}${c.terms.length ? ` (${esc(c.terms.join(", "))})` : ""}\n` +
+        `🤖 Preguntas hoy: ${c.asks_today}/${c.limits.asks}\n🔬 Análisis hoy: ${c.deep_today || 0}/${c.limits.deep}\n🎯 Radar: ${c.terms.length}/${c.limits.radar}${c.terms.length ? ` (${esc(c.terms.join(", "))})` : ""}\n` +
         `🎁 Amigos invitados: ${c.referrals}` + (c.plan === "gratis" ? (c.trial_used ? "\n\nGana días Pro con /invita" : "\n\nPrueba Pro gratis: /prueba") : ""));
     }
 
