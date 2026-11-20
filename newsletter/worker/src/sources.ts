@@ -15,6 +15,7 @@ export interface Source {
   url: string;
   tier: Tier;
   scope: Scope;
+  every?: number; // minutos entre lecturas (Google News limita a las IPs de Cloudflare: 429)
 }
 
 const gnews = (q: string, hl: string, gl: string, ceid: string) =>
@@ -40,6 +41,7 @@ export const GLOBAL_SOURCES: Source[] = [
     url: gnews("Fed OR \"tasas de interés\" OR inflación OR aranceles OR OPEP OR \"Wall Street\"", "es-419", "US", "US:es-419"),
     tier: "agregador",
     scope: "global",
+    every: 15,
   },
 ];
 
@@ -47,26 +49,31 @@ export const GLOBAL_SOURCES: Source[] = [
 // Añade aquí el feed oficial de tu banco central / bolsa cuando lo tengas.
 export const NATIONAL_PRESETS: Record<string, Source[]> = {
   MX: [
-    { id: "gn-mx", name: "Google News · México", url: gnews("Banxico OR \"peso mexicano\" OR BMV OR Hacienda OR Pemex", "es-419", "MX", "MX:es-419"), tier: "agregador", scope: "nacional" },
+    { id: "ef-merc", name: "El Financiero · Mercados", url: "https://www.elfinanciero.com.mx/arc/outboundfeeds/rss/category/mercados/?outputType=xml", tier: "medio", scope: "nacional" },
+    { id: "ef-eco", name: "El Financiero · Economía", url: "https://www.elfinanciero.com.mx/arc/outboundfeeds/rss/category/economia/?outputType=xml", tier: "medio", scope: "nacional" },
+    { id: "exp-merc-mx", name: "Expansión · Mercados", url: "https://expansion.mx/rss/mercados", tier: "medio", scope: "nacional" },
+    { id: "exp-eco-mx", name: "Expansión · Economía", url: "https://expansion.mx/rss/economia", tier: "medio", scope: "nacional" },
+    { id: "eu-cartera", name: "El Universal · Cartera", url: "https://www.eluniversal.com.mx/arc/outboundfeeds/rss/category/cartera/?outputType=xml", tier: "medio", scope: "nacional" },
+    { id: "gn-mx", name: "Google News · México", url: gnews("Banxico OR \"peso mexicano\" OR BMV OR Hacienda OR Pemex", "es-419", "MX", "MX:es-419"), tier: "agregador", scope: "nacional", every: 15 },
   ],
   ES: [
     { id: "exp-merc", name: "Expansión Mercados", url: "https://e00-expansion.uecdn.es/rss/mercados.xml", tier: "medio", scope: "nacional" },
-    { id: "gn-es", name: "Google News · España", url: gnews("Ibex OR \"Banco de España\" OR CNMV OR \"prima de riesgo\"", "es", "ES", "ES:es"), tier: "agregador", scope: "nacional" },
+    { id: "gn-es", name: "Google News · España", url: gnews("Ibex OR \"Banco de España\" OR CNMV OR \"prima de riesgo\"", "es", "ES", "ES:es"), tier: "agregador", scope: "nacional", every: 15 },
   ],
   CO: [
-    { id: "gn-co", name: "Google News · Colombia", url: gnews("\"Banco de la República\" OR \"peso colombiano\" OR \"Bolsa de Valores de Colombia\" OR Ecopetrol", "es-419", "CO", "CO:es-419"), tier: "agregador", scope: "nacional" },
+    { id: "gn-co", name: "Google News · Colombia", url: gnews("\"Banco de la República\" OR \"peso colombiano\" OR \"Bolsa de Valores de Colombia\" OR Ecopetrol", "es-419", "CO", "CO:es-419"), tier: "agregador", scope: "nacional", every: 15 },
   ],
   AR: [
-    { id: "gn-ar", name: "Google News · Argentina", url: gnews("BCRA OR Merval OR \"dólar blue\" OR \"riesgo país\" OR FMI", "es-419", "AR", "AR:es-419"), tier: "agregador", scope: "nacional" },
+    { id: "gn-ar", name: "Google News · Argentina", url: gnews("BCRA OR Merval OR \"dólar blue\" OR \"riesgo país\" OR FMI", "es-419", "AR", "AR:es-419"), tier: "agregador", scope: "nacional", every: 15 },
   ],
   VE: [
-    { id: "gn-ve", name: "Google News · Venezuela", url: gnews("BCV OR \"tipo de cambio\" OR PDVSA OR \"Bolsa de Caracas\" OR petróleo Venezuela", "es-419", "VE", "VE:es-419"), tier: "agregador", scope: "nacional" },
+    { id: "gn-ve", name: "Google News · Venezuela", url: gnews("BCV OR \"tipo de cambio\" OR PDVSA OR \"Bolsa de Caracas\" OR petróleo Venezuela", "es-419", "VE", "VE:es-419"), tier: "agregador", scope: "nacional", every: 15 },
   ],
   CL: [
-    { id: "gn-cl", name: "Google News · Chile", url: gnews("\"Banco Central de Chile\" OR IPSA OR \"peso chileno\" OR cobre", "es-419", "CL", "CL:es-419"), tier: "agregador", scope: "nacional" },
+    { id: "gn-cl", name: "Google News · Chile", url: gnews("\"Banco Central de Chile\" OR IPSA OR \"peso chileno\" OR cobre", "es-419", "CL", "CL:es-419"), tier: "agregador", scope: "nacional", every: 15 },
   ],
   PE: [
-    { id: "gn-pe", name: "Google News · Perú", url: gnews("BCRP OR \"Bolsa de Valores de Lima\" OR sol peruano OR MEF", "es-419", "PE", "PE:es-419"), tier: "agregador", scope: "nacional" },
+    { id: "gn-pe", name: "Google News · Perú", url: gnews("BCRP OR \"Bolsa de Valores de Lima\" OR sol peruano OR MEF", "es-419", "PE", "PE:es-419"), tier: "agregador", scope: "nacional", every: 15 },
   ],
 };
 

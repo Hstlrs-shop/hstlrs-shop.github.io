@@ -65,7 +65,9 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
   // más rápidas) cada minuto; el resto, repartido en turnos de ROTATE minutos.
   const rotate = Math.max(1, num(env.ROTATE, 3));
   const turn = Math.floor(now / 60_000) % rotate;
-  const sources = sourcesFor(env.COUNTRY).filter((s, i) => s.tier === "oficial" || i % rotate === turn);
+  const minute = Math.floor(now / 60_000);
+  const sources = sourcesFor(env.COUNTRY).filter((s, i) =>
+    s.every ? minute % s.every === i % s.every : s.tier === "oficial" || i % rotate === turn);
   const results = await Promise.allSettled(sources.map((s) => fetchSource(env, s)));
   const errors: string[] = [];
   const raw: { s: Source; item: FeedItem; firstRun: boolean }[] = [];
