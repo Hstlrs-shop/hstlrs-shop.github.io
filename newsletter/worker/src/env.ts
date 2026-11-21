@@ -18,6 +18,9 @@ export interface Env {
   FREE_GAP_MIN?: string;       // minutos mínimos entre alertas del canal gratis (40)      // minutos de retraso para gratis (web, RSS y canal)
   TELEGRAM_FREE_CHAT: string;  // @canal_publico o -100...
   TELEGRAM_PRO_CHAT: string;   // -100... (canal privado de pago)
+  SCALP_ENABLED?: string;      // "0" apaga las señales de scalping
+  SCALP_UNITS?: string;
+  SCALP_FEE?: string;          // comisión por lado para el resultado neto (0.0005 = 0.05%)        // BTC por operación en demo (0.01)
   STUDIO_TOKEN?: string;       // llave de la tarea programada de videos: solo lee/escribe la cola de aprobaciones
   GUIDE_STARS?: string;        // precio de la guía en Telegram Stars
   GUIDE_MXN?: string;          // precio de referencia en pesos

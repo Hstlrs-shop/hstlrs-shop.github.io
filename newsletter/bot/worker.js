@@ -3,6 +3,8 @@
 // Variable opcional: CANAL_ID (texto, p. ej. @lanaconcafe) para publicar en el canal. El bot debe ser administrador del canal.
 // v5: las publicaciones del canal llevan botones que abren el bot; /menucanal publica un menú para fijar.
 // v6: resumen automático 7:30 am y encuesta diaria en el canal (resultado 8 pm, hora de Querétaro); /stats y /probarcanal para el administrador.
+// v15: scalping BTC profesional en el Worker de noticias (solo admin): /scalp (lectura ahora) y /bitacora (resultados).
+//      La señal automática vieja de 15 min queda apagada: la reemplaza el motor nuevo (plan 8:15, señales y resumen 10:35).
 // v14: aprobación de los videos diarios con ✅/❌ (callback ap:), guía de pago con Telegram Stars (/guia, /miguia,
 //      /reembolso con garantía de 7 días), prueba Pro de 7 días y /start pro|guia|prueba desde la bio.
 // v13: afiliados para creadores (/start a_<código>, /afiliado, /afiliados, /comisiones) y /kit (contenido diario).
@@ -547,6 +549,17 @@ async function manejar(update, env) {
       return enviar(env, chat, `✅ <b>Suscripción creada</b>: ${estrellas} ⭐ al mes\n${r.result.invite_link}\n\nYa aparece en /pro. Quien pague entra al canal y se le activa Pro en el bot; si deja de pagar, Telegram lo saca y se le desactiva.`);
     }
 
+    // ---- v15: scalping (solo admin, en prueba) ----
+    case "/scalp": case "/scalping": {
+      await tg(env, "sendChatAction", { chat_id: chat, action: "typing" });
+      const r = await news(env, "/bot/scalp", { tg: from });
+      return enviarSeguro(env, chat, r.text || r.error || "No pude leer el mercado ahora.", { disable_web_page_preview: true });
+    }
+    case "/bitacora": case "/bitácora": {
+      const r = await news(env, "/bot/scalp-stats", { tg: from });
+      return enviarSeguro(env, chat, r.text || r.error || "Sin datos.");
+    }
+
     // ---- v14: guía ----
     case "/guia": case "/guía": {
       const g = await news(env, "/bot/guide", { tg: from });
@@ -890,6 +903,7 @@ function textoAnalisis(l) {
 }
 
 async function revisarSenales(env) {
+  if (env.SENALES_VIEJAS !== "1") return; // v15: reemplazada por el motor de scalping del Worker de noticias
   const chats = JSON.parse((await env.DB.get("sen")) || "[]");
   if (!chats.length) return;
   if (!enSesion()) return; // v7: fuera de la sesión no se mandan señales automáticas

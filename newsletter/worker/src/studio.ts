@@ -122,6 +122,16 @@ export async function handleStudioApi(env: Env, path: string, b: Record<string, 
       const p = await env.DB.prepare("SELECT charge_id, stars, created_at, refunded FROM purchases WHERE tg = ?1 ORDER BY created_at DESC LIMIT 1").bind(tg).first();
       return Response.json(p ?? { error: "Ese usuario no tiene compras." });
     }
+    case "/bot/scalp": {
+      if (String(b.tg) !== String(env.ADMIN_CHAT_ID)) return Response.json({ text: "Las señales de scalping están en prueba privada." });
+      const { scalpNow } = await import("./scalp");
+      return Response.json({ text: await scalpNow(env) });
+    }
+    case "/bot/scalp-stats": {
+      if (String(b.tg) !== String(env.ADMIN_CHAT_ID)) return Response.json({ text: "Las señales de scalping están en prueba privada." });
+      const { statsText } = await import("./scalp");
+      return Response.json({ text: await statsText(env) });
+    }
     case "/bot/studio-stats": {
       const since = cdmxDay(Date.now() - 6 * 86400_000);
       const [c, a, p] = await env.DB.batch([

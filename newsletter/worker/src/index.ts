@@ -8,9 +8,11 @@ import { affiliateRedirect } from "./growth";
 import { marketPage } from "./seo";
 import { SITE } from "./site-files";
 import { esc } from "./telegram";
+import { scalpTick } from "./scalp";
 import { bioPage, download, freeChapter, go, guidePage, studioApi } from "./studio";
 
 const DIGEST_CRON = "17 11 * * 1-5"; // debe coincidir con wrangler.toml
+const SCALP_CRON = "* 14-16 * * 1-5"; // scalping BTC (solo admin), invocación aparte para no competir por CPU
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -238,6 +240,10 @@ export default {
   },
 
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    if (event.cron === SCALP_CRON) {
+      await scalpTick(env).catch((e) => console.warn("scalp", e));
+      return;
+    }
     if (event.cron === DIGEST_CRON) {
       ctx.waitUntil(buildDigest(env));
       return;
