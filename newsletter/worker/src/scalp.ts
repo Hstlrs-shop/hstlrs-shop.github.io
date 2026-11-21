@@ -9,12 +9,14 @@
 
 import { num, type Env } from "./env";
 import { esc, tgCall } from "./telegram";
-import { read, trigger, orbSignal, manage, ORB, SESSION, type Bar, type Reading, type Signal } from "./scalp-core";
+import { read, trigger, orbSignal, fibSignal, manage, ORB, FIB, SESSION, type Bar, type Reading, type Signal } from "./scalp-core";
 export { SESSION };
 
 const CDMX = 6 * 3600;
-const MAX_SIGNALS = 3, PULLBACK_TIME_STOP = 15;
-const END_MIN = 11 * 60 + 25; // el motor sigue vigilando posiciones hasta las 11:25 CDMX
+const MAX_SIGNALS = 4, PULLBACK_TIME_STOP = 15, FIB_TIME_STOP = 180;
+const FIB_FROM = 6 * 60, FIB_TO = 14 * 60;   // ventana de Fibonacci (CDMX)
+const END_MIN = 17 * 60 + 5;                 // se vigilan posiciones abiertas hasta las 17:05 CDMX
+const timeStopOf = (kind: string) => (kind === "orb" ? ORB.timeStopMin : kind === "fib" ? FIB_TIME_STOP : PULLBACK_TIME_STOP);
 
 // ---------- Datos (Bitstamp, públicos) ----------
 async function ohlc(step: number, limit: number): Promise<Bar[]> {
@@ -40,15 +42,18 @@ async function nearEvent(env: Env, nowMs: number) {
 }
 
 function signalText(s: Signal, units: number, kind: string) {
-  const L = s.side === "long", orb = kind === "orb";
-  return `${L ? "🟢 <b>COMPRA</b>" : "🔴 <b>VENTA</b>"} · BTC/USD · ${orb ? "ruptura del rango de apertura" : "retroceso 1 min (experimental)"} (demo)\n\n` +
-    `Entrada: <b>${usd(s.entry)}</b> (cierre de la vela de ${orb ? "5" : "1"} min de las ${hhmm(s.t)})\n` +
+  const L = s.side === "long", orb = kind === "orb", fib = kind === "fib";
+  const name = orb ? "ruptura del rango de apertura" : fib ? "Fibonacci 38.2–61.8 %" : "retroceso 1 min (experimental)";
+  return `${L ? "🟢 <b>COMPRA</b>" : "🔴 <b>VENTA</b>"} · BTC/USD · ${name} (demo)\n\n` +
+    `Entrada: <b>${usd(s.entry)}</b> (cierre de la vela de ${orb || fib ? "5" : "1"} min de las ${hhmm(s.t)})\n` +
     `Stop: <b>${usd(s.stop)}</b> (${usd(s.risk)} de riesgo)\n` +
-    `Objetivo 1: <b>${usd(s.tp1)}</b> (${s.r1.toFixed(1)}R) → cierra 50 % y mueve el stop a tu entrada\n` +
-    `Objetivo 2: <b>${usd(s.tp2)}</b> (${s.r2.toFixed(1)}R) para el 50 % restante\n` +
-    `Stop de tiempo: ${orb ? ORB.timeStopMin : PULLBACK_TIME_STOP} min · Tamaño demo: ${units} BTC → arriesgas ${"$" + (s.risk * units).toFixed(2)}\n\n` +
+    (fib ? `Objetivo: <b>${usd(s.tp1)}</b> → <b>2× lo arriesgado</b> (${usd(2 * s.risk)}), cierra todo ahí\n`
+         : `Objetivo 1: <b>${usd(s.tp1)}</b> (${s.r1.toFixed(1)}R) → cierra 50 % y mueve el stop a tu entrada\n` + `Objetivo 2: <b>${usd(s.tp2)}</b> (${s.r2.toFixed(1)}R) para el 50 % restante\n`) +
+    `Stop de tiempo: ${timeStopOf(kind)} min · Tamaño demo: ${units} BTC → arriesgas ${"$" + (s.risk * units).toFixed(2)} para ganar ${"$" + (s.risk * units * 2).toFixed(2)}\n\n` +
     `<b>Por qué:</b>\n${s.reasons.map((x) => "• " + esc(x)).join("\n")}\n\n` +
-    (orb ? `Backtest (130 sesiones, jun–nov 2026, neto de 0.05 % de comisión por lado): ~50–64 % de operaciones ganadoras y +0.08 a +0.34R por operación. Muestra pequeña: aún no es prueba definitiva.\n` : `Experimental: en backtest perdía después de comisiones.\n`) +
+    (orb ? `Backtest (130 sesiones, jun–nov 2026, neto de 0.05 % de comisión por lado): ~50–64 % de operaciones ganadoras y +0.08 a +0.34R por operación. Muestra pequeña: aún no es prueba definitiva.\n`
+      : fib ? `Backtest (130 días, neto de comisiones): ~47 % ganadoras a 2R, resultado cercano a cero (−0.01 a +0.02R por operación). Sirve para practicar; no es una ventaja demostrada.\n`
+      : `Experimental: en backtest perdía después de comisiones.\n`) +
     `Si el precio ya se alejó más de 0.3R de la entrada, no la persigas.\n` +
     `<a href="https://www.tradingview.com/chart/?symbol=BITSTAMP:BTCUSD">Abrir gráfica</a>\n\n<i>Práctica en demo. No es asesoría financiera.</i>`;
 }
@@ -71,7 +76,7 @@ export async function scalpTick(env: Env, nowMs = Date.now()) {
   const admin = env.ADMIN_CHAT_ID;
   if (!admin || env.SCALP_ENABLED === "0") return;
   const now = Math.floor(nowMs / 1000), { day, min, dow } = cdmxMin(now);
-  if (dow < 1 || dow > 5 || min < SESSION.from - 15 || min > END_MIN) return;
+  if (dow < 1 || dow > 5 || min < FIB_FROM || min > END_MIN) return;
   const units = num(env.SCALP_UNITS, 0.01), fee = num(env.SCALP_FEE, 0.0005);
   const flag = async (k: string) => (await env.DB.prepare("INSERT OR IGNORE INTO flags (k, v) VALUES (?1, '1')").bind(`scalp:${day}:${k}`).run()).meta.changes > 0;
   const send = (text: string) => tgCall(env, "sendMessage", { chat_id: admin, text, parse_mode: "HTML", disable_web_page_preview: true });
@@ -83,8 +88,8 @@ export async function scalpTick(env: Env, nowMs = Date.now()) {
   const open = await env.DB.prepare("SELECT * FROM scalp_signals WHERE status = 'open' ORDER BY t DESC LIMIT 1").first<any>();
   if (open) {
     const kind = open.kind ?? "pullback";
-    const m = manage(b1, { side: open.side, entry: open.entry, stop: open.stop, tp1: open.tp1, tp2: open.tp2, risk: open.risk, t0: open.created_at }, now, fee, kind === "orb" ? ORB.timeStopMin : PULLBACK_TIME_STOP);
-    if (m.stage === 1 && !open.stage) {
+    const m = manage(b1, { side: open.side, entry: open.entry, stop: open.stop, tp1: open.tp1, tp2: open.tp2, risk: open.risk, t0: open.created_at }, now, fee, timeStopOf(kind), kind !== "fib");
+    if (m.stage === 1 && !open.stage && kind !== "fib") {
       await env.DB.prepare("UPDATE scalp_signals SET stage = 1 WHERE id = ?1").bind(open.id).run();
       if (!m.closed) await send(`🎯 <b>Objetivo 1 alcanzado</b> (${usd(open.tp1)}): cierra el 50 % y mueve el stop a tu entrada (${usd(open.entry)}). El resto busca ${usd(open.tp2)}.`);
     }
@@ -97,22 +102,22 @@ export async function scalpTick(env: Env, nowMs = Date.now()) {
   }
 
   // 2) Plan previo a la sesión (8:15–8:29)
-  if (min < SESSION.from) {
+  if (min >= SESSION.from - 15 && min < SESSION.from) {
     if (await flag("map")) {
       const ev = await env.DB.prepare("SELECT title, at FROM events WHERE at BETWEEN ?1 AND ?2 ORDER BY at").bind(nowMs, nowMs + 3 * 3600_000).all<any>();
       const evs = ev.results.length ? `\n\n⚠️ <b>Datos hoy</b> (sin señales 15 min antes y después):\n${ev.results.map((e: any) => `${hhmm(Math.floor(e.at / 1000))} · ${esc(e.title)}`).join("\n")}` : "";
       const plan = r.htfSide
         ? `Plan: el rango de apertura se forma de 8:30 a 8:45. Si una vela de 5 min cierra <b>${r.htfSide === "long" ? "ARRIBA" : "ABAJO"}</b> del rango entre 8:45 y 9:45, habrá señal de <b>${r.htfSide === "long" ? "compra" : "venta"}</b>. Rupturas al otro lado se ignoran (van contra la tendencia de 1 hora).`
         : `Plan: la tendencia de 1 hora no está definida → hoy <b>no habrá señal de ruptura</b>. Es parte del sistema: el backtest pierde cuando opera sin ese filtro.`;
-      await send(`☕ <b>BTC · plan de la sesión</b>\n\n${mapText(r)}${evs}\n\n${plan}\n\n<i>Práctica en demo. No es asesoría financiera.</i>`);
+      const fibPlan = r.htfSide ? `\nFibonacci (6:00–14:00): retrocesos a la zona 38.2–61.8 % de impulsos ${r.htfSide === "long" ? "alcistas" : "bajistas"}, objetivo 2× lo arriesgado.` : "";
+      await send(`☕ <b>BTC · plan del día</b>\n\n${mapText(r)}${evs}\n\n${plan}${fibPlan}\n\nMáximo ${MAX_SIGNALS} señales · una a la vez · 2 pérdidas seguidas = fin del día.\n<i>Práctica en demo. No es asesoría financiera.</i>`);
     }
     return;
   }
 
-  // 3) Resumen al terminar (cuando ya no hay posición abierta y pasó la ventana)
-  if (min >= SESSION.to) {
+  // 3) Resumen al terminar la ventana de señales (cuando ya no hay posición abierta)
+  if (min >= FIB_TO) {
     if (!open && (await flag("summary"))) await send(await summaryText(env, day));
-    if (open || min < SESSION.to) return;
     return;
   }
 
@@ -124,8 +129,13 @@ export async function scalpTick(env: Env, nowMs = Date.now()) {
   if (rows.length >= 2 && rows.slice(-2).every((x) => x.r < 0)) return;
   if (await nearEvent(env, nowMs)) return;
   let s: Signal | null = null, kind = "orb";
-  if (!rows.some((x) => x.kind === "orb")) s = orbSignal(b1, b5, r, now, sessionOpen(now));
-  if (!s && env.SCALP_PULLBACK === "1") { s = trigger(b1, r, now, 60); kind = "pullback"; }
+  const inOrb = min >= SESSION.from && min < SESSION.to;
+  if (inOrb && !rows.some((x) => x.kind === "orb")) s = orbSignal(b1, b5, r, now, sessionOpen(now));
+  if (!s && now % 300 < 60) {
+    const fs = fibSignal(b5, r, now, new Set());
+    if (fs && (await flag(`fib:${fs.key}`))) { s = fs; kind = "fib"; }   // cada impulso se opera una sola vez
+  }
+  if (!s && inOrb && env.SCALP_PULLBACK === "1") { s = trigger(b1, r, now, 60); kind = "pullback"; }
   if (!s) return;
   const ins = await env.DB.prepare(
     `INSERT OR IGNORE INTO scalp_signals (t, day, side, entry, stop, tp1, tp2, risk, score, grade, reasons, status, created_at, kind, stage)
@@ -160,11 +170,12 @@ export async function scalpNow(env: Env) {
   const now = Math.floor(Date.now() / 1000);
   const { b1, b5, h1, d1 } = await fetchAll();
   const r = read(b1, b5, d1, now, h1);
-  const s = orbSignal(b1, b5, r, now, sessionOpen(now));
+  const so = orbSignal(b1, b5, r, now, sessionOpen(now)), sf = so ? null : fibSignal(b5, r, now, new Set());
+  const s = so ?? sf;
   const { min, dow } = cdmxMin(now);
   const inSession = dow >= 1 && dow <= 5 && min >= SESSION.from && min < SESSION.to;
   return `📈 <b>Scalping BTC · lectura ahora</b>${inSession ? "" : " (fuera de sesión: solo para estudiar)"}\n\n${mapText(r)}\n\n` +
-    (s ? signalText(s, num(env.SCALP_UNITS, 0.01), "orb") : r.htfSide ? `Sin señal ahora. La estrategia solo opera rupturas del rango de 8:30–8:45 a favor de la tendencia de 1 hora (${r.htfSide === "long" ? "compras" : "ventas"}), entre 8:45 y 9:45.` : `Tendencia de 1 hora sin dirección: hoy no hay operación.`) +
+    (s ? signalText(s, num(env.SCALP_UNITS, 0.01), so ? "orb" : "fib") : r.htfSide ? `Sin señal ahora. Solo se opera a favor de la tendencia de 1 hora (${r.htfSide === "long" ? "compras" : "ventas"}): ruptura del rango 8:30–8:45 o retroceso Fibonacci 38.2–61.8 % con vela de confirmación.` : `Tendencia de 1 hora sin dirección: no hay operación.`) +
     `\n<i>No es asesoría financiera.</i>`;
 }
 

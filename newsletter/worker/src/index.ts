@@ -12,7 +12,7 @@ import { scalpTick } from "./scalp";
 import { bioPage, download, freeChapter, go, guidePage, studioApi } from "./studio";
 
 const DIGEST_CRON = "17 11 * * 1-5"; // debe coincidir con wrangler.toml
-const SCALP_CRON = "* 14-17 * * 1-5"; // scalping BTC (solo admin), invocación aparte para no competir por CPU
+const SCALP_CRON = "* 12-23 * * 1-5"; // scalping BTC (solo admin), invocación aparte para no competir por CPU
 
 const CORS = {
   "access-control-allow-origin": "*",

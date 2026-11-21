@@ -229,7 +229,7 @@ export function orbSignal(b1: Bar[], b5: Bar[], r: Reading, nowSec: number, sess
 
 /** Repite la gestión de la posición desde la entrada (sin estado): parcial 50 % en tp1 + stop a equilibrio, tp2, stop de tiempo.
  *  Devuelve el resultado bruto en R (las comisiones se descuentan en las estadísticas). */
-export function manage(b1: Bar[], p: { side: string; entry: number; stop: number; tp1: number; tp2: number; risk: number; t0: number }, nowSec: number, fee: number, timeStopMin: number) {
+export function manage(b1: Bar[], p: { side: string; entry: number; stop: number; tp1: number; tp2: number; risk: number; t0: number }, nowSec: number, fee: number, timeStopMin: number, partial = true) {
   const L = p.side === "long", fav = (x: number) => ((L ? x - p.entry : p.entry - x) / p.risk);
   let stop = p.stop, stage = 0, banked = 0, part = 1;
   for (const x of b1) {
@@ -238,10 +238,49 @@ export function manage(b1: Bar[], p: { side: string; entry: number; stop: number
     const target = stage ? p.tp2 : p.tp1;
     if (L ? x.h >= target : x.l <= target) {
       if (stage) return { closed: true, stage, status: "objetivo 2", exit: target, r: part * fav(target) + banked };
+      if (!partial) return { closed: true, stage: 1, status: "objetivo", exit: target, r: fav(target) };
       banked = 0.5 * fav(target); part = 0.5; stage = 1;
       stop = p.entry + (L ? 1 : -1) * p.entry * fee * 2;               // equilibrio que cubre comisiones
     }
     if (x.t + 60 - p.t0 >= timeStopMin * 60) return { closed: true, stage, status: "tiempo", exit: x.c, r: part * fav(x.c) + banked };
   }
   return { closed: false, stage, status: "abierta", exit: 0, r: 0 };
+}
+
+// ---------- Estrategia Fibonacci (zona dorada) a favor de la tendencia de 1 h ----------
+// Impulso en 5 min (mínimo FIB.minImpulseAtr × ATR de 5 min) → retroceso a la zona 50–61.8 % → vela de 5 min que
+// cierra de regreso a favor. Stop más allá del 78.6 %; objetivo FIB.tpR × riesgo. Cada impulso se opera una sola vez.
+export const FIB = { lookback: 48, minImpulseAtr: 2, zoneLo: 0.382, zoneHi: 0.618, stopLevel: 0.786, tpR: 2, minRiskPct: 0.0015, maxRiskPct: 0.008, needHtf: true };
+
+export function fibSignal(b5all: Bar[], r: Reading, nowSec: number, used: Set<string>): (Signal & { key: string }) | null {
+  const b5 = b5all.filter((x) => x.t + 300 <= nowSec);
+  const k = b5[b5.length - 1];
+  if (!k || k.t + 600 <= nowSec) return null;
+  const side = FIB.needHtf ? r.htfSide : r.side ?? r.htfSide;
+  if (!side) return null;
+  const w = b5.slice(-FIB.lookback - 1, -1);                     // impulso previo a la vela de gatillo
+  if (w.length < 12) return null;
+  let hi = 0, lo = 0;
+  w.forEach((x, i) => { if (x.h > w[hi].h) hi = i; if (x.l < w[lo].l) lo = i; });
+  const L = side === "long", H = w[hi].h, Lo = w[lo].l, rng = H - Lo;
+  if (L ? lo >= hi : hi >= lo) return null;                       // el impulso debe ir en la dirección de la tendencia
+  if (rng < FIB.minImpulseAtr * r.atr5) return null;
+  const key = `${w[hi].t}-${w[lo].t}`;
+  if (used.has(key)) return null;
+  const lvl = (f: number) => (L ? H - rng * f : Lo + rng * f);
+  const zA = lvl(FIB.zoneLo), zB = lvl(FIB.zoneHi), s786 = lvl(FIB.stopLevel);
+  const since = b5.slice(b5.length - (L ? w.length - hi : w.length - lo));      // velas después del extremo del impulso
+  const touched = since.some((x) => (L ? x.l <= zA : x.h >= zA));
+  const broke = since.some((x) => (L ? x.l < s786 : x.h > s786));
+  if (!touched || broke) return null;
+  if (L ? !(k.c > k.o && k.c > zB) : !(k.c < k.o && k.c < zB)) return null; // vela de confirmación a favor
+  const buf = Math.max(r.atr5 * 0.1, k.c * 0.0002);
+  const entry = k.c, stop = L ? s786 - buf : s786 + buf, risk = Math.abs(entry - stop);
+  if (risk / entry < FIB.minRiskPct || risk / entry > FIB.maxRiskPct) return null;
+  const d = L ? 1 : -1;
+  return {
+    key, side, entry, stop, risk, tp1: entry + d * FIB.tpR * risk, tp2: entry + d * (FIB.tpR + 1) * risk, tp1Name: `${FIB.tpR}R`, tp2Name: `${FIB.tpR + 1}R`,
+    r1: FIB.tpR, r2: FIB.tpR + 1, score: 0, grade: "FIB", zone: "Fibo 38.2–61.8 %", t: k.t,
+    reasons: [`impulso ${L ? "alcista" : "bajista"} ${Math.round(Lo)} → ${Math.round(H)} (${(rng / r.atr5).toFixed(1)}× ATR 5m)`, `retroceso a la zona 38.2–61.8 % (${Math.round(Math.min(zA, zB))}–${Math.round(Math.max(zA, zB))})`, `vela de 5 min de confirmación`, `stop más allá del 78.6 % (${Math.round(s786)})`, `tendencia de 1 hora a favor`],
+  };
 }
