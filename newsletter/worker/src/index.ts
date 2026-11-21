@@ -104,8 +104,8 @@ export default {
     if (p === "/guia") return guidePage(env);
     if (p === "/cetes-hoy" || p === "/calculadora-cetes") return cetesPage(env, ctx);
     if (p === "/calculadora-inflacion") return inflationPage(env, ctx);
-    if (p === "/guia/capitulo-1.pdf") return freeChapter(env);
-    const dl = p.match(/^\/dl\/([0-9a-f]{36})\/[a-z0-9_-]+\.pdf$/);
+    if (p === "/guia/capitulo-1.pdf" || p === "/guia/guia-basica.pdf") return freeChapter(env);
+    const dl = p.match(/^\/dl\/([0-9a-f]{36})\/[a-z0-9_-]+\.(pdf|xlsx)$/);
     if (dl) return download(env, dl[1]);
 
     // Precio y enlace de Pro (lo usan la web y el bot): fundadores = primeros FOUNDERS_TOTAL suscriptores

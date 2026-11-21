@@ -3,6 +3,8 @@
 // Variable opcional: CANAL_ID (texto, p. ej. @lanaconcafe) para publicar en el canal. El bot debe ser administrador del canal.
 // v5: las publicaciones del canal llevan botones que abren el bot; /menucanal publica un menú para fijar.
 // v6: resumen automático 7:30 am y encuesta diaria en el canal (resultado 8 pm, hora de Querétaro); /stats y /probarcanal para el administrador.
+// v16: la guía básica es GRATIS al unirse al canal (/guia verifica la membresía); producto premium /plan
+//      "Tu plan de inversión en 30 días" con Telegram Stars (lista de espera mientras no está listo).
 // v15: scalping BTC profesional en el Worker de noticias (solo admin): /scalp (lectura ahora) y /bitacora (resultados).
 //      La señal automática vieja de 15 min queda apagada: la reemplaza el motor nuevo (plan 8:15, señales y resumen 10:35).
 // v14: aprobación de los videos diarios con ✅/❌ (callback ap:), guía de pago con Telegram Stars (/guia, /miguia,
@@ -89,7 +91,7 @@ const TECLADO = {
   resize_keyboard: true, is_persistent: true,
 };
 // Botones bajo cada publicación del canal: abren el bot con un comando (t.me/<bot>?start=<clave>)
-const START = { pro: "/pro", guia: "/guia", prueba: "/prueba", mercado: "/mercado", noticias: "/noticias", analisis: "/analisis", agenda: "/agenda", alertas: "/misalertas", ayuda: "/ayuda" };
+const START = { pro: "/pro", guia: "/guia", plan: "/plan", prueba: "/prueba", mercado: "/mercado", noticias: "/noticias", analisis: "/analisis", agenda: "/agenda", alertas: "/misalertas", ayuda: "/ayuda" };
 const FILAS_CANAL = [[["📊 Mercado", "mercado"], ["📰 Noticias", "noticias"]], [["🧭 Análisis BTC", "analisis"], ["📅 Agenda", "agenda"]], [["🔔 Crear alertas", "alertas"], ["☕ Abrir el bot", "ayuda"]]];
 async function usuarioBot(env) {
   let u = await env.DB.get("botuser");
@@ -118,7 +120,8 @@ const MENU = [
   { command: "analiza", description: "Análisis profundo con IA (Pro)" },
   { command: "nueva", description: "Empezar una charla nueva con Lana" },
   { command: "pro", description: "Qué incluye Lana con Café Pro" },
-  { command: "guia", description: "Guía: tu primera inversión en México" },
+  { command: "guia", description: "Guía gratis: tu primera inversión en México" },
+  { command: "plan", description: "Tu plan de inversión en 30 días (premium)" },
   { command: "prueba", description: "7 días de Pro gratis" },
   { command: "invita", description: "3 amigos = 7 días Pro" },
   { command: "micuenta", description: "Tu plan y tus límites" },
@@ -157,7 +160,7 @@ export default {
     // v14: pagos con Telegram Stars (guía)
     if (update.pre_checkout_query) {
       const q = update.pre_checkout_query;
-      const ok = q.currency === "XTR" && q.invoice_payload === "guia1";
+      const ok = q.currency === "XTR" && (q.invoice_payload === "plan30" || q.invoice_payload === "guia1");
       await tg(env, "answerPreCheckoutQuery", ok ? { pre_checkout_query_id: q.id, ok: true } : { pre_checkout_query_id: q.id, ok: false, error_message: "Este producto ya no está disponible." });
       return new Response("ok");
     }
@@ -322,28 +325,47 @@ async function manejarBoton(q, env) {
   }
   if (tipo === "guia" && chat) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id });
-    if (valor === "gratis") return capituloGratis(env, chat);
-    if (valor === "comprar") return facturaGuia(env, chat);
+    return guiaGratis(env, chat, from);
+  }
+  if (tipo === "plan" && chat) {
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id });
+    if (valor === "espera") { await news(env, "/bot/plan-wait", { tg: from }); return enviar(env, chat, "✅ Listo: te aviso aquí en cuanto salga <b>Tu plan de inversión en 30 días</b>."); }
+    if (valor === "comprar") return facturaPlan(env, chat);
   }
   return tg(env, "answerCallbackQuery", { callback_query_id: q.id });
 }
 
 // ---------- v14: guía de pago ----------
-async function capituloGratis(env, chat) {
-  const g = await news(env, "/bot/guide", {});
-  const r = await tg(env, "sendDocument", { chat_id: chat, document: g.free_url, caption: `📖 <b>Capítulo 1 gratis</b> · ${esc(g.title || "")}\nAntes de invertir: tu fondo de emergencia y tus deudas.\n\n¿Te gustó? La guía completa: /guia`, parse_mode: "HTML" });
-  if (!r || !r.ok) return enviar(env, chat, `📖 Descarga el capítulo 1 aquí: ${g.free_url}`);
+async function enCanal(env, user) {
+  const r = await tg(env, "getChatMember", { chat_id: env.CANAL_ID || "@LanaconCafe", user_id: user });
+  return !!(r && r.ok && ["member", "administrator", "creator", "restricted"].includes(r.result.status));
 }
-async function facturaGuia(env, chat) {
+async function guiaGratis(env, chat, from) {
+  const g = await news(env, "/bot/guide", { tg: from });
+  if (!(await enCanal(env, from))) {
+    return tg(env, "sendMessage", { chat_id: chat, parse_mode: "HTML",
+      text: `📖 <b>${esc(g.title || "Tu primera inversión en México")}</b> es gratis para los miembros del canal.\n\n1️⃣ Únete al canal de Lana con Café (noticias que mueven tu dinero, cada día).\n2️⃣ Regresa y toca <b>"Ya me uní"</b>.`,
+      reply_markup: { inline_keyboard: [[{ text: "☕ Unirme al canal", url: "https://t.me/LanaconCafe" }], [{ text: "✅ Ya me uní", callback_data: "guia:check" }]] } });
+  }
+  const r = await tg(env, "sendDocument", { chat_id: chat, document: g.free_url, parse_mode: "HTML",
+    caption: `📖 <b>${esc(g.title || "")}</b> · guía básica gratuita (20 páginas)\n\n¿Quieres pasar de entender a decidir? Mira <b>/plan</b>: tu plan de inversión en 30 días.` });
+  if (!r || !r.ok) return enviar(env, chat, `📖 Descarga tu guía aquí: ${g.free_url}`);
+}
+async function facturaPlan(env, chat) {
   const g = await news(env, "/bot/guide", {});
-  if (!g.ready) return enviar(env, chat, "📖 La guía completa se está terminando de revisar. Te aviso aquí en cuanto esté lista; mientras, lee el capítulo 1 gratis con /guia");
-  return tg(env, "sendInvoice", { chat_id: chat, title: (g.title || "Guía").slice(0, 32), description: "Guía en PDF con datos oficiales y fuentes. Actualizaciones gratis con /miguia. Garantía de 7 días con /reembolso.", payload: "guia1", currency: "XTR", prices: [{ label: "Guía Lana con Café", amount: g.stars || 375 }] });
+  const p = g.plan || {};
+  if (!p.ready) return enviar(env, chat, "📘 El plan todavía se está terminando. Toca /plan y elige \"Avísame\" para que te llegue en cuanto salga.");
+  return tg(env, "sendInvoice", { chat_id: chat, title: (p.title || "Plan de 30 días").slice(0, 32), description: "Guía premium + hoja de cálculo. Comparativas actualizadas cada mes, portafolios por perfil, plan día por día e impuestos. Garantía de 7 días con /reembolso.", payload: "plan30", currency: "XTR", prices: [{ label: "Plan de inversión 30 días", amount: p.stars || 875 }] });
+}
+async function entregar(env, chat, r, titulo) {
+  const ok = r.url ? await tg(env, "sendDocument", { chat_id: chat, document: r.url, caption: titulo, parse_mode: "HTML" }) : null;
+  if (r.sheet) await tg(env, "sendDocument", { chat_id: chat, document: r.sheet, caption: "📊 Tu hoja de cálculo del plan (ábrela en Excel o súbela a Google Sheets)." });
+  if (!ok || !ok.ok) return enviar(env, chat, `Descarga aquí (válido 2 horas): ${r.url || "escribe /miguia"}${r.sheet ? "\nHoja de cálculo: " + r.sheet : ""}`);
 }
 async function pagoRecibido(msg, env) {
   const p = msg.successful_payment, chat = msg.chat.id;
   const r = await news(env, "/bot/purchase", { tg: msg.from.id, charge_id: p.telegram_payment_charge_id, product: p.invoice_payload, stars: p.total_amount });
-  const ok = r.url ? await tg(env, "sendDocument", { chat_id: chat, document: r.url, caption: "📖 <b>¡Gracias por tu compra!</b> Aquí está tu guía.\n\nSi la actualizamos, descárgala de nuevo con /miguia. Si no te sirvió, tienes 7 días para pedir tu reembolso con /reembolso.", parse_mode: "HTML" }) : null;
-  if (!ok || !ok.ok) return enviar(env, chat, `📖 ¡Gracias por tu compra! Descarga tu guía aquí (enlace válido 2 horas): ${r.url || "escribe /miguia"}`);
+  return entregar(env, chat, r, "📘 <b>¡Gracias por tu compra!</b> Aquí está tu plan.\n\nCada mes actualizamos las comparativas: descarga la versión nueva con /miguia. Si no te sirvió, tienes 7 días para pedir tu reembolso con /reembolso.");
 }
 
 // ID del canal Pro: variable PRO_CANAL_ID o el que el admin registró reenviando un mensaje del canal
@@ -561,22 +583,24 @@ async function manejar(update, env) {
     }
 
     // ---- v14: guía ----
-    case "/guia": case "/guía": {
+    case "/guia": case "/guía":
+      return guiaGratis(env, chat, from);
+    case "/plan": {
       const g = await news(env, "/bot/guide", { tg: from });
-      if (g.bought) return enviar(env, chat, "📖 Ya tienes la guía. Descárgala de nuevo con /miguia");
+      const p = g.plan || {};
+      if (p.bought) return enviar(env, chat, "📘 Ya tienes el plan. Descarga la versión más reciente con /miguia");
       return tg(env, "sendMessage", { chat_id: chat, parse_mode: "HTML", disable_web_page_preview: true,
-        text: `📖 <b>${esc(g.title || "")}</b>\n${esc(g.subtitle || "")}.\n\n` +
-          `• Fondo de emergencia, deudas y cuánto apartar\n• Rendimiento real vs. inflación, GAT, riesgo y liquidez\n• CETES paso a paso desde $100\n• Bancos, Sofipos y apps: qué protege el IPAB y el Prosofipo\n• Fondos, Bolsa, ETFs y Afore\n• Cómo detectar fraudes\n• Tu plan en una hoja\n\n` +
-          `✅ Cada dato con fuente oficial y fecha · sin enlaces de afiliado · sin promesas de rendimiento\n` +
-          `🛡️ Garantía de 7 días: si no te sirve, /reembolso y te devolvemos tus Stars\n\n` +
-          `<b>${g.stars} ⭐</b> (aprox. $${g.mxn} MXN) · <a href="${g.page}">más detalles</a>` + AVISO,
-        reply_markup: { inline_keyboard: [[{ text: "📖 Leer capítulo 1 gratis", callback_data: "guia:gratis" }], [{ text: `⭐ Comprar · ${g.stars} Stars`, callback_data: "guia:comprar" }]] } });
+        text: `📘 <b>${esc(p.title || "Tu plan de inversión en 30 días")}</b>\n${esc(p.subtitle || "")}.\n\n` +
+          `• <b>Dónde poner tu dinero hoy</b>: comparativa de CETES, Sofipos, cuentas digitales, pagarés y fondos (tasa, GAT real, seguro, liquidez), actualizada cada mes\n` +
+          `• <b>Portafolios modelo</b> según tu perfil y cuánto puedes ahorrar\n• <b>Plan de 30 días</b>, día por día\n• <b>Impuestos</b>: constancias, declaración y deducciones (Afore, PPR)\n` +
+          `• <b>Bolsa y ETFs desde México</b>: casas de bolsa, SIC, comisiones e impuestos\n• <b>Casos resueltos</b> con números reales\n• <b>Hoja de cálculo</b>: presupuesto, fondo de emergencia, simuladores y seguimiento\n\n` +
+          `✅ Fuentes oficiales · sin afiliados · sin promesas de rendimiento · garantía de 7 días\n<b>${p.stars || 875} ⭐</b> (aprox. $${p.mxn || 349} MXN)` + AVISO,
+        reply_markup: { inline_keyboard: [[p.ready ? { text: `⭐ Comprar · ${p.stars || 875} Stars`, callback_data: "plan:comprar" } : { text: "🔔 Avísame cuando salga", callback_data: "plan:espera" }], [{ text: "📖 Guía básica gratis", callback_data: "guia:gratis" }]] } });
     }
-    case "/miguia": case "/miguía": {
+    case "/miguia": case "/miguía": case "/miplan": {
       const r = await news(env, "/bot/download", { tg: from });
-      if (r.error) return enviar(env, chat, `📖 ${esc(r.error)}`);
-      const d = await tg(env, "sendDocument", { chat_id: chat, document: r.url, caption: "📖 Tu guía, versión más reciente." });
-      return d && d.ok ? undefined : enviar(env, chat, `📖 Descárgala aquí (válido 2 horas): ${r.url}`);
+      if (r.error) return enviar(env, chat, `📘 ${esc(r.error)}`);
+      return entregar(env, chat, r, "📘 Tu plan, versión más reciente.");
     }
     case "/reembolso": {
       const c = await news(env, "/bot/purchase-of", { tg: from });

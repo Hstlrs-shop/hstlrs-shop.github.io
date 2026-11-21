@@ -25,8 +25,8 @@ export interface Env {
   STUDIO_TOKEN?: string;       // llave de la tarea programada de videos: solo lee/escribe la cola de aprobaciones
   INFLATION_PCT?: string;      // inflación anual (INEGI) para las calculadoras
   INFLATION_PERIOD?: string;   // periodo de ese dato, p. ej. "octubre de 2026"
-  GUIDE_STARS?: string;        // precio de la guía en Telegram Stars
-  GUIDE_MXN?: string;          // precio de referencia en pesos
+  PLAN_STARS?: string;         // precio del plan premium en Telegram Stars
+  PLAN_MXN?: string;           // precio de referencia en pesos
   MP_PLAN_PRO?: string;        // id del plan de suscripción Pro en Mercado Pago
   MP_PLAN_API?: string;        // id del plan de suscripción API
   PRICE_FOUNDER_MXN?: string;  // precio de fundador mostrado (99)

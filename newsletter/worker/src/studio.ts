@@ -15,17 +15,31 @@ const cdmxDay = (ms = Date.now()) => new Date(ms - CDMX).toISOString().slice(0, 
 const h = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const hhmm = (ms: number) => new Date(ms - CDMX).toISOString().slice(11, 16);
 
+// Guía básica: GRATIS a cambio de unirse al canal de Telegram (imán de audiencia)
 export const GUIDE = {
-  id: "guia1",
+  id: "basica",
   title: "Tu primera inversión en México",
-  subtitle: "Guía paso a paso para empezar con poco, sin humo y con datos oficiales",
-  freeKey: "file:guia1_cap1",
-  fullKey: "file:guia1",
+  subtitle: "Guía básica gratuita para empezar con poco, sin humo y con datos oficiales",
+  freeKey: "file:guia_basica",
+  fullKey: "file:guia_basica",
+};
+// Producto premium: plan de 30 días + hoja de cálculo, de pago con Telegram Stars
+export const PLAN = {
+  id: "plan30",
+  title: "Tu plan de inversión en 30 días",
+  subtitle: "El método Lana con Café: qué hacer tú, con tus números",
+  key: "file:plan30",
+  sheetKey: "file:plan30_xlsx",
+};
+const FILES: Record<string, { key: string; name: string; type: string }> = {
+  plan30: { key: PLAN.key, name: "Lana-con-Cafe-Plan-30-dias.pdf", type: "application/pdf" },
+  plan30_xlsx: { key: PLAN.sheetKey, name: "Lana-con-Cafe-Plan-30-dias.xlsx", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+  guia1: { key: "file:guia1", name: "Lana-con-Cafe-guia.pdf", type: "application/pdf" },
 };
 const BOT = "https://t.me/LanaconcafeBot";
 const CANAL = "https://t.me/LanaconCafe";
-export const guideStars = (env: Env) => num(env.GUIDE_STARS, 375);
-export const guideMxn = (env: Env) => num(env.GUIDE_MXN, 149);
+export const guideStars = (env: Env) => num(env.PLAN_STARS, 875);   // precio del plan premium
+export const guideMxn = (env: Env) => num(env.PLAN_MXN, 349);
 
 // ---------- Aprobaciones ----------
 const KIND: Record<string, string> = { educativo: "📚 Educativo", curioso: "🤓 Dato curioso", noticia: "📰 Noticia", cierre: "📉 Cierre de semana" };
@@ -82,7 +96,7 @@ async function newToken(env: Env, tg: number, product: string) {
   const b = crypto.getRandomValues(new Uint8Array(18));
   const token = [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
   await env.DB.prepare("INSERT INTO downloads (token, tg, product, expires) VALUES (?1, ?2, ?3, ?4)").bind(token, tg, product, Date.now() + 2 * 3600_000).run();
-  return `${env.SITE_URL}/dl/${token}/${GUIDE.id}.pdf`;
+  return `${env.SITE_URL}/dl/${token}/${product}.${product.endsWith("_xlsx") ? "xlsx" : "pdf"}`;
 }
 
 export async function handleStudioApi(env: Env, path: string, b: Record<string, any>): Promise<Response | null> {
@@ -92,25 +106,33 @@ export async function handleStudioApi(env: Env, path: string, b: Record<string, 
     case "/bot/approve":
       if (!okTg) return null;
       return Response.json(await decide(env, tg, String(b.id ?? ""), !!b.ok));
-    case "/bot/guide":
+    case "/bot/guide": {
+      const bought = okTg ? !!(await env.DB.prepare("SELECT 1 FROM purchases WHERE tg = ?1 AND product = ?2 AND refunded = 0").bind(tg, PLAN.id).first()) : false;
       return Response.json({
-        title: GUIDE.title, subtitle: GUIDE.subtitle, stars: guideStars(env), mxn: guideMxn(env),
-        free_url: `${env.SITE_URL}/guia/capitulo-1.pdf`, page: `${env.SITE_URL}/guia`,
-        bought: okTg ? !!(await env.DB.prepare("SELECT 1 FROM purchases WHERE tg = ?1 AND product = ?2 AND refunded = 0").bind(tg, GUIDE.id).first()) : false,
-        ready: !!(await env.BOT_KV?.get("guide_ready")),
+        title: GUIDE.title, subtitle: GUIDE.subtitle, free_url: `${env.SITE_URL}/guia/guia-basica.pdf`, page: `${env.SITE_URL}/guia`,
+        plan: { title: PLAN.title, subtitle: PLAN.subtitle, stars: guideStars(env), mxn: guideMxn(env), ready: !!(await env.BOT_KV?.get("plan30_ready")), bought },
+        // compatibilidad con el bot v14
+        stars: guideStars(env), mxn: guideMxn(env), bought, ready: !!(await env.BOT_KV?.get("plan30_ready")),
       });
+    }
+    case "/bot/plan-wait": {
+      if (!okTg) return null;
+      await env.DB.prepare("INSERT OR IGNORE INTO flags (k, v) VALUES (?1, ?2)").bind(`wait:plan30:${tg}`, String(Date.now())).run();
+      return Response.json({ ok: true });
+    }
     case "/bot/purchase": {
       if (!okTg || !b.charge_id) return null;
+      const product = String(b.product ?? PLAN.id) === "guia1" ? "guia1" : PLAN.id;
       await env.DB.prepare("INSERT OR IGNORE INTO purchases (charge_id, tg, product, stars, created_at) VALUES (?1, ?2, ?3, ?4, ?5)")
-        .bind(String(b.charge_id), tg, String(b.product ?? GUIDE.id), num(b.stars, 0), Date.now()).run();
-      if (env.ADMIN_CHAT_ID) await tgCall(env, "sendMessage", { chat_id: env.ADMIN_CHAT_ID, text: `💰 Venta de la guía: ${num(b.stars, 0)} ⭐ (usuario ${tg})` }).catch(() => {});
-      return Response.json({ url: await newToken(env, tg, GUIDE.id) });
+        .bind(String(b.charge_id), tg, product, num(b.stars, 0), Date.now()).run();
+      if (env.ADMIN_CHAT_ID) await tgCall(env, "sendMessage", { chat_id: env.ADMIN_CHAT_ID, text: `💰 Venta: ${product === PLAN.id ? PLAN.title : "guía"} · ${num(b.stars, 0)} ⭐ (usuario ${tg})` }).catch(() => {});
+      return Response.json(await productLinks(env, tg, product));
     }
     case "/bot/download": {
       if (!okTg) return null;
-      const p = await env.DB.prepare("SELECT 1 FROM purchases WHERE tg = ?1 AND product = ?2 AND refunded = 0").bind(tg, GUIDE.id).first();
+      const p = await env.DB.prepare("SELECT product FROM purchases WHERE tg = ?1 AND refunded = 0 ORDER BY created_at DESC LIMIT 1").bind(tg).first<{ product: string }>();
       if (!p) return Response.json({ error: "No encuentro tu compra. Si pagaste, escríbenos con /ayuda." });
-      return Response.json({ url: await newToken(env, tg, GUIDE.id) });
+      return Response.json(await productLinks(env, tg, p.product));
     }
     case "/bot/refunded": {
       if (String(b.admin) !== String(env.ADMIN_CHAT_ID)) return null;
@@ -145,19 +167,26 @@ export async function handleStudioApi(env: Env, path: string, b: Record<string, 
   return null;
 }
 
-/** /dl/<token>/guia1.pdf: descarga de la guía comprada (enlace temporal de 2 h). */
+async function productLinks(env: Env, tg: number, product: string) {
+  const url = await newToken(env, tg, product);
+  const sheet = product === PLAN.id && (await env.BOT_KV?.get(PLAN.sheetKey, "stream").then((x) => { x?.cancel(); return !!x; })) ? await newToken(env, tg, `${PLAN.id}_xlsx`) : null;
+  return { url, sheet };
+}
+
+/** /dl/<token>/<producto>.pdf|xlsx: descarga de lo comprado (enlace temporal de 2 h). */
 export async function download(env: Env, token: string): Promise<Response> {
   const d = await env.DB.prepare("SELECT product, expires FROM downloads WHERE token = ?1").bind(token).first<{ product: string; expires: number }>();
   if (!d || d.expires < Date.now()) return new Response("Este enlace ya caducó. Pide uno nuevo en el bot con /miguia", { status: 410, headers: { "content-type": "text/plain; charset=utf-8" } });
-  const f = await env.BOT_KV?.get(GUIDE.fullKey, "arrayBuffer");
-  if (!f) return new Response("La guía se está actualizando; inténtalo en unos minutos.", { status: 503 });
-  return new Response(f, { headers: { "content-type": "application/pdf", "content-disposition": `attachment; filename="Lana-con-Cafe-${GUIDE.id}.pdf"`, "cache-control": "private, no-store" } });
+  const meta = FILES[d.product] ?? FILES.guia1;
+  const f = await env.BOT_KV?.get(meta.key, "arrayBuffer");
+  if (!f) return new Response("El archivo se está actualizando; inténtalo en unos minutos.", { status: 503 });
+  return new Response(f, { headers: { "content-type": meta.type, "content-disposition": `attachment; filename="${meta.name}"`, "cache-control": "private, no-store" } });
 }
 
 export async function freeChapter(env: Env): Promise<Response> {
   const f = await env.BOT_KV?.get(GUIDE.freeKey, "arrayBuffer");
   if (!f) return new Response("Próximamente", { status: 404 });
-  return new Response(f, { headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="Lana-con-Cafe-capitulo-1.pdf"`, "cache-control": "public, max-age=3600" } });
+  return new Response(f, { headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="Lana-con-Cafe-guia-basica.pdf"`, "cache-control": "public, max-age=3600" } });
 }
 
 // ---------- Enlaces de la bio ----------
@@ -166,7 +195,7 @@ async function count(env: Env, src: string, dest: string) {
     .bind(cdmxDay(), src, dest).run().catch(() => {});
 }
 const SRC = new Set(["ig", "tt", "yt", "web"]);
-const DEST: Record<string, string> = { canal: CANAL, guia: `${BOT}?start=guia`, pro: `${BOT}?start=pro`, bot: `${BOT}?start=ayuda`, prueba: `${BOT}?start=prueba` };
+const DEST: Record<string, string> = { canal: CANAL, guia: `${BOT}?start=guia`, plan: `${BOT}?start=plan`, pro: `${BOT}?start=pro`, bot: `${BOT}?start=ayuda`, prueba: `${BOT}?start=prueba` };
 
 export async function go(env: Env, dest: string, src: string, ctx: ExecutionContext): Promise<Response> {
   const s = SRC.has(src) ? src : "web";
@@ -199,7 +228,7 @@ small{display:block;color:var(--muted);margin-top:22px;font-size:12px}
 <h1>Lana <em>con</em> Café</h1>
 <p class="tag">Las noticias que mueven tu dinero, explicadas claro y con fuentes.</p>
 <a class="b main" href="${g("canal")}"><strong>☕ Únete gratis al canal de Telegram</strong><span>Alertas del dólar, la bolsa y la economía de México, cada día</span></a>
-<a class="b" href="${g("guia")}"><strong>📖 Guía: Tu primera inversión en México</strong><span>Lee gratis el capítulo 1 · completa $${guideMxn(env)} MXN, con garantía de reembolso</span></a>
+<a class="b" href="${g("guia")}"><strong>📖 Guía gratis: Tu primera inversión en México</strong><span>20 páginas con datos oficiales: CETES, Afore, Sofipos y cómo evitar fraudes</span></a>
 <a class="b" href="${g("prueba")}"><strong>⭐ Prueba Pro gratis 7 días</strong><span>Alertas al instante, radar personal y pregúntale a la IA</span></a>
 <a class="b" href="/dolar-hoy"><strong>💵 Dólar hoy en México</strong><span>Tipo de cambio actualizado y gráfica</span></a>
 <a class="b" href="/"><strong>📰 Todas las noticias</strong><span>lanaconcafe · sitio web</span></a>
@@ -211,35 +240,35 @@ small{display:block;color:var(--muted);margin-top:22px;font-size:12px}
 // ---------- Página de la guía ----------
 export function guidePage(env: Env): Response {
   const body = `<main class="wrap" style="max-width:780px;padding:40px 16px 60px">
-<p class="eyebrow">Guía Lana con Café</p>
+<p class="eyebrow">Guía gratuita · Lana con Café</p>
 <h1 style="font-family:Fraunces,serif;font-size:clamp(32px,6vw,52px);line-height:1.05;margin:.2em 0">${h(GUIDE.title)}</h1>
-<p style="font-size:20px;opacity:.85">${h(GUIDE.subtitle)}.</p>
-<p><a class="btn" href="/go/guia?s=web">Leer el capítulo 1 gratis en Telegram</a> &nbsp; <a href="/guia/capitulo-1.pdf">o descárgalo aquí (PDF)</a></p>
+<p style="font-size:20px;opacity:.85">${h(GUIDE.subtitle)}. 20 páginas, 8 capítulos.</p>
+<p><a class="btn" href="/go/guia?s=web">Descárgala gratis en Telegram</a></p>
+<p style="opacity:.75">Te la manda nuestro bot al unirte al canal gratuito de Lana con Café, donde publicamos cada día las noticias que mueven tu dinero.</p>
 <h2>Qué incluye</h2>
 <ol>
-<li><b>Antes de invertir:</b> tu fondo de emergencia, deudas caras y cuánto apartar (capítulo gratis).</li>
+<li><b>Antes de invertir:</b> presupuesto, fondo de emergencia y deudas caras.</li>
 <li><b>Conceptos sin rodeos:</b> rendimiento nominal y real, inflación, GAT, riesgo, liquidez y plazo.</li>
 <li><b>CETES paso a paso:</b> qué son, cuánto rinden, cómo se compran desde $100 en Cetesdirecto y cómo se gravan.</li>
-<li><b>Bancos, Sofipos y apps:</b> cómo leer la GAT, qué protege el IPAB y qué protege el Prosofipo (y cuánto).</li>
-<li><b>Fondos de inversión, Bolsa y ETFs:</b> qué son, comisiones y cómo comparar sin caer en promesas.</li>
+<li><b>Bancos, Sofipos y apps:</b> qué protege el IPAB y qué protege el Prosofipo (y cuánto).</li>
+<li><b>Fondos de inversión, Bolsa y ETFs:</b> qué son, comisiones y riesgos.</li>
 <li><b>Afore y aportaciones voluntarias:</b> el beneficio fiscal y cómo hacerlas.</li>
-<li><b>Fraudes y señales de alerta:</b> cómo revisar si una entidad está autorizada (CNBV, CONDUSEF).</li>
-<li><b>Tu plan en una hoja:</b> ejercicio para decidir con tus propios números.</li>
+<li><b>Fraudes y señales de alerta:</b> cómo revisar si una entidad está autorizada.</li>
+<li><b>Tu plan en una hoja</b> y glosario.</li>
 </ol>
 <h2>Nuestro compromiso de transparencia</h2>
 <ul>
-<li>Cada dato lleva su <b>fuente oficial</b> (Banxico, CONDUSEF, CNBV, IPAB, SAT, Cetesdirecto) y su <b>fecha de corte</b>.</li>
-<li><b>No promete rendimientos</b> ni recomienda comprar o vender nada: explica cómo funcionan las opciones para que decidas tú.</li>
-<li><b>No tiene enlaces de afiliado</b> ni menciones pagadas.</li>
-<li>Se actualiza cuando cambian las tasas o las reglas, y quien la compró recibe la versión nueva gratis con /miguia.</li>
-<li><b>Garantía de 7 días:</b> si no te sirvió, escribe /reembolso en el bot y te devolvemos tus Stars, sin preguntas.</li>
+<li>Cada dato lleva su <b>fuente oficial</b> (Banxico, INEGI, CONDUSEF, CNBV, IPAB, CONSAR, SAT) y su <b>fecha de corte</b>.</li>
+<li><b>No promete rendimientos</b> ni recomienda comprar o vender nada.</li>
+<li><b>Sin enlaces de afiliado</b> ni menciones pagadas.</li>
 </ul>
-<h2>Precio</h2>
-<p><b>${guideStars(env)} ⭐ Telegram Stars</b> (aprox. $${guideMxn(env)} MXN), pago dentro de Telegram. Recibes el PDF al instante en el chat.</p>
-<p><a class="btn" href="/go/guia?s=web">Comprar en Telegram</a></p>
-<p class="legal" style="opacity:.7;font-size:14px">Material educativo. No es asesoría de inversión personalizada ni una recomendación de productos financieros. Antes de invertir, revisa tu situación y, si lo necesitas, consulta a un asesor autorizado.</p>
+<div style="margin:28px 0;padding:20px;border-radius:16px;background:#2B1A12;color:#F6EBDD">
+<b style="font-size:20px">Próximamente: ${h(PLAN.title)}</b>
+<p style="opacity:.9">${h(PLAN.subtitle)}. Comparativas actualizadas cada mes de dónde poner tu dinero, portafolios modelo según tu perfil, plan día por día, impuestos paso a paso, casos resueltos y una hoja de cálculo. $${guideMxn(env)} MXN.</p>
+<a class="btn" style="background:#E2B33C;color:#2B1A12;border-color:#E2B33C" href="/go/plan?s=web">Avísame cuando salga</a></div>
+<p class="legal" style="opacity:.7;font-size:14px">Material educativo. No es asesoría de inversión personalizada ni una recomendación de productos financieros.</p>
 </main>`;
-  return new Response(layout(env, { title: `${GUIDE.title} · Guía Lana con Café`, description: `${GUIDE.subtitle}. Capítulo 1 gratis.`, image: `${env.SITE_URL}/assets/og.jpg`, url: `${env.SITE_URL}/guia`, body }), {
+  return new Response(layout(env, { title: `${GUIDE.title} · Guía gratis · Lana con Café`, description: `${GUIDE.subtitle}: CETES, Afore, Sofipos, fondos y cómo evitar fraudes.`, image: `${env.SITE_URL}/assets/og.jpg`, url: `${env.SITE_URL}/guia`, body }), {
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=600" },
   });
 }
