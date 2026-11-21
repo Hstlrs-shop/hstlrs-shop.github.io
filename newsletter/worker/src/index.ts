@@ -93,6 +93,14 @@ export default {
     if (p === "/robots.txt") return robots(env);
 
     // Precio y enlace de Pro (lo usan la web y el bot): fundadores = primeros FOUNDERS_TOTAL suscriptores
+    // Kit de contenido del día (noticias verificadas + guion), para la skill de Reels de Instagram/TikTok
+    if (p === "/api/kit") {
+      const r = await env.DB.prepare("SELECT v FROM flags WHERE k = 'kit:last'").first<{ v: string }>();
+      return r
+        ? new Response(r.v, { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300", ...CORS } })
+        : json({ error: "todavía no hay kit hoy" }, 404);
+    }
+
     if (p === "/api/pro") {
       const [link, stars, taken] = await Promise.all([
         env.BOT_KV?.get("pro_link"), env.BOT_KV?.get("pro_stars"),
