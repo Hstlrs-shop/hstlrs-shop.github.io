@@ -42,7 +42,12 @@ export async function sendApprovals(env: Env) {
   }
   const q = await env.DB.prepare("SELECT * FROM approvals WHERE status = 'new' ORDER BY publish_at LIMIT 3").all<any>();
   for (const a of q.results) {
-    const deadline = hhmm(Number(a.publish_at) - 20 * 60_000);
+    // La tarea que publica corre a los :40 (7:40, 12:40, 19:40…): la hora límite es la última :40 antes del slot
+    const lim = Number(a.publish_at) - 10 * 60_000;
+    const loc = new Date(lim - CDMX);
+    const back = ((loc.getUTCMinutes() - 40 + 60) % 60) * 60_000 + loc.getUTCSeconds() * 1000 + loc.getUTCMilliseconds();
+    const deadlineMs = lim - back;
+    const deadline = hhmm(deadlineMs);
     const caption = `${KIND[a.kind] ?? "🎬"} · <b>${a.slot} h</b> (Instagram + TikTok)\n<b>${esc(a.title)}</b>\n\n` +
       `${esc(String(a.caption).slice(0, 600))}${String(a.caption).length > 600 ? "…" : ""}\n\n` +
       `Toca ✅ antes de las <b>${deadline}</b> para que salga a su hora. Si no respondes, no se publica.` +
@@ -65,7 +70,10 @@ async function decide(env: Env, tg: number, id: string, ok: boolean) {
   if (!["new", "sent", "approved", "rejected"].includes(a.status)) return { error: `Ya no se puede cambiar (estado: ${a.status}).`, status: a.status };
   const status = ok ? "approved" : "rejected";
   await env.DB.prepare("UPDATE approvals SET status = ?2, decided_at = ?3 WHERE id = ?1").bind(id, status, Date.now()).run();
-  const late = ok && Date.now() > Number(a.publish_at) - 20 * 60_000;
+  const lim = Number(a.publish_at) - 10 * 60_000;
+  const loc = new Date(lim - CDMX);
+  const deadlineMs = lim - (((loc.getUTCMinutes() - 40 + 60) % 60) * 60_000 + loc.getUTCSeconds() * 1000 + loc.getUTCMilliseconds());
+  const late = ok && Date.now() > deadlineMs;
   return { ok: true, status, slot: a.slot, title: a.title, late };
 }
 

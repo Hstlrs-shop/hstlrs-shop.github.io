@@ -7,9 +7,12 @@ Manual que siguen las tareas programadas de producción. Los IDs de cuentas y la
 
 | Hora | Pieza | Se produce en |
 |---|---|---|
-| 08:30 | **Dato curioso o educativo** (evergreen) | tarea de las 06:40 |
-| 13:30 | **Noticia del día** (lunes a viernes) · educativo en fin de semana | tarea de las 11:15 |
-| 20:00 | **Educativo** (lunes a jueves y fin de semana) · **Cierre de semana** los viernes | 06:40 · viernes 16:30 |
+| 08:30 | **Dato curioso o educativo** (evergreen) | corrida de las 06:40 |
+| 13:30 | **Noticia del día** (lunes a viernes) · educativo en fin de semana | corrida de las 11:40 |
+| 20:00 | **Educativo** (lunes a jueves y fin de semana) · **Cierre de semana** los viernes | 06:40 · viernes 16:40 |
+
+Una sola tarea programada corre a las 06:40, 07:40, 11:40, 12:40, 16:40 y 19:40 y hace lo que toque a esa hora.
+El bot pide el ✅ antes de la última revisión previa al slot: 07:40 (para 08:30), 12:40 (para 13:30) y 19:40 (para 20:00).
 
 Cada video sale en **Instagram y TikTok** a la misma hora, desde un solo borrador de vidIQ con dos destinos.
 
@@ -46,7 +49,7 @@ Copia `scripts/` a una carpeta de trabajo nueva (el motor espera `credits.json`,
 10. **Borrador vidIQ** (`vidiq_social_post_draft_create`): media `{type: "video", id: uploadId}`, `publishAt` a la hora del slot, destinos Instagram y TikTok (IDs del prompt; TikTok con `privacyLevel: "PUBLIC_TO_EVERYONE"`, `allowComment: true`, `musicUsageConfirmed: true`, elegidos por el administrador el 20/11/2026). Guarda `postId` y `revision`.
 11. **Aprobación:** `python3 newsletter/estudio/aprobaciones.py add '<json>'` con id `AAAA-MM-DD-HHMM`, slot, `publish_at` (ISO con zona), kind, title, caption, `video_url` (URL directa al mp4: la que devuelve `vidiq_video_upload`, o `https://drive.google.com/uc?export=download&id=<id>`), drive_url, post_id, revision.
 
-## Revisión y publicación (tareas de 08:10, 13:10 y 19:40, y al final de cada producción)
+## Revisión y publicación (en cada corrida de la tarea, al final)
 
 1. `python3 newsletter/estudio/aprobaciones.py approved`.
 2. Por cada uno: `vidiq_social_post_publish` con su `post_id` y `revision`. Si `ya_paso` es true y pasaron menos de 3 horas, primero `vidiq_social_post_draft_update` con `publishAt` = ahora + 10 min (y publica con la revisión nueva); si pasaron más de 3 horas, `aprobaciones.py fail <id> tarde` y no lo publiques.
