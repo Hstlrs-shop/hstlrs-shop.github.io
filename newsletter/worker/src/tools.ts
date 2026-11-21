@@ -96,7 +96,7 @@ function calc(){var m=Math.max(0,+$("m").value||0),o=$("d").selectedOptions[0],d
 var g=m*r*d/36000,isr=m*0.009*d/365,net=g-isr,n=Math.max(1,Math.floor(365*y/d)),cap=m;for(var i=0;i<n;i++){cap+=cap*r*d/36000-cap*0.009*d/365}
 var infl=m*Math.pow(1+INF/100,y);
 $("out").innerHTML="En <b>"+d+" días</b> ganas <b>$"+f(g)+"</b> antes de impuestos; se retienen <b>$"+f(isr)+"</b> de ISR y recibes <b>$"+f(m+net)+"</b>.<br>"+
-"Reinvirtiendo "+n+(n>1?" veces (":" vez (")+"+y+" año"+(y>1?"s":"")+"), tus $"+f(m)+" llegarían a <b>$"+f(cap)+"</b>. Para no perder poder de compra con una inflación de "+INF+"% necesitarías $"+f(infl)+": "+(cap>=infl?"<b style=color:#2e7d4f>le ganas a la inflación por $"+f(cap-infl)+"</b>.":"<b style=color:#b3402f>te quedas $"+f(infl-cap)+" abajo de la inflación</b>.");}
+"Reinvirtiendo "+n+(n>1?" veces (":" vez (")+y+" año"+(y>1?"s":"")+"), tus $"+f(m)+" llegarían a <b>$"+f(cap)+"</b>. Para no perder poder de compra con una inflación de "+INF+"% necesitarías $"+f(infl)+": "+(cap>=infl?"<b style=color:#2e7d4f>le ganas a la inflación por $"+f(cap-infl)+"</b>.":"<b style=color:#b3402f>te quedas $"+f(infl-cap)+" abajo de la inflación</b>.");}
 ["m","d","y"].forEach(function(i){$(i).addEventListener("input",calc)});calc();})();
 </script>`;
   return new Response(layout(env, {
