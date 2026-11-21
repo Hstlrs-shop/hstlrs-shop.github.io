@@ -508,7 +508,7 @@ async function manejar(update, env) {
           (yaPro ? "✅ Ya eres Pro. ¡Gracias por apoyar Lana con Café!" : c.plan === "prueba" ? `🎁 Tienes prueba Pro hasta el ${fechaCorta(c.until)}.` : "Pruébalo gratis 7 días con /prueba") + AVISO,
         reply_markup: yaPro ? undefined : { inline_keyboard: [[proLink
           ? { text: `⭐ Suscribirme · ${proStars} Stars al mes`, url: proLink }
-          : { text: "⭐ Hazte Pro", url: `${env.NEWS_URL || "https://lanaconcafe-news.gt2hf24n6t.workers.dev"}/precios.html` }]] },
+          : { text: "⭐ Hazte Pro", url: `${env.NEWS_URL || "https://lanaconcafe.com"}/precios.html` }]] },
       });
     }
 

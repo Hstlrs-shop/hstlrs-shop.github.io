@@ -81,6 +81,11 @@ export default {
     const url = new URL(req.url);
     const p = url.pathname;
     if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+    const canon = new URL(env.SITE_URL).hostname;
+    if (req.method === "GET" && url.hostname !== canon && (url.hostname.endsWith("workers.dev") || url.hostname === `www.${canon}`) &&
+        !/^\/(api|bot|studio|telegram|mp|admin|dl|internal)\b/.test(p)) {
+      return Response.redirect(`https://${canon}${p}${url.search}`, 301);
+    }
 
     const page = req.method === "GET" ? SITE[p] : undefined;
     if (page) {

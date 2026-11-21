@@ -2,11 +2,18 @@ name = "lanaconcafe-news"
 main = "src/index.ts"
 compatibility_date = "2026-11-01"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true   # mantiene viva la dirección vieja (redirige las páginas a lanaconcafe.com)
 
 # La web (carpeta site/) se empaqueta dentro del Worker con `npm run build:site` (se ejecuta antes de cada deploy).
 
 # Cada minuto: ingesta + alertas. Lun-Vie 11:17 UTC: edición diaria del newsletter
 # (≈ 5:17 Ciudad de México / 12:17 Madrid). Si cambias la segunda, cambia DIGEST_CRON en src/index.ts.
+# Dominio propio (el subdominio workers.dev redirige aquí las páginas)
+routes = [
+  { pattern = "lanaconcafe.com", custom_domain = true },
+  { pattern = "www.lanaconcafe.com", custom_domain = true },
+]
+
 [triggers]
 crons = ["* * * * *", "17 11 * * 1-5", "* 12-23 * * 1-5", "2 */4 * * *"]  # señales BTC 6:00–17:05 CDMX · tendencia 4h
 
@@ -27,7 +34,7 @@ id = "8b002a988c5d49db8dc3ab2820239ed5"
 
 [vars]
 BRAND = "Lana con Café"
-SITE_URL = "https://lanaconcafe-news.gt2hf24n6t.workers.dev"
+SITE_URL = "https://lanaconcafe.com"
 COUNTRY = "MX"                # MX | ES | CO | AR | VE | CL | PE (ver src/sources.ts)
 CLAUDE_MODEL = "claude-opus-5-5"
 AI_MIN_SCORE = "25"            # la IA (Haiku, centavos al día) revisa casi todo

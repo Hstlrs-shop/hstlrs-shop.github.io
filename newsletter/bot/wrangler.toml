@@ -19,7 +19,7 @@ service = "lanaconcafe-news"
 [vars]
 ADMIN_ID = "8824524448"
 CANAL_ID = "@LanaconCafe"
-NEWS_URL = "https://lanaconcafe-news.gt2hf24n6t.workers.dev"
+NEWS_URL = "https://lanaconcafe.com"
 PRO_CANAL_ID = ""        # id del canal Pro privado (-100…) cuando lo crees
 
 [observability]

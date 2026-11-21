@@ -8,7 +8,7 @@
   python3 aprobaciones.py today          # estado de los de las últimas 36 h
 
 Necesita la variable de entorno STUDIO_TOKEN (la llave de la tarea programada; viene en su prompt,
-nunca en el repositorio). Habla con https://lanaconcafe-news.gt2hf24n6t.workers.dev/studio/approvals,
+nunca en el repositorio). Habla con https://lanaconcafe.com/studio/approvals,
 así que no necesita credenciales de Cloudflare.
 
 JSON de `add`: {"id": "2026-11-21-0830", "slot": "08:30", "publish_at": "2026-11-21T08:30:00-06:00",
@@ -22,7 +22,7 @@ import os
 import sys
 import urllib.request
 
-API = "https://lanaconcafe-news.gt2hf24n6t.workers.dev/studio/approvals"
+API = "https://lanaconcafe.com/studio/approvals"
 
 
 def call(method, query="", body=None):

@@ -37,7 +37,7 @@ Cada video sale en **Instagram y TikTok** a la misma hora, desde un solo borrado
 
 Copia `scripts/` a una carpeta de trabajo nueva (el motor espera `credits.json`, `px.json`, `font/` e `img/` junto a él).
 
-1. **Datos:** para noticias, parte de `curl -s https://lanaconcafe-news.gt2hf24n6t.workers.dev/api/kit` y verifica cada cifra en la fuente original con WebSearch (modo extended). Para educativos, fuentes oficiales.
+1. **Datos:** para noticias, parte de `curl -s https://lanaconcafe.com/api/kit` y verifica cada cifra en la fuente original con WebSearch (modo extended). Para educativos, fuentes oficiales.
 2. **Guion:** gancho de menos de 3 s + desarrollo + cierre con QR. 165–185 palabras (≈ 70 s). Números escritos como se pronuncian.
 3. **Fuente:** `curl -sL -o font/bg.ttf "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz,wdth,wght%5D.ttf"`.
 4. **Fotos:** `SSL_CERT_FILE=/root/.ccr/ca-bundle.crt python3 -I scripts/fotos_commons.py <carpeta> '{"clave":"búsqueda en inglés"}'`. Commons da 429 seguido: el script pausa y reintenta; si no alcanza, reutiliza fotos. Revisa una hoja de contacto (logos, personas).
@@ -85,9 +85,9 @@ Cada Reel diario se publica también como **YouTube Short** desde el mismo borra
   ```
   <2–3 líneas con las cifras y su fuente>
 
-  📊 Calcula tu caso: https://lanaconcafe-news.gt2hf24n6t.workers.dev/cetes-hoy   (o la página del sitio que corresponda al tema)
-  📖 Guía gratis para tu primera inversión: https://lanaconcafe-news.gt2hf24n6t.workers.dev/go/guia?s=yt
-  ☕ Noticias diarias en Telegram: https://lanaconcafe-news.gt2hf24n6t.workers.dev/go/canal?s=yt
+  📊 Calcula tu caso: https://lanaconcafe.com/cetes-hoy   (o la página del sitio que corresponda al tema)
+  📖 Guía gratis para tu primera inversión: https://lanaconcafe.com/go/guia?s=yt
+  ☕ Noticias diarias en Telegram: https://lanaconcafe.com/go/canal?s=yt
 
   Información, no asesoría financiera.
   #finanzas #inversiones #mexico #shorts
