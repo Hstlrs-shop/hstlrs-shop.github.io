@@ -9,6 +9,7 @@ import { marketPage } from "./seo";
 import { SITE } from "./site-files";
 import { esc } from "./telegram";
 import { scalpTick, trendTick } from "./scalp";
+import { cetesPage, inflationPage } from "./tools";
 import { bioPage, download, freeChapter, go, guidePage, studioApi } from "./studio";
 
 const DIGEST_CRON = "17 11 * * 1-5"; // debe coincidir con wrangler.toml
@@ -101,6 +102,8 @@ export default {
     const goTo = p.match(/^\/go\/([a-z]+)$/);
     if (goTo) return go(env, goTo[1], url.searchParams.get("s") ?? "web", ctx);
     if (p === "/guia") return guidePage(env);
+    if (p === "/cetes-hoy" || p === "/calculadora-cetes") return cetesPage(env, ctx);
+    if (p === "/calculadora-inflacion") return inflationPage(env, ctx);
     if (p === "/guia/capitulo-1.pdf") return freeChapter(env);
     const dl = p.match(/^\/dl\/([0-9a-f]{36})\/[a-z0-9_-]+\.pdf$/);
     if (dl) return download(env, dl[1]);

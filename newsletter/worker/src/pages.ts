@@ -63,14 +63,14 @@ ${o.extraHead ?? ""}
 <body>
 <header class="top"><div class="wrap">
   <a class="logo" href="/"><img src="/assets/logo-mark.svg" alt="" width="34" height="34"><span>Lana <em>con</em> Café</span></a>
-  <nav><a href="/#noticias" class="hide-sm">Noticias</a><a href="/dolar-hoy">Dólar hoy</a><a href="/mercados.html" class="hide-sm">Mercados</a><a href="/#ediciones" class="hide-sm">Newsletter</a><a class="btn sm" href="/precios.html">Pro</a></nav>
+  <nav><a href="/#noticias" class="hide-sm">Noticias</a><a href="/dolar-hoy">Dólar hoy</a><a href="/cetes-hoy">CETES</a><a href="/mercados.html" class="hide-sm">Mercados</a><a href="/#ediciones" class="hide-sm">Newsletter</a><a class="btn sm" href="/precios.html">Pro</a></nav>
 </div></header>
 <div class="ticker" id="ticker"></div>
 ${o.body}
 <footer><div class="wrap foot">
   <div><a class="logo" href="/"><img src="/assets/logo-mark-light.svg" alt="" width="30" height="30"><span>Lana <em>con</em> Café</span></a>
   <p>Las noticias que mueven tu dinero, con el primer café.</p></div>
-  <div class="links"><a data-link="TELEGRAM_FREE">Telegram</a><a href="/precios.html">Pro</a><a href="/mercados.html">Mercados</a><a href="/dolar-hoy">Dólar hoy</a><a href="/bitcoin-hoy">Bitcoin hoy</a><a href="/marca.html">Marca</a><a href="/rss.xml">RSS</a></div>
+  <div class="links"><a data-link="TELEGRAM_FREE">Telegram</a><a href="/precios.html">Pro</a><a href="/mercados.html">Mercados</a><a href="/dolar-hoy">Dólar hoy</a><a href="/bitcoin-hoy">Bitcoin hoy</a><a href="/cetes-hoy">CETES hoy</a><a href="/calculadora-inflacion">Calculadora de inflación</a><a href="/guia">Guía</a><a href="/marca.html">Marca</a><a href="/rss.xml">RSS</a></div>
   <p class="legal">Información, no asesoría de inversión. Titulares y fotos enlazan a sus fuentes originales; resúmenes de redacción propia. Datos de mercado: TradingView.</p>
 </div></footer>
 <script src="/app.js?v=${ASSET_V}"></script>
@@ -152,6 +152,9 @@ export async function sitemap(env: Env): Promise<Response> {
     `<url><loc>${env.SITE_URL}/</loc><changefreq>always</changefreq></url>`,
     `<url><loc>${env.SITE_URL}/dolar-hoy</loc><changefreq>hourly</changefreq><priority>0.9</priority></url>`,
     `<url><loc>${env.SITE_URL}/bitcoin-hoy</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>`,
+    `<url><loc>${env.SITE_URL}/cetes-hoy</loc><changefreq>daily</changefreq><priority>0.9</priority></url>`,
+    `<url><loc>${env.SITE_URL}/calculadora-inflacion</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`,
+    `<url><loc>${env.SITE_URL}/guia</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`,
     `<url><loc>${env.SITE_URL}/mercados.html</loc></url>`,
     `<url><loc>${env.SITE_URL}/precios.html</loc></url>`,
     ...q.results.map((n) => `<url><loc>${env.SITE_URL}${newsPath(n)}</loc><lastmod>${new Date(n.detected_at).toISOString()}</lastmod></url>`),

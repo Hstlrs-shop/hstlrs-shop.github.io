@@ -23,6 +23,8 @@ export interface Env {
   SCALP_FEE?: string;
   SCALP_PULLBACK?: string;     // "1" activa también la señal experimental de retroceso en 1 min          // comisión por lado para el resultado neto (0.0005 = 0.05%)        // BTC por operación en demo (0.01)
   STUDIO_TOKEN?: string;       // llave de la tarea programada de videos: solo lee/escribe la cola de aprobaciones
+  INFLATION_PCT?: string;      // inflación anual (INEGI) para las calculadoras
+  INFLATION_PERIOD?: string;   // periodo de ese dato, p. ej. "octubre de 2026"
   GUIDE_STARS?: string;        // precio de la guía en Telegram Stars
   GUIDE_MXN?: string;          // precio de referencia en pesos
   MP_PLAN_PRO?: string;        // id del plan de suscripción Pro en Mercado Pago
