@@ -96,5 +96,5 @@ Cada Reel diario se publica también como **YouTube Short** desde el mismo borra
 - **privacyStatus**: el que eligió el administrador (en el prompt). **categoryId** 27 (Educación). **tags**: 5–10 del tema (cetes, inflación, dólar, banxico, ahorro…).
 - En YouTube sí se permiten enlaces en la descripción: úsalos siempre hacia el sitio, nunca directo a otro perfil.
 
-### Video largo semanal (domingo 10:00, cuando se active)
+### Video largo semanal (se produce el domingo a las 06:40 y sale a las 12:00; aprobación antes de las 11:40)
 "La semana en tu bolsillo" (8–12 min): las 5 noticias de la semana para México, qué significan para tu dinero, la tasa de CETES y el dólar, y lo que viene. Capítulos en la descripción (00:00 …), miniatura con una cifra grande. Mismo flujo de aprobación por Telegram.
