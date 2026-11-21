@@ -1,0 +1,21 @@
+{
+  "name": "lanaconcafe-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build:site && wrangler dev --test-scheduled",
+    "deploy": "npm run build:site && wrangler deploy",
+    "typecheck": "npm run build:site && tsc --noEmit",
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "db:init": "wrangler d1 execute lanaconcafe-news-db --remote --file=schema.sql",
+    "build:site": "node scripts/build-site.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261120.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.166.0"
+  }
+}

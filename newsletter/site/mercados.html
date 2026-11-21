@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mercados en vivo · Lana con Café</title>
+<meta name="description" content="Dólar, peso, bolsa mexicana, S&P 500, Nasdaq, bitcoin, petróleo y oro en tiempo real, con gráficas interactivas y calendario económico.">
+<link rel="canonical" href="https://lanaconcafe-news.gt2hf24n6t.workers.dev/mercados.html">
+<meta property="og:site_name" content="Lana con Café">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mercados en vivo · Lana con Café">
+<meta property="og:description" content="Dólar, peso, bolsa mexicana, S&P 500, Nasdaq, bitcoin, petróleo y oro en tiempo real, con gráficas interactivas y calendario económico.">
+<meta property="og:image" content="https://lanaconcafe-news.gt2hf24n6t.workers.dev/assets/og-home.jpg">
+<meta property="og:url" content="https://lanaconcafe-news.gt2hf24n6t.workers.dev/mercados.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#2B1A12">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="Lana con Café" href="/rss.xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script src="/config.js"></script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="/"><img src="/assets/logo-mark.svg" alt="" width="34" height="34"><span>Lana <em>con</em> Café</span></a>
+  <nav><a href="/#noticias" class="hide-sm">Noticias</a><a href="/dolar-hoy">Dólar hoy</a><a href="/cetes-hoy">CETES</a><a href="/mercados.html" class="hide-sm">Mercados</a><a href="/#ediciones" class="hide-sm">Newsletter</a><a class="btn sm" href="/precios.html">Pro</a></nav>
+</div></header>
+<div class="ticker" id="ticker"></div>
+<main class="wrap">
+  <section class="page-hero"><h1>Mercados en vivo</h1><p>El dólar, la bolsa mexicana, Wall Street, cripto y materias primas en una sola página. Toca un activo para ver su gráfica.</p></section>
+  <div class="tabs" style="margin-bottom:12px">
+    <button data-chart="FX_IDC:USDMXN" aria-pressed="true">Dólar / Peso</button><button data-chart="AMEX:EWW" aria-pressed="false">Bolsa México</button>
+    <button data-chart="FOREXCOM:SPXUSD" aria-pressed="false">S&amp;P 500</button><button data-chart="FOREXCOM:NSXUSD" aria-pressed="false">Nasdaq</button>
+    <button data-chart="BITSTAMP:BTCUSD" aria-pressed="false">Bitcoin</button><button data-chart="TVC:USOIL" aria-pressed="false">Petróleo</button><button data-chart="TVC:GOLD" aria-pressed="false">Oro</button>
+  </div>
+  <div class="panel tv-box tall" id="tv-chart" data-symbol="FX_IDC:USDMXN"></div>
+  <div class="section-title"><h2>De un vistazo</h2></div>
+  <div class="cards">
+    <div class="panel tv-box" style="height:220px" data-tv-mini="FX_IDC:USDMXN"></div>
+    <div class="panel tv-box" style="height:220px" data-tv-mini="AMEX:EWW"></div>
+    <div class="panel tv-box" style="height:220px" data-tv-mini="FOREXCOM:SPXUSD"></div>
+    <div class="panel tv-box" style="height:220px" data-tv-mini="BITSTAMP:BTCUSD"></div>
+  </div>
+  <div class="markets" style="margin-top:20px">
+    <div><div class="section-title"><h2>Mapa de Wall Street</h2></div><div class="panel tv-box" id="tv-heatmap"></div></div>
+    <div><div class="section-title"><h2>Agenda económica</h2></div><div class="panel tv-box" id="tv-calendar"></div></div>
+  </div>
+  <div class="section-title"><h2>Panorama por región</h2></div>
+  <div class="panel tv-box" id="tv-overview"></div>
+  <p class="note">Datos y gráficas de TradingView. Pueden tener retraso según el mercado.</p>
+</main>
+<footer><div class="wrap foot">
+  <div><a class="logo" href="/"><img src="/assets/logo-mark-light.svg" alt="" width="30" height="30"><span>Lana <em>con</em> Café</span></a>
+  <p>Las noticias que mueven tu dinero, con el primer café.</p></div>
+  <div class="links"><a data-link="TELEGRAM_FREE">Telegram</a><a href="/precios.html">Pro</a><a href="/mercados.html">Mercados</a><a href="/dolar-hoy">Dólar hoy</a><a href="/bitcoin-hoy">Bitcoin hoy</a><a href="/cetes-hoy">CETES hoy</a><a href="/calculadora-inflacion">Calculadora de inflación</a><a href="/guia">Guía</a><a href="/marca.html">Marca</a><a href="/rss.xml">RSS</a></div>
+  <p class="legal">Información, no asesoría de inversión. Titulares y fotos enlazan a sus fuentes originales; resúmenes de redacción propia. Datos de mercado: TradingView.</p>
+</div></footer>
+<script src="/app.js"></script>
+</body>
+</html>

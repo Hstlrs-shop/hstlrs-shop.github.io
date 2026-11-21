@@ -1,0 +1,116 @@
+--- worker.original.js	2026-11-20 19:50:10.894527297 +0000
++++ worker.js	2026-11-20 19:50:30.053308599 +0000
+@@ -3,6 +3,8 @@
+ // Variable opcional: CANAL_ID (texto, p. ej. @lanaconcafe) para publicar en el canal. El bot debe ser administrador del canal.
+ // v5: las publicaciones del canal llevan botones que abren el bot; /menucanal publica un menú para fijar.
+ // v6: resumen automático 7:30 am y encuesta diaria en el canal (resultado 8 pm, hora de Querétaro); /stats y /probarcanal para el administrador.
++// v8: /difundir por tandas desde el cron (el plan gratuito permite ~50 envíos por ejecución); /pro; conexión con el canal Pro de pago.
++//     Variables nuevas opcionales: PRO_CANAL_ID (-100…), NEWS_URL (URL del Worker lanaconcafe-news) y FORWARD_SECRET (secreta).
+ // v7: señales con el tamaño de la regla (0,01 BTC) y solo en el horario de la sesión (lunes a viernes, 8:30–10:30 hora de Querétaro); cada señal recuerda confirmar en 5 min antes de entrar.
+ // KV necesario (Settings → Bindings): nombre de la variable = DB
+ // Cron necesario (Settings → Triggers): */5 * * * *
+@@ -43,6 +45,7 @@
+ <b>Información</b>
+ /noticias · las 5 noticias del día con fuentes
+ /agenda · eventos importantes (Fed, inflación, resultados)
++/pro · alertas de noticias al instante (canal Pro)
+ 
+ Precios: CoinGecko y Coinbase. Alertas y señales se revisan cada 5 minutos. Las señales son para practicar en demo.` + AVISO;
+ 
+@@ -80,6 +83,7 @@
+   { command: "misalertas", description: "Ver tus alertas" },
+   { command: "noticias", description: "Las 5 noticias del día" },
+   { command: "agenda", description: "Eventos importantes de la semana" },
++  { command: "pro", description: "Alertas al instante en el canal Pro" },
+   { command: "ayuda", description: "Ver todos los comandos" },
+ ];
+ 
+@@ -92,6 +96,17 @@
+       return new Response("No autorizado", { status: 401 });
+     let update;
+     try { update = await request.json(); } catch { return new Response("ok"); }
++    // v8: altas en el canal Pro → se avisan al Worker de noticias (para poder sacar a quien cancele)
++    if (update.chat_member) {
++      if (env.PRO_CANAL_ID && env.NEWS_URL && env.FORWARD_SECRET && String(update.chat_member.chat.id) === String(env.PRO_CANAL_ID)) {
++        try {
++          await fetch(`${env.NEWS_URL}/telegram/chat-member`, {
++            method: "POST", headers: { "content-type": "application/json", "x-forward-secret": env.FORWARD_SECRET }, body: JSON.stringify(update),
++          });
++        } catch (e) { console.log("reenvío chat_member:", String(e)); }
++      }
++      return new Response("ok");
++    }
+     try { await manejar(update, env); } catch (e) {
+       console.log("Error:", e && e.stack || e);
+       const c = update && update.message && update.message.chat && update.message.chat.id;
+@@ -100,7 +115,7 @@
+     return new Response("ok");
+   },
+   async scheduled(event, env, ctx) {
+-    ctx.waitUntil(Promise.allSettled([revisarAlertas(env), revisarSenales(env), revisarCanal(env)]));
++    ctx.waitUntil(Promise.allSettled([revisarAlertas(env), revisarSenales(env), revisarCanal(env), revisarDifusion(env)]));
+   },
+ };
+ 
+@@ -202,9 +217,18 @@
+     case "/configurar": {
+       if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+       const r = await tg(env, "setMyCommands", { commands: MENU });
+-      return enviar(env, chat, r.ok ? "✅ Menú azul configurado. Cierra y vuelve a abrir el chat para verlo." : "No se pudo configurar el menú.");
++      // v8: pedir a Telegram también los avisos de altas en canales (chat_member), conservando la URL y el secreto actuales
++      const info = await tg(env, "getWebhookInfo", {});
++      const w = info && info.ok && info.result && info.result.url
++        ? await tg(env, "setWebhook", { url: info.result.url, secret_token: env.WEBHOOK_SECRET, allowed_updates: ["message", "chat_member"] })
++        : { ok: false };
++      return enviar(env, chat, (r.ok ? "✅ Menú azul configurado. Cierra y vuelve a abrir el chat para verlo." : "No se pudo configurar el menú.") +
++        (w.ok ? "\n✅ Webhook: altas del canal Pro activadas." : "\n⚠️ No pude actualizar el webhook (avisos del canal Pro)."));
+     }
+ 
++    case "/pro":
++      return enviar(env, chat, `<b>☕ Lana con Café Pro</b>\n\n⚡ Las noticias que mueven el mercado <b>al instante</b> en un canal privado, con activos afectados y contexto.\nEn el canal gratuito llegan 15 minutos después.\n\n👉 ${env.NEWS_URL ? `<a href="${env.NEWS_URL}/precios.html">Ver planes</a>` : "Muy pronto"}` + AVISO);
++
+     case "/miid":
+       return enviar(env, chat, `Tu ID es: <code>${msg.from.id}</code>`);
+ 
+@@ -308,13 +332,10 @@
+       if (!esAdmin) return;
+       const contenido = msg.text.slice(msg.text.indexOf(" ") + 1).trim();
+       if (!contenido || contenido.startsWith("/")) return enviar(env, chat, "Escribe el mensaje después de /difundir");
+-      let cursor, total = 0;
+-      do {
+-        const r = await env.DB.list({ prefix: "u:", cursor });
+-        for (const k of r.keys) { await enviarSeguro(env, k.name.slice(2), contenido); total++; }
+-        cursor = r.list_complete ? null : r.cursor;
+-      } while (cursor);
+-      return enviar(env, chat, `📣 Enviado a ${total} usuarios.`);
++      // v8: se guarda y el cron lo envía por tandas (una sola ejecución no puede hacer cientos de envíos)
++      if (await env.DB.get("dif")) return enviar(env, chat, "Ya hay una difusión en curso. Espera a que termine.");
++      await env.DB.put("dif", JSON.stringify({ texto: contenido, cursor: null, total: 0, admin: chat }));
++      return enviar(env, chat, `📣 Difusión programada: sale en tandas de ${TANDA} usuarios cada 5 minutos. Te aviso al terminar.`);
+     }
+ 
+     case "/analisis": case "/análisis": {
+@@ -339,6 +360,23 @@
+   }
+ }
+ 
++// ---------- Difusión por tandas (v8) ----------
++const TANDA = 30;
++async function revisarDifusion(env) {
++  const raw = await env.DB.get("dif");
++  if (!raw) return;
++  const d = JSON.parse(raw);
++  const r = await env.DB.list({ prefix: "u:", cursor: d.cursor || undefined, limit: TANDA });
++  for (const k of r.keys) { await enviarSeguro(env, k.name.slice(2), d.texto); d.total++; }
++  if (r.list_complete) {
++    await env.DB.delete("dif");
++    await enviar(env, d.admin, `📣 Difusión terminada: enviada a ${d.total} usuarios.`);
++  } else {
++    d.cursor = r.cursor;
++    await env.DB.put("dif", JSON.stringify(d));
++  }
++}
++
+ // Lista de chats con alertas activas (para que la revisión sea rápida)
+ async function indexar(env, chat, activo) {
+   const s = new Set(JSON.parse((await env.DB.get("idx")) || "[]"));

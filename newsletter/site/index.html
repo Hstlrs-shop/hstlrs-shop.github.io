@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lana con Café · Las noticias que mueven tu dinero</title>
+<meta name="description" content="Noticias de economía y mercados de México y el mundo, explicadas en 1 minuto. Dólar, Banxico, bolsas y cripto en vivo, alertas en Telegram y newsletter diario.">
+<link rel="canonical" href="https://lanaconcafe-news.gt2hf24n6t.workers.dev/">
+<meta property="og:site_name" content="Lana con Café">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Lana con Café · Las noticias que mueven tu dinero">
+<meta property="og:description" content="Noticias de economía y mercados de México y el mundo, explicadas en 1 minuto. Dólar, Banxico, bolsas y cripto en vivo, alertas en Telegram y newsletter diario.">
+<meta property="og:image" content="https://lanaconcafe-news.gt2hf24n6t.workers.dev/assets/og-home.jpg">
+<meta property="og:url" content="https://lanaconcafe-news.gt2hf24n6t.workers.dev/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#2B1A12">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="Lana con Café" href="/rss.xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script src="/config.js"></script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="/"><img src="/assets/logo-mark.svg" alt="" width="34" height="34"><span>Lana <em>con</em> Café</span></a>
+  <nav><a href="/#noticias" class="hide-sm">Noticias</a><a href="/dolar-hoy">Dólar hoy</a><a href="/cetes-hoy">CETES</a><a href="/mercados.html" class="hide-sm">Mercados</a><a href="/#ediciones" class="hide-sm">Newsletter</a><a class="btn sm" href="/precios.html">Pro</a></nav>
+</div></header>
+<div class="ticker" id="ticker"></div>
+<main class="wrap">
+  <section class="hero" id="noticias">
+    <a class="lead" id="lead" href="#"><div class="shade"></div><div class="txt"><h2>Cargando lo que mueve el mercado…</h2></div></a>
+    <div class="side" id="side"></div>
+  </section>
+
+  <section>
+    <div class="section-title"><h2>Mercados <span>en vivo</span></h2><a class="note" href="/mercados.html">Ver gráficas completas →</a></div>
+    <div class="markets">
+      <div class="panel tv-box" id="tv-overview"></div>
+      <div class="panel thermo">
+        <h3>🌡️ Termómetro del mercado</h3>
+        <div class="level" id="level">…</div>
+        <div class="note" id="hot"></div>
+        <div class="bars" id="bars"></div>
+        <div class="axis"><span>hace 24 h</span><span>ahora</span></div>
+        <p class="legend"><span>▮ noticias relevantes</span><span style="color:var(--down)">▮ impacto alto</span></p>
+        <div id="sent-wrap"><strong style="font-size:14px">Sesgo de las noticias</strong><div class="sentiment" id="sent"></div><div class="legend" id="sent-legend"></div></div>
+        <div id="cats" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-title"><h2>Lo que mueve <span>tu dinero</span></h2>
+    <div class="tabs" id="scope"><button data-scope="" aria-pressed="true">Todo</button><button data-scope="global" aria-pressed="false">Mundo</button><button data-scope="nacional" aria-pressed="false">México</button></div>
+  </div>
+  <p class="note" id="delay"></p>
+  <div class="grid">
+    <section><div class="cards" id="cards"></div><p class="more"><button class="btn ghost" id="more" hidden>Ver más noticias</button></p></section>
+    <aside class="stack">
+      <div class="cta-box">
+        <img src="/assets/logo-mark-light.svg" alt="" width="48" height="48">
+        <h3>Entérate antes que nadie</h3>
+        <p>Alertas en Telegram en cuanto sale la noticia, y un resumen de 5 minutos cada mañana con tu café.</p>
+        <a class="btn" data-link="TELEGRAM_FREE">Unirme gratis en Telegram</a>
+        <form class="sub"><input type="email" required placeholder="tu@email.com" aria-label="Email"><button class="btn ghost">Newsletter</button></form>
+      </div>
+      <div class="panel"><h3>🔥 Lo más leído</h3><ol class="rank" id="top"><li class="note">Cargando…</li></ol></div>
+      <div class="panel" id="ediciones"><h3>☕ Ediciones del newsletter</h3><ul class="editions" id="archive"><li class="note">Cargando…</li></ul></div>
+      <div class="panel"><h3>⭐ Lana con Café Pro</h3><p class="note">Alertas al instante, radar personal, IA que responde tus dudas y briefing a las 7:00.</p><a class="btn accent" href="/precios.html">Pro · <span data-pro-price>$99</span>/mes</a></div>
+    </aside>
+  </div>
+</main>
+<footer><div class="wrap foot">
+  <div><a class="logo" href="/"><img src="/assets/logo-mark-light.svg" alt="" width="30" height="30"><span>Lana <em>con</em> Café</span></a>
+  <p>Las noticias que mueven tu dinero, con el primer café.</p></div>
+  <div class="links"><a data-link="TELEGRAM_FREE">Telegram</a><a href="/precios.html">Pro</a><a href="/mercados.html">Mercados</a><a href="/dolar-hoy">Dólar hoy</a><a href="/bitcoin-hoy">Bitcoin hoy</a><a href="/cetes-hoy">CETES hoy</a><a href="/calculadora-inflacion">Calculadora de inflación</a><a href="/guia">Guía</a><a href="/marca.html">Marca</a><a href="/rss.xml">RSS</a></div>
+  <p class="legal">Información, no asesoría de inversión. Titulares y fotos enlazan a sus fuentes originales; resúmenes de redacción propia. Datos de mercado: TradingView.</p>
+</div></footer>
+<script src="/app.js"></script>
+</body>
+</html>
