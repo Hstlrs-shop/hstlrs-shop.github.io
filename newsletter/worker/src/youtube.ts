@@ -13,7 +13,8 @@ export async function syncYouTube(env: Env): Promise<number> {
   if (!ch) return 0;
   const r = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(ch)}`, { headers: { "user-agent": "lanaconcafe" } });
   if (!r.ok) throw new Error(`YouTube feed ${r.status}`);
-  const vids = parseFeed(await r.text());
+  const since = Date.parse(env.YT_SINCE ?? "") || 0;            // ignora los videos anteriores a la marca
+  const vids = parseFeed(await r.text()).filter((v) => v.published >= since);
   await env.DB.prepare("INSERT INTO flags (k, v) VALUES ('yt:latest', ?1) ON CONFLICT(k) DO UPDATE SET v = ?1").bind(JSON.stringify(vids.slice(0, 8))).run();
   // Primera vez: se marcan como vistos sin anunciarlos (no inundar el canal con videos viejos)
   const init = await env.DB.prepare("INSERT OR IGNORE INTO flags (k, v) VALUES ('yt:init', '1')").run();
