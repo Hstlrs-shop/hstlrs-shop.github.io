@@ -3,6 +3,8 @@
 // Variable opcional: CANAL_ID (texto, p. ej. @lanaconcafe) para publicar en el canal. El bot debe ser administrador del canal.
 // v5: las publicaciones del canal llevan botones que abren el bot; /menucanal publica un menú para fijar.
 // v6: resumen automático 7:30 am y encuesta diaria en el canal (resultado 8 pm, hora de Querétaro); /stats y /probarcanal para el administrador.
+// v14: aprobación de los videos diarios con ✅/❌ (callback ap:), guía de pago con Telegram Stars (/guia, /miguia,
+//      /reembolso con garantía de 7 días), prueba Pro de 7 días y /start pro|guia|prueba desde la bio.
 // v13: afiliados para creadores (/start a_<código>, /afiliado, /afiliados, /comisiones) y /kit (contenido diario).
 // v12: bienvenida con botones de radar de un toque (callback_query) y secuencia día 1 / día 3 / fin de prueba.
 // v11: IA de Lana v2: modelo rápido con 100 preguntas/día en Pro, /analiza (análisis profundo), memoria de 3
@@ -11,7 +13,7 @@
 //      reenviando al bot un mensaje del canal (lo guarda en KV "pro_canal"); entrar/salir del canal activa/desactiva Pro.
 // v9: Pro de verdad. Pregúntale a Lana (IA con las noticias del día; también escribiendo sin comando),
 //     radar personal (/radar peso), termómetro del mercado, /dolar, briefing Pro 7:00, recordatorios de agenda,
-//     prueba Pro de 3 días (/prueba), referidos (/invita: 3 amigos = 7 días Pro), /micuenta.
+//     prueba Pro de 7 días (/prueba), referidos (/invita: 3 amigos = 7 días Pro), /micuenta.
 //     La lógica Pro vive en el Worker "lanaconcafe-news" (binding NEWS). Este bot le presta su token (/internal/tg).
 //     Secretos nuevos: INTERNAL_SECRET (el mismo en ambos Workers).
 // v8: /difundir por tandas desde el cron (el plan gratuito permite ~50 envíos por ejecución); /pro; conexión con el canal Pro de pago.
@@ -20,6 +22,7 @@
 // KV necesario (Settings → Bindings): nombre de la variable = DB
 // Cron necesario (Settings → Triggers): */5 * * * *
 
+const UPDATES = ["message", "chat_member", "callback_query", "pre_checkout_query"];
 const AVISO = "\n\n<i>Información, no asesoría financiera.</i>";
 const MAX_ALERTAS = 5;
 // Reglas de la sesión de scalping (v7)
@@ -65,7 +68,7 @@ Escríbeme cualquier duda y te respondo con las noticias de hoy (y recuerdo la c
 /agenda · eventos importantes con recordatorio
 
 <b>⭐ Pro</b>
-/pro · qué incluye · /prueba · 3 días gratis
+/pro · qué incluye · /prueba · 7 días gratis
 /invita · 3 amigos = 7 días Pro · /micuenta · tu plan
 
 Precios: CoinGecko y Coinbase. Alertas y señales se revisan cada 5 minutos. Las señales son para practicar en demo.` + AVISO;
@@ -84,7 +87,7 @@ const TECLADO = {
   resize_keyboard: true, is_persistent: true,
 };
 // Botones bajo cada publicación del canal: abren el bot con un comando (t.me/<bot>?start=<clave>)
-const START = { mercado: "/mercado", noticias: "/noticias", analisis: "/analisis", agenda: "/agenda", alertas: "/misalertas", ayuda: "/ayuda" };
+const START = { pro: "/pro", guia: "/guia", prueba: "/prueba", mercado: "/mercado", noticias: "/noticias", analisis: "/analisis", agenda: "/agenda", alertas: "/misalertas", ayuda: "/ayuda" };
 const FILAS_CANAL = [[["📊 Mercado", "mercado"], ["📰 Noticias", "noticias"]], [["🧭 Análisis BTC", "analisis"], ["📅 Agenda", "agenda"]], [["🔔 Crear alertas", "alertas"], ["☕ Abrir el bot", "ayuda"]]];
 async function usuarioBot(env) {
   let u = await env.DB.get("botuser");
@@ -113,7 +116,8 @@ const MENU = [
   { command: "analiza", description: "Análisis profundo con IA (Pro)" },
   { command: "nueva", description: "Empezar una charla nueva con Lana" },
   { command: "pro", description: "Qué incluye Lana con Café Pro" },
-  { command: "prueba", description: "3 días de Pro gratis" },
+  { command: "guia", description: "Guía: tu primera inversión en México" },
+  { command: "prueba", description: "7 días de Pro gratis" },
   { command: "invita", description: "3 amigos = 7 días Pro" },
   { command: "micuenta", description: "Tu plan y tus límites" },
   { command: "ayuda", description: "Ver todos los comandos" },
@@ -127,7 +131,7 @@ export default {
     if (url.pathname === "/internal/tg") {
       if (!env.INTERNAL_SECRET || request.headers.get("x-internal-secret") !== env.INTERNAL_SECRET) return new Response("No autorizado", { status: 401 });
       const { method, body } = await request.json();
-      if (!/^(sendMessage|sendPhoto|createChatInviteLink|revokeChatInviteLink|banChatMember|unbanChatMember|sendPoll|stopPoll|getChatMemberCount|getWebhookInfo)$/.test(method || ""))
+      if (!/^(sendMessage|sendPhoto|sendVideo|sendDocument|createChatInviteLink|revokeChatInviteLink|banChatMember|unbanChatMember|sendPoll|stopPoll|getChatMemberCount|getWebhookInfo)$/.test(method || ""))
         return Response.json({ ok: false, description: "método no permitido" }, { status: 400 });
       return Response.json(await tg(env, method, body || {}));
     }
@@ -148,6 +152,17 @@ export default {
       }
       return new Response("ok");
     }
+    // v14: pagos con Telegram Stars (guía)
+    if (update.pre_checkout_query) {
+      const q = update.pre_checkout_query;
+      const ok = q.currency === "XTR" && q.invoice_payload === "guia1";
+      await tg(env, "answerPreCheckoutQuery", ok ? { pre_checkout_query_id: q.id, ok: true } : { pre_checkout_query_id: q.id, ok: false, error_message: "Este producto ya no está disponible." });
+      return new Response("ok");
+    }
+    if (update.message && update.message.successful_payment) {
+      try { await pagoRecibido(update.message, env); } catch (e) { console.log("pago:", e && e.stack || e); }
+      return new Response("ok");
+    }
     if (update.callback_query) {
       try { await manejarBoton(update.callback_query, env); } catch (e) { console.log("botón:", e && e.stack || e); }
       return new Response("ok");
@@ -160,7 +175,7 @@ export default {
     return new Response("ok");
   },
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([revisarAlertas(env), revisarSenales(env), revisarCanal(env), revisarDifusion(env)]));
+    ctx.waitUntil(Promise.allSettled([revisarAlertas(env), revisarSenales(env), revisarCanal(env), revisarDifusion(env), webhookAlDia(env)]));
   },
 };
 
@@ -212,7 +227,7 @@ async function news(env, ruta, datos) {
 }
 const PLAN_TXT = { pro: "⭐ Pro", api: "⭐ API", prueba: "🎁 Prueba Pro", gratis: "Gratis" };
 const fechaCorta = (ms) => { const d = new Date(ms - 6 * 3600 * 1000); return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]} ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`; };
-const SUBE_A_PRO = "\n\n⭐ Con <b>Pro</b> tienes más: /pro · o pruébalo gratis 3 días: /prueba";
+const SUBE_A_PRO = "\n\n⭐ Con <b>Pro</b> tienes más: /pro · o pruébalo gratis 7 días: /prueba";
 
 async function preguntar(env, chat, from, q, extra = {}) {
   await tg(env, "sendChatAction", { chat_id: chat, action: "typing" });
@@ -291,7 +306,42 @@ async function manejarBoton(q, env) {
     }
     return tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: `✅ ${etiqueta} agregado a tu radar (${(r.terms || []).length}/${r.limit})` });
   }
+  // v14: aprobar / descartar un video del día (solo admin)
+  if (tipo === "ap" && from) {
+    const [, id, voto] = String(q.data).split(":");
+    const r = await news(env, "/bot/approve", { tg: from, id, ok: voto === "ok" });
+    if (r.error) return tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: r.error, show_alert: true });
+    const etiqueta = r.status === "approved" ? (r.late ? "✅ Aprobado (tarde: sale en la siguiente revisión)" : `✅ Aprobado: sale a las ${r.slot}`) : "❌ Descartado: no se publicará";
+    if (chat && q.message) await tg(env, "editMessageReplyMarkup", { chat_id: chat, message_id: q.message.message_id, reply_markup: { inline_keyboard: [
+      [{ text: etiqueta, callback_data: "noop" }],
+      [{ text: r.status === "approved" ? "Cambiar a ❌" : "Cambiar a ✅", callback_data: `ap:${id}:${r.status === "approved" ? "no" : "ok"}` }],
+    ] } });
+    return tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: etiqueta });
+  }
+  if (tipo === "guia" && chat) {
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id });
+    if (valor === "gratis") return capituloGratis(env, chat);
+    if (valor === "comprar") return facturaGuia(env, chat);
+  }
   return tg(env, "answerCallbackQuery", { callback_query_id: q.id });
+}
+
+// ---------- v14: guía de pago ----------
+async function capituloGratis(env, chat) {
+  const g = await news(env, "/bot/guide", {});
+  const r = await tg(env, "sendDocument", { chat_id: chat, document: g.free_url, caption: `📖 <b>Capítulo 1 gratis</b> · ${esc(g.title || "")}\nAntes de invertir: tu fondo de emergencia y tus deudas.\n\n¿Te gustó? La guía completa: /guia`, parse_mode: "HTML" });
+  if (!r || !r.ok) return enviar(env, chat, `📖 Descarga el capítulo 1 aquí: ${g.free_url}`);
+}
+async function facturaGuia(env, chat) {
+  const g = await news(env, "/bot/guide", {});
+  if (!g.ready) return enviar(env, chat, "📖 La guía completa se está terminando de revisar. Te aviso aquí en cuanto esté lista; mientras, lee el capítulo 1 gratis con /guia");
+  return tg(env, "sendInvoice", { chat_id: chat, title: (g.title || "Guía").slice(0, 32), description: "Guía en PDF con datos oficiales y fuentes. Actualizaciones gratis con /miguia. Garantía de 7 días con /reembolso.", payload: "guia1", currency: "XTR", prices: [{ label: "Guía Lana con Café", amount: g.stars || 375 }] });
+}
+async function pagoRecibido(msg, env) {
+  const p = msg.successful_payment, chat = msg.chat.id;
+  const r = await news(env, "/bot/purchase", { tg: msg.from.id, charge_id: p.telegram_payment_charge_id, product: p.invoice_payload, stars: p.total_amount });
+  const ok = r.url ? await tg(env, "sendDocument", { chat_id: chat, document: r.url, caption: "📖 <b>¡Gracias por tu compra!</b> Aquí está tu guía.\n\nSi la actualizamos, descárgala de nuevo con /miguia. Si no te sirvió, tienes 7 días para pedir tu reembolso con /reembolso.", parse_mode: "HTML" }) : null;
+  if (!ok || !ok.ok) return enviar(env, chat, `📖 ¡Gracias por tu compra! Descarga tu guía aquí (enlace válido 2 horas): ${r.url || "escribe /miguia"}`);
 }
 
 // ID del canal Pro: variable PRO_CANAL_ID o el que el admin registró reenviando un mensaje del canal
@@ -366,7 +416,7 @@ async function manejar(update, env) {
       // v8: pedir a Telegram también los avisos de altas en canales (chat_member), conservando la URL y el secreto actuales
       const info = await tg(env, "getWebhookInfo", {});
       const w = info && info.ok && info.result && info.result.url
-        ? await tg(env, "setWebhook", { url: info.result.url, secret_token: env.WEBHOOK_SECRET, allowed_updates: ["message", "chat_member", "callback_query"] })
+        ? await tg(env, "setWebhook", { url: info.result.url, secret_token: env.WEBHOOK_SECRET, allowed_updates: UPDATES })
         : { ok: false };
       return enviar(env, chat, (r.ok ? "✅ Menú azul configurado. Cierra y vuelve a abrir el chat para verlo." : "No se pudo configurar el menú.") +
         (w.ok ? "\n✅ Webhook: altas del canal Pro activadas." : "\n⚠️ No pude actualizar el webhook (avisos del canal Pro)."));
@@ -431,7 +481,7 @@ async function manejar(update, env) {
           `☀️ <b>Briefing personal</b> a las 7:00 con tu radar y la agenda del día\n` +
           `⏰ <b>Recordatorios</b> 15 min antes de cada dato importante (inflación, Banxico, Fed)\n` +
           `🌡️ Activos afectados y sesgo probable en cada alerta\n\n` +
-          (yaPro ? "✅ Ya eres Pro. ¡Gracias por apoyar Lana con Café!" : c.plan === "prueba" ? `🎁 Tienes prueba Pro hasta el ${fechaCorta(c.until)}.` : "Pruébalo gratis 3 días con /prueba") + AVISO,
+          (yaPro ? "✅ Ya eres Pro. ¡Gracias por apoyar Lana con Café!" : c.plan === "prueba" ? `🎁 Tienes prueba Pro hasta el ${fechaCorta(c.until)}.` : "Pruébalo gratis 7 días con /prueba") + AVISO,
         reply_markup: yaPro ? undefined : { inline_keyboard: [[proLink
           ? { text: `⭐ Suscribirme · ${proStars} Stars al mes`, url: proLink }
           : { text: "⭐ Hazte Pro", url: `${env.NEWS_URL || "https://lanaconcafe-news.gt2hf24n6t.workers.dev"}/precios.html` }]] },
@@ -495,6 +545,43 @@ async function manejar(update, env) {
       await env.DB.put("pro_link", r.result.invite_link);
       await env.DB.put("pro_stars", String(estrellas));
       return enviar(env, chat, `✅ <b>Suscripción creada</b>: ${estrellas} ⭐ al mes\n${r.result.invite_link}\n\nYa aparece en /pro. Quien pague entra al canal y se le activa Pro en el bot; si deja de pagar, Telegram lo saca y se le desactiva.`);
+    }
+
+    // ---- v14: guía ----
+    case "/guia": case "/guía": {
+      const g = await news(env, "/bot/guide", { tg: from });
+      if (g.bought) return enviar(env, chat, "📖 Ya tienes la guía. Descárgala de nuevo con /miguia");
+      return tg(env, "sendMessage", { chat_id: chat, parse_mode: "HTML", disable_web_page_preview: true,
+        text: `📖 <b>${esc(g.title || "")}</b>\n${esc(g.subtitle || "")}.\n\n` +
+          `• Fondo de emergencia, deudas y cuánto apartar\n• Rendimiento real vs. inflación, GAT, riesgo y liquidez\n• CETES paso a paso desde $100\n• Bancos, Sofipos y apps: qué protege el IPAB y el Prosofipo\n• Fondos, Bolsa, ETFs y Afore\n• Cómo detectar fraudes\n• Tu plan en una hoja\n\n` +
+          `✅ Cada dato con fuente oficial y fecha · sin enlaces de afiliado · sin promesas de rendimiento\n` +
+          `🛡️ Garantía de 7 días: si no te sirve, /reembolso y te devolvemos tus Stars\n\n` +
+          `<b>${g.stars} ⭐</b> (aprox. $${g.mxn} MXN) · <a href="${g.page}">más detalles</a>` + AVISO,
+        reply_markup: { inline_keyboard: [[{ text: "📖 Leer capítulo 1 gratis", callback_data: "guia:gratis" }], [{ text: `⭐ Comprar · ${g.stars} Stars`, callback_data: "guia:comprar" }]] } });
+    }
+    case "/miguia": case "/miguía": {
+      const r = await news(env, "/bot/download", { tg: from });
+      if (r.error) return enviar(env, chat, `📖 ${esc(r.error)}`);
+      const d = await tg(env, "sendDocument", { chat_id: chat, document: r.url, caption: "📖 Tu guía, versión más reciente." });
+      return d && d.ok ? undefined : enviar(env, chat, `📖 Descárgala aquí (válido 2 horas): ${r.url}`);
+    }
+    case "/reembolso": {
+      const c = await news(env, "/bot/purchase-of", { tg: from });
+      if (c.error) return enviar(env, chat, "No encuentro compras con tu cuenta.");
+      if (c.refunded) return enviar(env, chat, "Esa compra ya fue reembolsada.");
+      if (Date.now() - c.created_at > 7 * 86400000) return enviar(env, chat, "La garantía es de 7 días y ya pasaron. Si hubo un problema con tu compra, escríbenos y lo revisamos.");
+      const r = await tg(env, "refundStarPayment", { user_id: from, telegram_payment_charge_id: c.charge_id });
+      if (!r || !r.ok) return enviar(env, chat, `No pude procesar el reembolso automático (${esc((r && r.description) || "error")}). Ya avisé al equipo para resolverlo.`);
+      await news(env, "/bot/refunded", { admin: env.ADMIN_ID, charge_id: c.charge_id });
+      if (env.ADMIN_ID) await enviar(env, env.ADMIN_ID, `↩️ Reembolso de la guía: ${c.stars} ⭐ (usuario ${from})`);
+      return enviar(env, chat, `↩️ Listo, te devolvimos tus ${c.stars} ⭐. Gracias por darnos la oportunidad; si quieres, cuéntanos qué le faltó a la guía.`);
+    }
+    case "/estudio": {
+      if (!esAdmin) return enviar(env, chat, "Solo el administrador puede usar este comando.");
+      const r = await news(env, "/bot/studio-stats", {});
+      const clics = (r.clicks || []).map((c) => `${c.src} → ${c.dest}: ${c.n}`).join("\n") || "sin clics todavía";
+      const ap = (r.approvals || []).map((a) => `${a.status}: ${a.n}`).join(" · ") || "ninguno";
+      return enviar(env, chat, `🎬 <b>Últimos 7 días</b>\n\n<b>Bio por red</b> (view = visitas):\n${esc(clics)}\n\n<b>Videos</b>: ${esc(ap)}\n<b>Guías vendidas</b>: ${(r.purchases || {}).n || 0} (${(r.purchases || {}).stars || 0} ⭐)`);
     }
 
     // ---- v13: crecimiento ----
@@ -674,6 +761,16 @@ async function manejar(update, env) {
 
 // ---------- Difusión por tandas (v8) ----------
 const TANDA = 30;
+// v14: el webhook debe recibir pre_checkout_query (pagos); se corrige solo si falta
+async function webhookAlDia(env) {
+  if (await env.DB.get("webhook_v14")) return;
+  const info = await tg(env, "getWebhookInfo", {});
+  const url = info && info.result && info.result.url;
+  if (!url) return;
+  const r = await tg(env, "setWebhook", { url, secret_token: env.WEBHOOK_SECRET, allowed_updates: UPDATES });
+  if (r && r.ok) await env.DB.put("webhook_v14", "1");
+}
+
 async function revisarDifusion(env) {
   const raw = await env.DB.get("dif");
   if (!raw) return;

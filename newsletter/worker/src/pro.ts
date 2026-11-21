@@ -1,3 +1,4 @@
+import { handleStudioApi, sendApprovals } from "./studio";
 // Funciones Pro del bot: radar personal, IA "Pregúntale a Lana", briefing de las
 // 7:00, recordatorios de agenda, termómetro del mercado, pruebas y referidos.
 // El bot llama a estas rutas por service binding (/bot/*) con INTERNAL_SECRET.
@@ -335,7 +336,7 @@ async function runDrip(env: Env) {
     } else if (d.step === 2) {
       const t = await env.DB.prepare("SELECT used_trial FROM trials WHERE tg = ?1").bind(d.tg).first<{ used_trial: number }>();
       if (plan === "gratis" && !t?.used_trial) {
-        await enqueue(env, [d.tg], `🎁 <b>Te regalo 3 días de Lana con Café Pro</b>\n\n⚡ Alertas al instante (no 15 min tarde)\n🎯 Radar de 10 temas\n🤖 30 preguntas al día y /analiza\n☀️ Tu briefing personal a las 7:00\n\nActívalo con /prueba — sin tarjeta.`);
+        await enqueue(env, [d.tg], `🎁 <b>Te regalo 7 días de Lana con Café Pro</b>\n\n⚡ Alertas al instante (no 15 min tarde)\n🎯 Radar de 10 temas\n🤖 30 preguntas al día y /analiza\n☀️ Tu briefing personal a las 7:00\n\nActívalo con /prueba — sin tarjeta.`);
       }
       await env.DB.prepare("UPDATE drip SET step = 3 WHERE tg = ?1").bind(d.tg).run();
     }
@@ -365,6 +366,7 @@ export async function proTick(env: Env) {
   await morningBriefing(env).catch((e) => console.warn("briefing", e));
   await runDrip(env).catch((e) => console.warn("bienvenida", e));
   await contentKit(env).catch((e) => console.warn("kit", e));
+  await sendApprovals(env).catch((e) => console.warn("aprobaciones", e));
   await flushOutbox(env).catch((e) => console.warn("outbox", e));
 }
 
@@ -419,7 +421,7 @@ export async function handleBotApi(req: Request, env: Env, path: string): Promis
       if (plan === "pro" || plan === "api") return Response.json({ error: "Ya eres Pro 😎" });
       const t = await env.DB.prepare("SELECT used_trial FROM trials WHERE tg = ?1").bind(tg).first<{ used_trial: number }>();
       if (t?.used_trial) return Response.json({ error: "Ya usaste tu prueba gratis. Invita amigos con /invita y gana días Pro." });
-      return Response.json({ until: await extendTrial(env, tg, 3 * DAY, true) });
+      return Response.json({ until: await extendTrial(env, tg, 7 * DAY, true) });
     }
     case "/bot/referral": {
       const ref = Number(b.referrer);
@@ -464,6 +466,8 @@ export async function handleBotApi(req: Request, env: Env, path: string): Promis
       return Response.json({ members: m.results, trials: t.results[0], radar: w.results[0], outbox: o.results[0], asks_today: u.results[0] });
     }
   }
+  const studio = await handleStudioApi(env, path, b);
+  if (studio) return studio;
   const growth = await handleAffiliateApi(env, path, b);
   if (growth) return growth;
   return Response.json({ error: "petición inválida" }, { status: 400 });

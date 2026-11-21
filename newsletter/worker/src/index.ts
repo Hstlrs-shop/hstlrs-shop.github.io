@@ -8,6 +8,7 @@ import { affiliateRedirect } from "./growth";
 import { marketPage } from "./seo";
 import { SITE } from "./site-files";
 import { esc } from "./telegram";
+import { bioPage, download, freeChapter, go, guidePage } from "./studio";
 
 const DIGEST_CRON = "17 11 * * 1-5"; // debe coincidir con wrangler.toml
 
@@ -91,6 +92,15 @@ export default {
     if (p === "/dolar-hoy" || p === "/precio-dolar-hoy") return marketPage(env, "dolar");
     if (p === "/bitcoin-hoy" || p === "/precio-bitcoin-hoy") return marketPage(env, "bitcoin");
     if (p === "/robots.txt") return robots(env);
+    // Bio de redes (/ig, /tt, /yt), clics por red y guía
+    const bio = p.match(/^\/(ig|tt|yt|links)$/);
+    if (bio && req.method === "GET") return bioPage(env, bio[1] === "links" ? "web" : bio[1], ctx);
+    const goTo = p.match(/^\/go\/([a-z]+)$/);
+    if (goTo) return go(env, goTo[1], url.searchParams.get("s") ?? "web", ctx);
+    if (p === "/guia") return guidePage(env);
+    if (p === "/guia/capitulo-1.pdf") return freeChapter(env);
+    const dl = p.match(/^\/dl\/([0-9a-f]{36})\/[a-z0-9_-]+\.pdf$/);
+    if (dl) return download(env, dl[1]);
 
     // Precio y enlace de Pro (lo usan la web y el bot): fundadores = primeros FOUNDERS_TOTAL suscriptores
     // Kit de contenido del día (noticias verificadas + guion), para la skill de Reels de Instagram/TikTok
