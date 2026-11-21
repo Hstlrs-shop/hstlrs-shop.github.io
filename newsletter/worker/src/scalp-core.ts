@@ -284,3 +284,40 @@ export function fibSignal(b5all: Bar[], r: Reading, nowSec: number, used: Set<st
     reasons: [`impulso ${L ? "alcista" : "bajista"} ${Math.round(Lo)} → ${Math.round(H)} (${(rng / r.atr5).toFixed(1)}× ATR 5m)`, `retroceso a la zona 38.2–61.8 % (${Math.round(Math.min(zA, zB))}–${Math.round(Math.max(zA, zB))})`, `vela de 5 min de confirmación`, `stop más allá del 78.6 % (${Math.round(s786)})`, `tendencia de 1 hora a favor`],
   };
 }
+
+// ---------- Estrategia swing: seguimiento de tendencia en 4 h (ruptura Donchian) ----------
+// Validada en 2 años (calibración 16 meses / prueba 8 meses, neta de comisiones): +0.07R → +0.11R por operación,
+// ~1 por semana, pocas ganadoras pero grandes (gana poco veces, gana mucho). Compra si la vela de 4 h cierra arriba del
+// máximo de las 20 previas y arriba de la EMA 200 (venta al revés). Stop inicial 2×ATR; stop dinámico 2×ATR que solo se
+// mueve a favor; salida si cierra fuera del canal de 10 velas.
+export const TREND = { n: 20, exitN: 10, atrMult: 2 };
+
+export function trendSignal(b4: Bar[], nowSec: number): { side: "long" | "short"; entry: number; stop: number; risk: number; t: number; hi: number; lo: number } | null {
+  const b = b4.filter((x) => x.t + 14400 <= nowSec);
+  const i = b.length - 1;
+  if (i < 210 || b[i].t + 2 * 14400 <= nowSec) return null;
+  const e200 = emaSeries(b.map((x) => x.c), 200)[i];
+  const w = b.slice(i - TREND.n, i), hi = Math.max(...w.map((x) => x.h)), lo = Math.min(...w.map((x) => x.l));
+  const a = atr(b.slice(i - 30, i + 1));
+  const side = b[i].c > hi && b[i].c > e200 ? "long" : b[i].c < lo && b[i].c < e200 ? "short" : null;
+  if (!side) return null;
+  const entry = b[i].c, stop = side === "long" ? entry - TREND.atrMult * a : entry + TREND.atrMult * a;
+  return { side, entry, stop, risk: Math.abs(entry - stop), t: b[i].t, hi, lo };
+}
+
+/** Repite la gestión desde la vela de entrada: stop dinámico 2×ATR (solo a favor) y salida por canal de 10 velas. */
+export function trendManage(b4: Bar[], p: { side: string; entry: number; stop: number; risk: number; t: number }, nowSec: number) {
+  const b = b4.filter((x) => x.t + 14400 <= nowSec), L = p.side === "long";
+  let stop = p.stop;
+  const start = b.findIndex((x) => x.t === p.t);
+  if (start < 0) return { closed: false, stop, exit: 0, r: 0, status: "abierta" };
+  for (let j = start + 1; j < b.length; j++) {
+    const x = b[j];
+    if (L ? x.l <= stop : x.h >= stop) return { closed: true, stop, exit: stop, r: ((L ? stop - p.entry : p.entry - stop) / p.risk), status: "stop dinámico" };
+    const w = b.slice(j - TREND.exitN, j), ex = L ? Math.min(...w.map((y) => y.l)) : Math.max(...w.map((y) => y.h));
+    if (L ? x.c < ex : x.c > ex) return { closed: true, stop, exit: x.c, r: ((L ? x.c - p.entry : p.entry - x.c) / p.risk), status: "salida por canal de 10 velas" };
+    const trail = x.c + (L ? -1 : 1) * TREND.atrMult * atr(b.slice(j - 30, j + 1));
+    if (L ? trail > stop : trail < stop) stop = trail;
+  }
+  return { closed: false, stop, exit: 0, r: 0, status: "abierta" };
+}

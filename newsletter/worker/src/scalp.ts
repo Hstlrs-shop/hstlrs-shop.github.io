@@ -9,7 +9,7 @@
 
 import { num, type Env } from "./env";
 import { esc, tgCall } from "./telegram";
-import { read, trigger, orbSignal, fibSignal, manage, ORB, FIB, SESSION, type Bar, type Reading, type Signal } from "./scalp-core";
+import { read, trigger, orbSignal, fibSignal, manage, trendSignal, trendManage, ORB, FIB, TREND, SESSION, type Bar, type Reading, type Signal } from "./scalp-core";
 export { SESSION };
 
 const CDMX = 6 * 3600;
@@ -85,7 +85,7 @@ export async function scalpTick(env: Env, nowMs = Date.now()) {
   const r = read(b1, b5, d1, now, h1);
 
   // 1) Seguimiento de la posición abierta: se repite la gestión desde la entrada (parcial + equilibrio, objetivo 2, tiempo)
-  const open = await env.DB.prepare("SELECT * FROM scalp_signals WHERE status = 'open' ORDER BY t DESC LIMIT 1").first<any>();
+  const open = await env.DB.prepare("SELECT * FROM scalp_signals WHERE status = 'open' AND kind != 'trend' ORDER BY t DESC LIMIT 1").first<any>();
   if (open) {
     const kind = open.kind ?? "pullback";
     const m = manage(b1, { side: open.side, entry: open.entry, stop: open.stop, tp1: open.tp1, tp2: open.tp2, risk: open.risk, t0: open.created_at }, now, fee, timeStopOf(kind), kind !== "fib");
@@ -123,7 +123,7 @@ export async function scalpTick(env: Env, nowMs = Date.now()) {
 
   // 4) Buscar señal
   if (open) return;
-  const today = await env.DB.prepare("SELECT kind, r FROM scalp_signals WHERE day = ?1 ORDER BY t").bind(day).all<any>();
+  const today = await env.DB.prepare("SELECT kind, r FROM scalp_signals WHERE day = ?1 AND kind != 'trend' ORDER BY t").bind(day).all<any>();
   const rows = today.results as any[];
   if (rows.length >= MAX_SIGNALS) return;
   if (rows.length >= 2 && rows.slice(-2).every((x) => x.r < 0)) return;
@@ -144,10 +144,10 @@ export async function scalpTick(env: Env, nowMs = Date.now()) {
   if (ins.meta.changes) await send(signalText(s, units, kind));
 }
 
-export async function stats(env: Env, days = 30) {
+export async function stats(env: Env, days = 30, kind?: string) {
   const since = Math.floor(Date.now() / 1000) - days * 86400;
   const fee = num(env.SCALP_FEE, 0.0005); // comisión por lado (fracción); configúrala igual que en tu demo
-  const r = await env.DB.prepare("SELECT r, entry, risk FROM scalp_signals WHERE status != 'open' AND t > ?1").bind(since).all<{ r: number; entry: number; risk: number }>();
+  const r = await env.DB.prepare("SELECT r, entry, risk FROM scalp_signals WHERE status != 'open' AND t > ?1 AND (?2 IS NULL OR kind = ?2)").bind(since, kind ?? null).all<{ r: number; entry: number; risk: number }>();
   const all = r.results, n = all.length;
   const wins = all.filter((x) => x.r > 0.05).length, total = all.reduce((s, x) => s + x.r, 0);
   const net = all.reduce((s, x) => s + x.r - (2 * fee * x.entry) / x.risk, 0);
@@ -180,8 +180,53 @@ export async function scalpNow(env: Env) {
 }
 
 export async function statsText(env: Env) {
-  const s = await stats(env, 30), a = await stats(env, 3650);
-  return `📒 <b>Bitácora del sistema de scalping</b>\n\n<b>30 días</b>: ${s.n} señales · acierto ${(s.winRate * 100).toFixed(0)} % · ${s.avgR >= 0 ? "+" : ""}${s.avgR.toFixed(2)}R por señal bruto · ${s.avgNet >= 0 ? "+" : ""}${s.avgNet.toFixed(2)}R neto (comisión ${s.feePct.toFixed(2)}% por lado) · total bruto ${s.totalR >= 0 ? "+" : ""}${s.totalR.toFixed(1)}R\n\n` +
-    `<b>Histórico</b>: ${a.n} señales · ${a.avgR >= 0 ? "+" : ""}${a.avgR.toFixed(2)}R por señal\n\n` +
-    `Con menos de 50 señales los números todavía no son concluyentes.`;
+  const line = async (kind: string, name: string) => {
+    const a = await stats(env, 3650, kind);
+    return a.n ? `<b>${name}</b>: ${a.n} · acierto ${(a.winRate * 100).toFixed(0)} % · ${a.avgNet >= 0 ? "+" : ""}${a.avgNet.toFixed(2)}R neto/op (backtest: ${kind === "orb" ? "+0.08 a +0.34" : kind === "trend" ? "+0.07 a +0.11" : kind === "fib" ? "−0.01 a +0.02" : "negativo"})` : `<b>${name}</b>: sin operaciones cerradas todavía`;
+  };
+  const all = await stats(env, 3650);
+  return `📒 <b>Bitácora del sistema</b> (comisión ${all.feePct.toFixed(2)} % por lado)\n\n` +
+    [await line("orb", "Ruptura de apertura"), await line("trend", "Tendencia 4h"), await line("fib", "Fibonacci 2R")].join("\n") +
+    `\n\n<b>Total</b>: ${all.n} operaciones · ${all.avgNet >= 0 ? "+" : ""}${all.avgNet.toFixed(2)}R neto por operación · ${all.totalR >= 0 ? "+" : ""}${all.totalR.toFixed(1)}R bruto\n\n` +
+    `Si una estrategia queda muy por debajo de su backtest después de ~30 operaciones, se apaga. Con menos datos, los números aún no dicen mucho.`;
+}
+
+// ---------- Swing: tendencia de 4 h (corre 2 min después de cada cierre de 4 h, todos los días) ----------
+export async function trendTick(env: Env, nowMs = Date.now()) {
+  const admin = env.ADMIN_CHAT_ID;
+  if (!admin || env.SCALP_ENABLED === "0") return;
+  const now = Math.floor(nowMs / 1000), fee = num(env.SCALP_FEE, 0.0005), units = num(env.SCALP_UNITS, 0.01);
+  const send = (text: string) => tgCall(env, "sendMessage", { chat_id: admin, text, parse_mode: "HTML", disable_web_page_preview: true });
+  const b4 = await ohlc(14400, 300);
+  const open = await env.DB.prepare("SELECT * FROM scalp_signals WHERE status = 'open' AND kind = 'trend' LIMIT 1").first<any>();
+  if (open) {
+    const m = trendManage(b4, { side: open.side, entry: open.entry, stop: open.tp2 || open.stop, risk: open.risk, t: open.t }, now);
+    // tp2 guarda el stop inicial (para repetir la gestión); stop guarda el stop vigente
+    if (m.closed) {
+      await env.DB.prepare("UPDATE scalp_signals SET status = ?2, exit = ?3, r = ?4, closed_at = ?5, stop = ?6 WHERE id = ?1").bind(open.id, m.status, m.exit, m.r, now, m.stop).run();
+      const net = m.r - (2 * fee * open.entry) / open.risk;
+      await send(`${net > 0.05 ? "✅" : net < -0.05 ? "❌" : "➖"} <b>Tendencia 4h: cerrar la ${open.side === "long" ? "compra" : "venta"}</b> (${esc(m.status)}) en ~${usd(m.exit)} → <b>${m.r >= 0 ? "+" : ""}${m.r.toFixed(2)}R</b> (${net >= 0 ? "+" : ""}${net.toFixed(2)}R neto)`);
+    } else if (Math.abs(m.stop - open.stop) / open.risk >= 0.1) {
+      await env.DB.prepare("UPDATE scalp_signals SET stop = ?2 WHERE id = ?1").bind(open.id, m.stop).run();
+      const locked = (open.side === "long" ? m.stop - open.entry : open.entry - m.stop) / open.risk;
+      await send(`↪️ <b>Tendencia 4h: sube tu stop</b> a <b>${usd(m.stop)}</b>${locked > 0 ? ` (ya aseguras +${locked.toFixed(2)}R)` : ""}. Salida si una vela de 4 h cierra ${open.side === "long" ? "debajo del mínimo" : "arriba del máximo"} de las últimas ${TREND.exitN}.`.replace("sube tu stop", open.side === "long" ? "sube tu stop" : "baja tu stop"));
+    }
+    return;
+  }
+  const sg = trendSignal(b4, now);
+  if (!sg) return;
+  const day = new Date((now - CDMX) * 1000).toISOString().slice(0, 10);
+  const ins = await env.DB.prepare(
+    `INSERT OR IGNORE INTO scalp_signals (t, day, side, entry, stop, tp1, tp2, risk, score, grade, reasons, status, created_at, kind, stage)
+     VALUES (?1, ?2, ?3, ?4, ?5, 0, ?5, ?6, 0, 'TREND', '[]', 'open', ?7, 'trend', 0)`,
+  ).bind(sg.t, day, sg.side, sg.entry, sg.stop, sg.risk, now).run();
+  if (!ins.meta.changes) return;
+  const L = sg.side === "long";
+  await send(`${L ? "📈🟢 <b>TENDENCIA 4h · COMPRA</b>" : "📉🔴 <b>TENDENCIA 4h · VENTA</b>"} BTC/USD (swing, demo)\n\n` +
+    `Entrada: <b>~${usd(sg.entry)}</b> (cierre de 4 h; mejor con orden límite cerca de ese precio)\n` +
+    `Stop inicial: <b>${usd(sg.stop)}</b> (2×ATR · ${usd(sg.risk)} de riesgo → ${"$" + (sg.risk * units).toFixed(2)} con ${units} BTC)\n` +
+    `Sin objetivo fijo: el stop se mueve a favor cada 4 h y te aviso; se sale cuando una vela de 4 h cierre ${L ? "debajo del mínimo" : "arriba del máximo"} de las últimas ${TREND.exitN}.\n\n` +
+    `<b>Por qué:</b> cerró ${L ? "arriba del máximo" : "abajo del mínimo"} de las últimas ${TREND.n} velas de 4 h (${usd(L ? sg.hi : sg.lo)}) y ${L ? "arriba" : "abajo"} de la EMA 200.\n\n` +
+    `Backtest 2 años (neto de comisiones): +0.07R y +0.11R por operación en calibración y prueba. Gana pocas veces (14–38 %) pero las ganadoras son grandes: espera varias pérdidas pequeñas seguidas; es normal en este sistema.\n` +
+    `<i>Práctica en demo. No es asesoría financiera.</i>`);
 }

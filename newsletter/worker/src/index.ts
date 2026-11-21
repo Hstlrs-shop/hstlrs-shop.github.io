@@ -8,11 +8,12 @@ import { affiliateRedirect } from "./growth";
 import { marketPage } from "./seo";
 import { SITE } from "./site-files";
 import { esc } from "./telegram";
-import { scalpTick } from "./scalp";
+import { scalpTick, trendTick } from "./scalp";
 import { bioPage, download, freeChapter, go, guidePage, studioApi } from "./studio";
 
 const DIGEST_CRON = "17 11 * * 1-5"; // debe coincidir con wrangler.toml
-const SCALP_CRON = "* 12-23 * * 1-5"; // scalping BTC (solo admin), invocación aparte para no competir por CPU
+const SCALP_CRON = "* 12-23 * * 1-5";
+const TREND_CRON = "2 */4 * * *"; // tendencia BTC 4h, 2 min después de cada cierre
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -240,6 +241,10 @@ export default {
   },
 
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    if (event.cron === TREND_CRON) {
+      await trendTick(env).catch((e) => console.warn("trend", e));
+      return;
+    }
     if (event.cron === SCALP_CRON) {
       await scalpTick(env).catch((e) => console.warn("scalp", e));
       return;
