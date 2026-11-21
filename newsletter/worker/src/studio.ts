@@ -194,7 +194,7 @@ async function count(env: Env, src: string, dest: string) {
   await env.DB.prepare("INSERT INTO clicks (day, src, dest, n) VALUES (?1, ?2, ?3, 1) ON CONFLICT(day, src, dest) DO UPDATE SET n = n + 1")
     .bind(cdmxDay(), src, dest).run().catch(() => {});
 }
-const SRC = new Set(["ig", "tt", "yt", "web"]);
+const SRC = new Set(["ig", "tt", "yt", "x", "web"]);
 const DEST: Record<string, string> = { canal: CANAL, guia: `${BOT}?start=guia`, plan: `${BOT}?start=plan`, pro: `${BOT}?start=pro`, bot: `${BOT}?start=ayuda`, prueba: `${BOT}?start=prueba` };
 
 export async function go(env: Env, dest: string, src: string, ctx: ExecutionContext): Promise<Response> {

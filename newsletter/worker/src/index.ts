@@ -97,7 +97,7 @@ export default {
     if (p === "/bitcoin-hoy" || p === "/precio-bitcoin-hoy") return marketPage(env, "bitcoin");
     if (p === "/robots.txt") return robots(env);
     // Bio de redes (/ig, /tt, /yt), clics por red y guía
-    const bio = p.match(/^\/(ig|tt|yt|links)$/);
+    const bio = p.match(/^\/(ig|tt|yt|x|links)$/);
     if (bio && req.method === "GET") return bioPage(env, bio[1] === "links" ? "web" : bio[1], ctx);
     const goTo = p.match(/^\/go\/([a-z]+)$/);
     if (goTo) return go(env, goTo[1], url.searchParams.get("s") ?? "web", ctx);
