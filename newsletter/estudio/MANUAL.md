@@ -96,5 +96,8 @@ Cada Reel diario se publica también como **YouTube Short** desde el mismo borra
 - **privacyStatus**: el que eligió el administrador (en el prompt). **categoryId** 27 (Educación). **tags**: 5–10 del tema (cetes, inflación, dólar, banxico, ahorro…).
 - En YouTube sí se permiten enlaces en la descripción: úsalos siempre hacia el sitio, nunca directo a otro perfil.
 
+### Segmento semanal "IA y tu dinero" (domingo 20:00)
+Reel de 65–75 s sobre lo que pasó en la semana (lunes a domingo) con las empresas y el dinero de la inteligencia artificial: acciones de IA y chips (Nvidia, AMD, Intel, Microsoft, Alphabet, Meta, Amazon, TSMC, Broadcom, índice SOX), resultados, inversiones en centros de datos, regulación, y **qué significa para alguien que invierte desde México** (fondos, ETFs, tipo de cambio). Gancho con el dato más sorprendente de la semana (menos de 3 s), 2–3 datos con su número y fecha, un "¿por qué?" en lenguaje simple y "lo que viene" con una fecha concreta. Tono alegre y directo. Solo cifras leídas en una fuente; nunca decir que algo va a subir ni qué comprar.
+
 ### Video largo semanal (se produce el domingo a las 06:40 y sale a las 12:00; aprobación antes de las 11:40)
 "La semana en tu bolsillo" (8–12 min): las 5 noticias de la semana para México, qué significan para tu dinero, la tasa de CETES y el dólar, y lo que viene. Capítulos en la descripción (00:00 …), miniatura con una cifra grande. Mismo flujo de aprobación por Telegram.
