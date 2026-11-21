@@ -230,6 +230,7 @@ small{display:block;color:var(--muted);margin-top:22px;font-size:12px}
 <a class="b main" href="${g("canal")}"><strong>☕ Únete gratis al canal de Telegram</strong><span>Alertas del dólar, la bolsa y la economía de México, cada día</span></a>
 <a class="b" href="${g("guia")}"><strong>📖 Guía gratis: Tu primera inversión en México</strong><span>20 páginas con datos oficiales: CETES, Afore, Sofipos y cómo evitar fraudes</span></a>
 <a class="b" href="${g("prueba")}"><strong>⭐ Prueba Pro gratis 7 días</strong><span>Alertas al instante, radar personal y pregúntale a la IA</span></a>
+${env.YT_CHANNEL_ID ? `<a class="b" href="https://www.youtube.com/channel/${env.YT_CHANNEL_ID}?sub_confirmation=1"><strong>▶️ Videos en YouTube</strong><span>El resumen de la semana y explicaciones a fondo</span></a>` : ""}
 <a class="b" href="/dolar-hoy"><strong>💵 Dólar hoy en México</strong><span>Tipo de cambio actualizado y gráfica</span></a>
 <a class="b" href="/"><strong>📰 Todas las noticias</strong><span>lanaconcafe · sitio web</span></a>
 <small>Información, no asesoría financiera.</small>

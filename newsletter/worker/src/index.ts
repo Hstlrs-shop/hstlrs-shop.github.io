@@ -10,6 +10,7 @@ import { SITE } from "./site-files";
 import { esc } from "./telegram";
 import { scalpTick, trendTick } from "./scalp";
 import { cetesPage, inflationPage } from "./tools";
+import { latestVideos, syncYouTube } from "./youtube";
 import { bioPage, download, freeChapter, go, guidePage, studioApi } from "./studio";
 
 const DIGEST_CRON = "17 11 * * 1-5"; // debe coincidir con wrangler.toml
@@ -115,6 +116,11 @@ export default {
       return r
         ? new Response(r.v, { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300", ...CORS } })
         : json({ error: "todavía no hay kit hoy" }, 404);
+    }
+
+    if (p === "/api/videos") {
+      const v = await latestVideos(env);
+      return json({ channel: env.YT_CHANNEL_ID ? `https://www.youtube.com/channel/${env.YT_CHANNEL_ID}?sub_confirmation=1` : null, videos: v.slice(0, 6) }, 200, { "cache-control": "public, max-age=600" });
     }
 
     if (p === "/api/pro") {
@@ -261,5 +267,6 @@ export default {
     await flushFreeQueue(env).catch((e) => console.warn("free queue", e));
     await proTick(env);
     if (new Date(event.scheduledTime).getUTCMinutes() === 0) await syncBotNoticias(env).catch((e) => console.warn("bot noticias", e));
+    if (new Date(event.scheduledTime).getUTCMinutes() % 15 === 7) await syncYouTube(env).catch((e) => console.warn("youtube", e));
   },
 } satisfies ExportedHandler<Env>;

@@ -117,6 +117,12 @@ if (leadEl) {
   setInterval(load, 120_000);
 
   // Lo más leído
+  getJSON("/api/videos").then((d) => {
+    if (!d.videos || !d.videos.length || !$("#videos")) return;
+    $("#videos").innerHTML = d.videos.slice(0, 4).map((v) => `<a href="${esc(v.url)}" target="_blank" rel="noopener" style="display:flex;gap:10px;align-items:center;text-decoration:none;color:inherit"><img src="${esc(v.thumb)}" alt="" width="120" height="68" loading="lazy" style="border-radius:8px;object-fit:cover;flex:none"><span style="font-size:14px;line-height:1.3">${esc(v.title)}<small style="display:block;opacity:.6">${ago(v.published)}</small></span></a>`).join("");
+    if (d.channel) $("#yt-sub").href = d.channel; else $("#yt-sub").hidden = true;
+    $("#videos-panel").hidden = false;
+  }).catch(() => {});
   getJSON("/api/top").then((d) => {
     $("#top").innerHTML = d.items.map((n) => `<li><a href="${esc(n.url)}">${esc(n.title)}<small>${esc(n.source)} · ${ago(n.detected_at)}</small></a></li>`).join("") || `<li class="note">Aún sin lecturas.</li>`;
   }).catch(() => {});

@@ -43,6 +43,7 @@ FREE_GAP_MIN = "40"
 FREE_DELAY_MIN = "15"
 ROTATE = "3"                # plan gratuito (10 ms CPU): fuentes no oficiales cada 3 min. Con Workers Paid ($5) pon "1"
 TELEGRAM_FREE_CHAT = "@LanaconCafe"
+YT_CHANNEL_ID = ""              # pon aquí el ID del canal de YouTube (UC…) para activar el ciclo YouTube → Telegram → sitio
 INFLATION_PCT = "3.75"          # INEGI, inflación anual; actualízala cada mes (sale ~el día 9)
 INFLATION_PERIOD = "octubre de 2026"
 BOT_NOTICIAS = "1"          # "1" = /noticias del bot se llena solo cada hora; "0" para que /noticias del bot se llene solo cada hora

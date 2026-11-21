@@ -23,6 +23,7 @@ export interface Env {
   SCALP_FEE?: string;
   SCALP_PULLBACK?: string;     // "1" activa también la señal experimental de retroceso en 1 min          // comisión por lado para el resultado neto (0.0005 = 0.05%)        // BTC por operación en demo (0.01)
   STUDIO_TOKEN?: string;       // llave de la tarea programada de videos: solo lee/escribe la cola de aprobaciones
+  YT_CHANNEL_ID?: string;      // canal de YouTube (UC…): sus videos nuevos se anuncian en Telegram y salen en el sitio
   INFLATION_PCT?: string;      // inflación anual (INEGI) para las calculadoras
   INFLATION_PERIOD?: string;   // periodo de ese dato, p. ej. "octubre de 2026"
   PLAN_STARS?: string;         // precio del plan premium en Telegram Stars

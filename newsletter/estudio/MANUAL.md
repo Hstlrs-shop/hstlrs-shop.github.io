@@ -75,3 +75,26 @@ Información, no asesoría financiera.
 ```
 
 Lecciones técnicas acumuladas: `lecciones.md`.
+
+## YouTube (cuando el canal esté conectado en vidIQ)
+
+Cada Reel diario se publica también como **YouTube Short** desde el mismo borrador (tercer destino, platformAccountId en el prompt de la tarea).
+
+- **title** (máx. 100 caracteres, sin < ni >): el gancho del video + palabra clave de búsqueda. Ej.: `¿Los CETES le ganan a la inflación? Tasas de hoy`.
+- **text** (descripción), siempre con este cierre para cerrar el ciclo YouTube → sitio → Telegram:
+  ```
+  <2–3 líneas con las cifras y su fuente>
+
+  📊 Calcula tu caso: https://lanaconcafe-news.gt2hf24n6t.workers.dev/cetes-hoy   (o la página del sitio que corresponda al tema)
+  📖 Guía gratis para tu primera inversión: https://lanaconcafe-news.gt2hf24n6t.workers.dev/go/guia?s=yt
+  ☕ Noticias diarias en Telegram: https://lanaconcafe-news.gt2hf24n6t.workers.dev/go/canal?s=yt
+
+  Información, no asesoría financiera.
+  #finanzas #inversiones #mexico #shorts
+  ```
+  (Cuando exista el dominio propio, los enlaces cambian a él.)
+- **privacyStatus**: el que eligió el administrador (en el prompt). **categoryId** 27 (Educación). **tags**: 5–10 del tema (cetes, inflación, dólar, banxico, ahorro…).
+- En YouTube sí se permiten enlaces en la descripción: úsalos siempre hacia el sitio, nunca directo a otro perfil.
+
+### Video largo semanal (domingo 10:00, cuando se active)
+"La semana en tu bolsillo" (8–12 min): las 5 noticias de la semana para México, qué significan para tu dinero, la tasa de CETES y el dólar, y lo que viene. Capítulos en la descripción (00:00 …), miniatura con una cifra grande. Mismo flujo de aprobación por Telegram.
