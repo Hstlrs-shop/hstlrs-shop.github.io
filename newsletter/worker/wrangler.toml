@@ -8,7 +8,7 @@ compatibility_flags = ["nodejs_compat"]
 # Cada minuto: ingesta + alertas. Lun-Vie 11:17 UTC: edición diaria del newsletter
 # (≈ 5:17 Ciudad de México / 12:17 Madrid). Si cambias la segunda, cambia DIGEST_CRON en src/index.ts.
 [triggers]
-crons = ["* * * * *", "17 11 * * 1-5", "* 14-16 * * 1-5"]  # el tercero: scalping BTC 8:15–10:55 CDMX
+crons = ["* * * * *", "17 11 * * 1-5", "* 14-17 * * 1-5"]  # el tercero: señales BTC 8:15–11:25 CDMX
 
 [[d1_databases]]
 binding = "DB"

@@ -6,7 +6,7 @@ export interface Bar { t: number; o: number; h: number; l: number; c: number; v:
 export const SESSION = { from: 8 * 60 + 30, to: 10 * 60 + 30 }; // minutos del día, hora CDMX
 export const MIN_R = 1.5, MIN_SCORE = 6;
 /** Ajustables (el backtest los cambia para comparar variantes). minRiskPct: stop mínimo como fracción del precio. */
-export const CONFIG = { minRiskPct: 0.0005, maxRiskPct: 0.005 };
+export const CONFIG = { minRiskPct: 0.0005, maxRiskPct: 0.005, htf: false, tf: 60 as 60 | 300, minScore: MIN_SCORE, minR: MIN_R };
 
 // ---------- Indicadores ----------
 export function emaSeries(v: number[], n: number): number[] {
@@ -61,13 +61,13 @@ export function fibo(b5: Bar[], side: "long" | "short", look = 36) {
 // ---------- Lectura del mercado ----------
 export interface Reading {
   price: number; t: number; side: "long" | "short" | null; regime: string;
-  vwap: number; sd: number; e9: number; e21: number; e55: number; e200_5: number; e9_5: number; e21_5: number;
+  vwap: number; sd: number; e9: number; e21: number; e55: number; e200_5: number; e9_5: number; e21_5: number; e55_5: number; htfSide: "long" | "short" | null;
   rsi1: number; rsi5: number; atr1: number; atr5: number; relVol: number; macdUp: boolean; macdDown: boolean;
   fib: ReturnType<typeof fibo> | null; levels: { name: string; px: number }[];
   pdh: number; pdl: number; pdc: number; onh: number; onl: number;
 }
 
-export function read(b1all: Bar[], b5all: Bar[], d1: Bar[], nowSec: number): Reading {
+export function read(b1all: Bar[], b5all: Bar[], d1: Bar[], nowSec: number, h1all: Bar[] = []): Reading {
   const b1 = b1all.filter((x) => x.t + 60 <= nowSec);   // solo velas cerradas
   const b5 = b5all.filter((x) => x.t + 300 <= nowSec);
   const day0 = Math.floor(nowSec / 86400) * 86400;       // 00:00 UTC
@@ -76,7 +76,11 @@ export function read(b1all: Bar[], b5all: Bar[], d1: Bar[], nowSec: number): Rea
   const c1 = b1.map((x) => x.c), c5 = b5.map((x) => x.c);
   const last = b1[b1.length - 1], last5 = b5[b5.length - 1];
   const E = (v: number[], n: number) => emaSeries(v, n)[v.length - 1];
-  const e9 = E(c1, 9), e21 = E(c1, 21), e55 = E(c1, 55), e9_5 = E(c5, 9), e21_5 = E(c5, 21), e200_5 = E(c5, 200);
+  const e9 = E(c1, 9), e21 = E(c1, 21), e55 = E(c1, 55), e9_5 = E(c5, 9), e21_5 = E(c5, 21), e55_5 = E(c5, 55), e200_5 = E(c5, 200);
+  // Tendencia de 1 hora: precio vs EMA 50 y EMA 50 vs EMA 200
+  const h1c = h1all.filter((x) => x.t + 3600 <= nowSec).map((x) => x.c);
+  const h50 = h1c.length > 60 ? E(h1c, 50) : 0, h200 = h1c.length > 60 ? E(h1c, 200) : 0;
+  const htfSide: Reading["htfSide"] = !h50 ? null : b1all[b1all.length - 1].c > h50 && h50 > h200 ? "long" : b1all[b1all.length - 1].c < h50 && h50 < h200 ? "short" : null;
   const hist = macdHist(c1);
   const h0 = hist[hist.length - 1], h1 = hist[hist.length - 2];
   const vols = b1.slice(-21, -1).map((x) => x.v);
@@ -99,6 +103,7 @@ export function read(b1all: Bar[], b5all: Bar[], d1: Bar[], nowSec: number): Rea
   if (last5.c > vwap && e9_5 > e21_5) side = "long";
   else if (last5.c < vwap && e9_5 < e21_5) side = "short";
   if (crosses >= 3) { side = null; regime = "rango (el precio cruza el VWAP de un lado a otro)"; }
+  else if (CONFIG.htf && side && side !== htfSide) { side = null; regime = "5 min contra la tendencia de 1 hora"; }
   else if (atr5 / last.c < 0.0006) { side = null; regime = "mercado lento (volatilidad muy baja)"; }
   else regime = side === "long" ? "tendencia alcista en 5 min" : side === "short" ? "tendencia bajista en 5 min" : "sin dirección clara";
 
@@ -114,7 +119,7 @@ export function read(b1all: Bar[], b5all: Bar[], d1: Bar[], nowSec: number): Rea
   ].filter((x) => x.px > 0);
 
   return {
-    price: last.c, t: last.t, side, regime, vwap, sd, e9, e21, e55, e200_5, e9_5, e21_5,
+    price: last.c, t: last.t, side, regime, vwap, sd, e9, e21, e55, e200_5, e9_5, e21_5, e55_5, htfSide,
     rsi1: rsi(c1.slice(-200)), rsi5: rsi(c5.slice(-200)), atr1, atr5, relVol,
     macdUp: h0 > h1, macdDown: h0 < h1,
     fib, levels, pdh, pdl, pdc, onh, onl,
@@ -127,14 +132,16 @@ export interface Signal {
 }
 
 /** Busca un gatillo en la última vela de 1 min cerrada. Devuelve null si no hay señal limpia. */
-export function trigger(b1all: Bar[], r: Reading, nowSec: number): Signal | null {
+export function trigger(b1all: Bar[], r: Reading, nowSec: number, tf: 60 | 300 = CONFIG.tf): Signal | null {
   if (!r.side) return null;
-  const b1 = b1all.filter((x) => x.t + 60 <= nowSec);
+  const b1 = b1all.filter((x) => x.t + tf <= nowSec);             // b1all = velas del marco de entrada (1 o 5 min)
   const k = b1[b1.length - 1], long = r.side === "long";
-  const tol = Math.max(r.atr1 * 0.25, k.c * 0.0002);
+  if (!k || k.t + 2 * tf <= nowSec) return null;                    // solo la vela que acaba de cerrar
+  const A = tf === 300 ? r.atr5 : r.atr1;
+  const tol = Math.max(A * 0.25, k.c * 0.0002);
   // Zonas de retroceso que tocó la vela
   const zones: { name: string; px: number }[] = [
-    { name: "EMA 9", px: r.e9 }, { name: "EMA 21", px: r.e21 }, { name: "EMA 55", px: r.e55 }, { name: "VWAP", px: r.vwap },
+    ...(tf === 300 ? [{ name: "EMA 9 (5m)", px: r.e9_5 }, { name: "EMA 21 (5m)", px: r.e21_5 }, { name: "EMA 55 (5m)", px: r.e55_5 }] : [{ name: "EMA 9", px: r.e9 }, { name: "EMA 21", px: r.e21 }, { name: "EMA 55", px: r.e55 }]), { name: "VWAP", px: r.vwap },
     ...(r.fib?.valid ? [{ name: "Fibo 38.2 %", px: r.fib.r382 }, { name: "Fibo 50 %", px: r.fib.r500 }, { name: "Fibo 61.8 %", px: r.fib.r618 }] : []),
   ];
   const touched = zones.filter((z) => (long ? k.l <= z.px + tol && k.c >= z.px - tol : k.h >= z.px - tol && k.c <= z.px + tol));
@@ -144,7 +151,7 @@ export function trigger(b1all: Bar[], r: Reading, nowSec: number): Signal | null
   if (!closesInFavor) return null;                                  // gatillo: vela que cierra a favor
   if (long ? k.c < r.vwap - tol : k.c > r.vwap + tol) return null;  // no comprar debajo del VWAP ni vender arriba
 
-  const buf = Math.max(r.atr1 * 0.2, k.c * 0.0001);
+  const buf = Math.max(A * 0.2, k.c * 0.0001);
   const zoneExtreme = long ? Math.min(...touched.map((z) => z.px)) : Math.max(...touched.map((z) => z.px));
   const stop = long ? Math.min(k.l, zoneExtreme) - buf : Math.max(k.h, zoneExtreme) + buf;
   const entry = k.c;
@@ -159,8 +166,8 @@ export function trigger(b1all: Bar[], r: Reading, nowSec: number): Signal | null
   const ahead = r.levels
     .filter((x) => (long ? x.px > entry : x.px < entry))
     .sort((a, b) => (long ? a.px - b.px : b.px - a.px));
-  const ok = ahead.filter((x) => Math.abs(x.px - entry) >= MIN_R * risk);
-  const blocker = ahead.find((x) => Math.abs(x.px - entry) < MIN_R * risk && !/Redondo/.test(x.name) && Math.abs(x.px - entry) > risk * 0.5);
+  const ok = ahead.filter((x) => Math.abs(x.px - entry) >= CONFIG.minR * risk);
+  const blocker = ahead.find((x) => Math.abs(x.px - entry) < CONFIG.minR * risk && !/Redondo/.test(x.name) && Math.abs(x.px - entry) > risk * 0.5);
   if (!ok.length) return null;
   const t1 = ok[0], t2 = ok.find((x) => Math.abs(x.px - entry) >= Math.abs(t1.px - entry) * 1.3) ?? { name: "2.5R", px: long ? entry + 2.5 * risk : entry - 2.5 * risk };
   const r1 = Math.abs(t1.px - entry) / risk, r2 = Math.abs(t2.px - entry) / risk;
@@ -180,10 +187,61 @@ export function trigger(b1all: Bar[], r: Reading, nowSec: number): Signal | null
   if (long ? r.macdUp : r.macdDown) { score += 1; reasons.push(`histograma MACD girando a favor`); }
   if (r1 >= 2) { score += 1; reasons.push(`espacio hasta el objetivo: ${r1.toFixed(1)}R`); }
   if (blocker) { score -= 1; reasons.push(`⚠️ ${blocker.name} en medio del camino (${Math.round(blocker.px)})`); }
-  if (score < MIN_SCORE) return null;
+  if (CONFIG.htf && r.htfSide === r.side) { score += 1; reasons.push("a favor de la tendencia de 1 hora"); }
+  if (score < CONFIG.minScore) return null;
   return {
     side: r.side, entry, stop: stopPx, tp1: t1.px, tp2: t2.px, tp1Name: t1.name, tp2Name: t2.name, risk, r1, r2,
     score, grade: score >= 8 ? "A" : "B", reasons, zone: touched.map((z) => z.name).join(" + "), t: k.t,
   };
 }
 
+
+// ---------- Estrategia principal: ruptura del rango de apertura (ORB) a favor de la tendencia de 1 h ----------
+// Validada en backtest (130 sesiones, calibración/prueba separadas, neto de comisión 0.05 % por lado).
+// Rango = primeros ORB.minutes de la sesión (Wall Street abre a las 8:30 CDMX). Gatillo: vela de 5 min que cierra
+// fuera del rango en la dirección de la tendencia de 1 h. Stop: mitad del rango. Objetivo 1: ORB.tpR × riesgo
+// (se toma 50 % y el stop pasa a equilibrio); objetivo 2: (tpR + 1) × riesgo. Una operación por día.
+export const ORB = { minutes: 15, windowMin: 60, tpR: 2, minRiskPct: 0.002, maxRiskPct: 0.006, timeStopMin: 90 };
+
+export function orbSignal(b1: Bar[], b5: Bar[], r: Reading, nowSec: number, sessionOpenSec: number): Signal | null {
+  const o = sessionOpenSec, om = ORB.minutes;
+  if (nowSec < o + om * 60 || nowSec > o + (om + ORB.windowMin) * 60) return null;
+  const rng = b1.filter((x) => x.t >= o && x.t < o + om * 60);
+  if (rng.length < om * 0.66) return null;
+  const H = Math.max(...rng.map((x) => x.h)), L = Math.min(...rng.map((x) => x.l));
+  const k = b5.filter((x) => x.t + 300 <= nowSec).pop();
+  if (!k || k.t + 600 <= nowSec || k.t < o + om * 60 - 300) return null;  // solo la vela de 5 min recién cerrada
+  const side = k.c > H ? "long" : k.c < L ? "short" : null;
+  if (!side || r.htfSide !== side) return null;
+  const entry = k.c, stop = (H + L) / 2, risk = Math.abs(entry - stop);
+  if (risk / entry < ORB.minRiskPct || risk / entry > ORB.maxRiskPct) return null;
+  const d = side === "long" ? 1 : -1;
+  const reasons = [
+    `rango de apertura (8:30–${String(8 + Math.floor((30 + om) / 60)).padStart(1)}:${String((30 + om) % 60).padStart(2, "0")}): ${Math.round(L)} – ${Math.round(H)}`,
+    `vela de 5 min cerró ${side === "long" ? "arriba" : "abajo"} del rango en ${Math.round(entry)}`,
+    `tendencia de 1 hora a favor (precio ${side === "long" ? ">" : "<"} EMA 50 ${side === "long" ? ">" : "<"} EMA 200)`,
+    `stop en la mitad del rango; objetivo ${ORB.tpR}R, se asegura 50 % y el resto busca ${ORB.tpR + 1}R`,
+  ];
+  if (r.relVol >= 1.2) reasons.push(`volumen ${r.relVol.toFixed(1)}× el promedio`);
+  return { side, entry, stop, tp1: entry + d * ORB.tpR * risk, tp2: entry + d * (ORB.tpR + 1) * risk, tp1Name: `${ORB.tpR}R`, tp2Name: `${ORB.tpR + 1}R`,
+    risk, r1: ORB.tpR, r2: ORB.tpR + 1, score: 0, grade: "ORB", reasons, zone: "rango de apertura", t: k.t };
+}
+
+/** Repite la gestión de la posición desde la entrada (sin estado): parcial 50 % en tp1 + stop a equilibrio, tp2, stop de tiempo.
+ *  Devuelve el resultado bruto en R (las comisiones se descuentan en las estadísticas). */
+export function manage(b1: Bar[], p: { side: string; entry: number; stop: number; tp1: number; tp2: number; risk: number; t0: number }, nowSec: number, fee: number, timeStopMin: number) {
+  const L = p.side === "long", fav = (x: number) => ((L ? x - p.entry : p.entry - x) / p.risk);
+  let stop = p.stop, stage = 0, banked = 0, part = 1;
+  for (const x of b1) {
+    if (x.t < p.t0 || x.t + 60 > nowSec) continue;
+    if (L ? x.l <= stop : x.h >= stop) return { closed: true, stage, status: stage ? "equilibrio" : "stop", exit: stop, r: part * fav(stop) + banked };
+    const target = stage ? p.tp2 : p.tp1;
+    if (L ? x.h >= target : x.l <= target) {
+      if (stage) return { closed: true, stage, status: "objetivo 2", exit: target, r: part * fav(target) + banked };
+      banked = 0.5 * fav(target); part = 0.5; stage = 1;
+      stop = p.entry + (L ? 1 : -1) * p.entry * fee * 2;               // equilibrio que cubre comisiones
+    }
+    if (x.t + 60 - p.t0 >= timeStopMin * 60) return { closed: true, stage, status: "tiempo", exit: x.c, r: part * fav(x.c) + banked };
+  }
+  return { closed: false, stage, status: "abierta", exit: 0, r: 0 };
+}

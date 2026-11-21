@@ -31,3 +31,16 @@ test("Mercado plano: sin dirección ni señal", () => {
   assert.equal(r.side, null);
   assert.equal(trigger(b1, r, now), null);
 });
+
+test("Gestión: 50 % en objetivo 1, stop a equilibrio, luego objetivo 2", async () => {
+  const { manage } = await import("../src/scalp-core.ts");
+  const p = { side: "long", entry: 100, stop: 99, tp1: 102, tp2: 103, risk: 1, t0: 0 };
+  const bar = (t: number, h: number, l: number, c = (h + l) / 2) => ({ t, o: c, h, l, c, v: 1 });
+  // sube a 102 (parcial +1R asegurado) y luego a 103 → 0.5×2 + 0.5×3 = 2.5R
+  assert.equal(manage([bar(0, 101, 99.5), bar(60, 102.1, 100.5), bar(120, 103.2, 101.5)], p, 600, 0, 90).r, 2.5);
+  // sube a 102 y regresa a la entrada → solo el parcial: +1R
+  const back = manage([bar(0, 102.1, 99.5), bar(60, 101, 99.9)], p, 600, 0, 90);
+  assert.equal(back.status, "equilibrio"); assert.equal(back.r, 1);
+  // toca el stop primero → −1R
+  assert.equal(manage([bar(0, 100.5, 98.9)], p, 600, 0, 90).r, -1);
+});
