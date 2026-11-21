@@ -18,6 +18,7 @@ export interface Env {
   FREE_GAP_MIN?: string;       // minutos mínimos entre alertas del canal gratis (40)      // minutos de retraso para gratis (web, RSS y canal)
   TELEGRAM_FREE_CHAT: string;  // @canal_publico o -100...
   TELEGRAM_PRO_CHAT: string;   // -100... (canal privado de pago)
+  STUDIO_TOKEN?: string;       // llave de la tarea programada de videos: solo lee/escribe la cola de aprobaciones
   GUIDE_STARS?: string;        // precio de la guía en Telegram Stars
   GUIDE_MXN?: string;          // precio de referencia en pesos
   MP_PLAN_PRO?: string;        // id del plan de suscripción Pro en Mercado Pago

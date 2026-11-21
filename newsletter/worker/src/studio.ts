@@ -233,3 +233,42 @@ export function guidePage(env: Env): Response {
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=600" },
   });
 }
+
+// ---------- API de la cola para la tarea programada (Bearer STUDIO_TOKEN; solo la tabla approvals) ----------
+export async function studioApi(req: Request, env: Env): Promise<Response> {
+  if (!env.STUDIO_TOKEN || req.headers.get("authorization") !== `Bearer ${env.STUDIO_TOKEN}`) return Response.json({ error: "no autorizado" }, { status: 401 });
+  const now = Date.now();
+  if (req.method === "GET") {
+    const which = new URL(req.url).searchParams.get("q") ?? "today";
+    const r = which === "approved"
+      ? await env.DB.prepare("SELECT id, slot, publish_at, title, post_id, revision FROM approvals WHERE status = 'approved' ORDER BY publish_at").all<any>()
+      : await env.DB.prepare("SELECT id, slot, kind, title, status FROM approvals WHERE created_at > ?1 ORDER BY publish_at").bind(now - 36 * 3600_000).all<any>();
+    return Response.json(r.results);
+  }
+  const b = (await req.json().catch(() => ({}))) as Record<string, any>;
+  const id = String(b.id ?? "").slice(0, 40);
+  if (!/^[0-9a-z-]{4,40}$/.test(id)) return Response.json({ error: "id inválido" }, { status: 400 });
+  if (b.op === "add") {
+    const pub = Date.parse(String(b.publish_at ?? ""));
+    for (const k of ["slot", "kind", "title", "caption", "post_id", "revision"]) if (!b[k]) return Response.json({ error: `falta ${k}` }, { status: 400 });
+    if (!Number.isFinite(pub)) return Response.json({ error: "publish_at inválido" }, { status: 400 });
+    await env.DB.prepare(
+      `INSERT INTO approvals (id, slot, publish_at, kind, title, caption, video_url, drive_url, post_id, revision, status, created_at)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,'new',?11)
+       ON CONFLICT(id) DO UPDATE SET title=excluded.title, caption=excluded.caption, video_url=excluded.video_url, drive_url=excluded.drive_url,
+         post_id=excluded.post_id, revision=excluded.revision, publish_at=excluded.publish_at, status='new', sent_at=NULL, decided_at=NULL`,
+    ).bind(id, String(b.slot).slice(0, 5), pub, String(b.kind).slice(0, 20), String(b.title).slice(0, 200), String(b.caption).slice(0, 4000),
+      b.video_url ? String(b.video_url).slice(0, 2000) : null, b.drive_url ? String(b.drive_url).slice(0, 500) : null,
+      String(b.post_id).slice(0, 80), String(b.revision).slice(0, 80), now).run();
+    return Response.json({ ok: true });
+  }
+  if (b.op === "done") {
+    await env.DB.prepare("UPDATE approvals SET status = 'published', published_at = ?2 WHERE id = ?1 AND status = 'approved'").bind(id, now).run();
+    return Response.json({ ok: true });
+  }
+  if (b.op === "fail") {
+    await env.DB.prepare("UPDATE approvals SET status = 'failed', note = ?2 WHERE id = ?1").bind(id, String(b.note ?? "").slice(0, 300)).run();
+    return Response.json({ ok: true });
+  }
+  return Response.json({ error: "op = add | done | fail" }, { status: 400 });
+}

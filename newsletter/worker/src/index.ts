@@ -8,7 +8,7 @@ import { affiliateRedirect } from "./growth";
 import { marketPage } from "./seo";
 import { SITE } from "./site-files";
 import { esc } from "./telegram";
-import { bioPage, download, freeChapter, go, guidePage } from "./studio";
+import { bioPage, download, freeChapter, go, guidePage, studioApi } from "./studio";
 
 const DIGEST_CRON = "17 11 * * 1-5"; // debe coincidir con wrangler.toml
 
@@ -158,6 +158,7 @@ export default {
     }
 
     if (p.startsWith("/bot/")) return handleBotApi(req, env, p);
+    if (p === "/studio/approvals") return studioApi(req, env);
 
     if (p === "/health") return json({ ok: true, brand: env.BRAND });
 

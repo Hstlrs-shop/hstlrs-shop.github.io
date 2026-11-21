@@ -47,7 +47,7 @@ Copia `scripts/` a una carpeta de trabajo nueva (el motor espera `credits.json`,
 8. **Render:** escenas en paralelo y `join` → 720x1280, libx264 crf 34, AAC 64k, +faststart, **menos de 3.0 MB**. Verifica el QR del último cuadro con `cv2.wechat_qrcode`.
 9. **Subida:** Drive `create_file` (base64Content = `sha256:<hash>:<ruta absoluta>`, `video/mp4`, `disableConversionToGoogleType: true`, carpeta del prompt) → `vidiq_video_upload` con la URL de Drive → `uploadId`.
 10. **Borrador vidIQ** (`vidiq_social_post_draft_create`): media `{type: "video", id: uploadId}`, `publishAt` a la hora del slot, destinos Instagram y TikTok (IDs del prompt; TikTok con `privacyLevel: "PUBLIC_TO_EVERYONE"`, `allowComment: true`, `musicUsageConfirmed: true`, elegidos por el administrador el 20/11/2026). Guarda `postId` y `revision`.
-11. **Aprobación:** `python3 newsletter/estudio/aprobaciones.py add '<json>'` con id `AAAA-MM-DD-HHMM`, slot, `publish_at` (ISO con zona), kind, title, caption, `video_url` (URL directa al mp4: la que devuelve `vidiq_video_upload`, o `https://drive.google.com/uc?export=download&id=<id>`), drive_url, post_id, revision.
+11. **Aprobación** (requiere `export STUDIO_TOKEN=...`, que viene en el prompt de la tarea; nunca lo escribas en el repo): `python3 newsletter/estudio/aprobaciones.py add '<json>'` con id `AAAA-MM-DD-HHMM`, slot, `publish_at` (ISO con zona), kind, title, caption, `video_url` (URL directa al mp4: la que devuelve `vidiq_video_upload`, o `https://drive.google.com/uc?export=download&id=<id>`), drive_url, post_id, revision.
 
 ## Revisión y publicación (en cada corrida de la tarea, al final)
 
