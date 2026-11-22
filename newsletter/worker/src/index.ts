@@ -113,7 +113,8 @@ export default {
       const buf = await env.BOT_KV?.get(`media:${media[1]}`, "arrayBuffer");
       if (!buf) return new Response("No encontrado", { status: 404 });
       const size = buf.byteLength, rg = req.headers.get("range")?.match(/bytes=(\d*)-(\d*)/);
-      const base = { "content-type": "video/mp4", "accept-ranges": "bytes", "cache-control": "public, max-age=86400", "x-robots-tag": "noindex" };
+      const base: Record<string, string> = { "content-type": "video/mp4", "accept-ranges": "bytes", "cache-control": "public, max-age=86400", "x-robots-tag": "noindex" };
+      if (url.searchParams.has("dl")) base["content-disposition"] = `attachment; filename="LanaConCafe-${media[1].replace(/-[0-9a-f]{8,}$/, "")}.mp4"`;
       if (rg) {
         const start = rg[1] ? +rg[1] : size - +rg[2], end = rg[1] && rg[2] ? Math.min(+rg[2], size - 1) : size - 1;
         if (start >= size || start < 0) return new Response(null, { status: 416, headers: { "content-range": `bytes */${size}` } });
