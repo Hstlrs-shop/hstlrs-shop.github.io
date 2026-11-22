@@ -107,6 +107,20 @@ export default {
     if (bio && req.method === "GET") return bioPage(env, bio[1] === "links" ? "web" : bio[1], ctx);
     const goTo = p.match(/^\/go\/([a-z]+)$/);
     if (goTo) return go(env, goTo[1], url.searchParams.get("s") ?? "web", ctx);
+    // Videos propios (comerciales) guardados en KV, con soporte de Range para reproducir en iPhone/Safari y Telegram
+    const media = p.match(/^\/media\/([a-z0-9_-]{6,80})\.mp4$/);
+    if (media && (req.method === "GET" || req.method === "HEAD")) {
+      const buf = await env.BOT_KV?.get(`media:${media[1]}`, "arrayBuffer");
+      if (!buf) return new Response("No encontrado", { status: 404 });
+      const size = buf.byteLength, rg = req.headers.get("range")?.match(/bytes=(\d*)-(\d*)/);
+      const base = { "content-type": "video/mp4", "accept-ranges": "bytes", "cache-control": "public, max-age=86400", "x-robots-tag": "noindex" };
+      if (rg) {
+        const start = rg[1] ? +rg[1] : size - +rg[2], end = rg[1] && rg[2] ? Math.min(+rg[2], size - 1) : size - 1;
+        if (start >= size || start < 0) return new Response(null, { status: 416, headers: { "content-range": `bytes */${size}` } });
+        return new Response(req.method === "HEAD" ? null : buf.slice(start, end + 1), { status: 206, headers: { ...base, "content-range": `bytes ${start}-${end}/${size}`, "content-length": String(end - start + 1) } });
+      }
+      return new Response(req.method === "HEAD" ? null : buf, { headers: { ...base, "content-length": String(size) } });
+    }
     if (p === "/guia") return guidePage(env);
     if (p === "/cetes-hoy" || p === "/calculadora-cetes") return cetesPage(env, ctx);
     if (p === "/calculadora-inflacion") return inflationPage(env, ctx);
