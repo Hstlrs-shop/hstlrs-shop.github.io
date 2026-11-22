@@ -35,8 +35,26 @@ def photo(key):
         im = ImageEnhance.Brightness(im).enhance(0.72); im = ImageEnhance.Color(im).enhance(0.85)
         im = Image.blend(im, Image.new("RGB", im.size, (60, 34, 18)), 0.18); _ph[key] = im
     return _ph[key]
+_cap = {}
+BEAT = float(os.environ.get("BEAT", "0.968"))  # cortes cada 2 tiempos a 124 BPM; con MUSIC usa 120/BPM de la pista
+def vframe(key, t):  # cuadro de un clip real (clips/<key>.mp4, Mixkit) con la misma gradación cálida que las fotos
+    import cv2
+    if key not in _cap:
+        c = cv2.VideoCapture(f"{D}/clips/{key}.mp4"); _cap[key] = [c, c.get(cv2.CAP_PROP_FPS) or 24, c.get(cv2.CAP_PROP_FRAME_COUNT) or 1, -1, None]
+    st = _cap[key]; idx = int(t * st[1]) % max(1, int(st[2]) - 1)
+    if idx != st[3]:
+        if idx < st[3] or idx > st[3] + 30: st[0].set(cv2.CAP_PROP_POS_FRAMES, idx); st[3] = idx - 1
+        while st[3] < idx:
+            ok, fr = st[0].read(); st[3] += 1
+            if ok: st[4] = fr
+    im = Image.fromarray(st[4][:, :, ::-1])
+    s = max(W * 1.22 / im.width, H * 1.22 / im.height)
+    im = im.resize((int(im.width * s), int(im.height * s)), Image.BILINEAR)
+    im = ImageEnhance.Brightness(im).enhance(0.78); im = ImageEnhance.Color(im).enhance(0.85)
+    return Image.blend(im, Image.new("RGB", im.size, (60, 34, 18)), 0.14)
 def bg(key, t, T, focus):
-    im = photo(key); z = 1.0 + 0.12 * (t / T) + 0.10 * (1 - eo(t / 0.5))
+    if isinstance(key, (list, tuple)): key = key[int(t / BEAT) % len(key)]  # montaje: cambia de clip al ritmo
+    im = vframe(key, t) if os.path.exists(f"{D}/clips/{key}.mp4") else photo(key); z = 1.0 + 0.12 * (t / T) + 0.10 * (1 - eo(t / 0.5))
     cw, ch = W * 1.2 / z, H * 1.2 / z; cx = focus[0] * im.width; cy = focus[1] * im.height
     x0 = min(max(cx - cw / 2, 0), im.width - cw); y0 = min(max(cy - ch / 2, 0), im.height - ch)
     return im.crop((int(x0), int(y0), int(x0 + cw), int(y0 + ch))).resize((W, H), Image.BILINEAR).convert("RGBA")
@@ -93,7 +111,8 @@ def header(d, n, t, T):
             if p > 0: d.rounded_rectangle([x0, 180, x0 + max(12, int(50 * p)), 192], 6, fill=CAF if k == n - 1 else CRE)
     else: d.text((W / 2, 120), "LANA CON CAFÉ", font=F(34, "Bold"), fill=A(CAF, cl(t / 0.5)), anchor="mm")
 def credit(d, key, extra=None):
-    c = CRED[key]; s = f"Foto: {c['artist'][:38]} · {c['license']} · Wikimedia Commons"
+    if isinstance(key, (list, tuple)): key = key[0]
+    c = CRED[key]; s = (f"Video: {c['artist'][:38]} · {c['license']}" if c.get("src") == "mixkit" else f"Foto: {c['artist'][:38]} · {c['license']} · Wikimedia Commons")
     if extra: d.text((X, 1800), extra, font=F(28, "Medium"), fill=(220, 205, 190, 190))
     d.text((X, 1846), s, font=F(24, "Medium"), fill=(220, 205, 190, 150))
 def pct(v, dec=1): return ("+" if v >= 0 else "−") + f"{abs(v):.{dec}f}%"
@@ -279,7 +298,13 @@ if __name__ == "__main__":
         open(D + "/alist.txt", "w").write("".join(f"file '{D}/a{i}.wav'\n" for i in range(len(SC))))
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", D + "/list.txt", "-c", "copy", D + "/v.mp4"], check=True)
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", D + "/alist.txt", "-c:a", "pcm_s16le", D + "/voice_full.wav"], check=True)
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", D + "/v.mp4", "-i", D + "/voice_full.wav", "-map", "0:v", "-map", "1:a", "-vf", "scale=720:1280:flags=lanczos",
-                        "-c:v", "libx264", "-crf", "34", "-preset", "slow", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "64k", "-af", "loudnorm=I=-14:TP=-1.5",
+        aud = ["-i", D + "/voice_full.wav"]; af = ["-af", "loudnorm=I=-14:TP=-1.5"]; amap = ["-map", "1:a"]
+        if os.environ.get("MUSIC"):  # pista con licencia libre (Mixkit), abajo de la voz y con ducking
+            aud += ["-i", os.environ["MUSIC"]]; af = []; amap = ["-map", "[a]"]
+            af = ["-filter_complex", "[1:a]aformat=sample_rates=48000:channel_layouts=stereo,loudnorm=I=-16:TP=-2,asplit=2[v][sc];"
+                  "[2:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=0.22,afade=t=in:d=0.3[m];[m][sc]sidechaincompress=threshold=0.02:ratio=4:attack=20:release=400[md];"
+                  "[v][md]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-14:TP=-1.5,alimiter=limit=0.79:level=false[a]"]
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", D + "/v.mp4", *aud, "-map", "0:v", *amap, "-vf", "scale=720:1280:flags=lanczos",
+                        "-c:v", "libx264", "-crf", "34", "-preset", "slow", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "64k", *af,
                         "-movflags", "+faststart", "-shortest", D + "/final.mp4"], check=True)
         print(Ds, sum(Ds), os.path.getsize(D + "/final.mp4") / 1e6, "MB")
