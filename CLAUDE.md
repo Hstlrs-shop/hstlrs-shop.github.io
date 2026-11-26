@@ -15,6 +15,7 @@
    - Cada pieza publicada lleva "Información, no asesoría financiera".
 6. **Nada se publica en redes sin el ✅ del dueño en Telegram.**
 7. **Datos privados fuera del repositorio:** IDs de cuentas de redes, la carpeta de Drive, la llave de la cola de aprobaciones, el texto de la guía de pago y el conflicto de interés del dueño.
+8. **Las señales de Bitcoin (`scalp*.ts`) no se publican ni se venden sin aprobación explícita del dueño.** Hoy son solo para el dueño. Cualquier cambio que las muestre a otras personas (canal, bot, sitio, plan de pago) necesita su permiso por escrito en el chat.
 
 ## Qué es Lana con Café
 
@@ -124,6 +125,74 @@ python3 ../estudio/aprobaciones.py today
 ```
 
 Antes de desplegar, siempre: `npm test` y `npm run typecheck`. Después, revisa que estas páginas respondan: `/`, `/dolar-hoy`, `/cetes-hoy`, `/api/kit`.
+
+## Números clave (medir cada lunes)
+
+Córrelos **una vez por semana**. Antes de correrlos, avisa al dueño cuántas lecturas de D1 gasta; la última vez, las consultas de la base gastaron **4,820 lecturas**, menos del 0.1 % del límite diario.
+
+| Número | Dónde se mide | Cómo |
+|---|---|---|
+| Miembros del canal `@LanaconCafe` | Telegram | El dueño manda `/stats` al bot. No se puede leer desde la sesión de Claude porque requiere la llave del bot |
+| Usuarios del bot | KV del bot (no gasta lecturas de D1) | `npx wrangler kv key list --namespace-id 8b002a988c5d49db8dc3ab2820239ed5 --remote --prefix "u:"` y contar. También sale en `/stats` |
+| Compras con Stars, suscriptores Pro, clics y gasto de IA | D1 | Consultas de abajo |
+| Visitas del sitio | Analítica de Cloudflare (no gasta D1) | Consulta GraphQL de abajo. **Ojo:** incluye robots y buscadores, así que es un techo, no visitas reales |
+
+Consultas de D1 (desde `newsletter/worker/`, con `--json --command "..."`; con `--file` no devuelven resultados):
+
+```sql
+-- Compras con Stars (sin reembolsos), en total y de los últimos 7 días
+SELECT product, COUNT(*) AS compras, COALESCE(SUM(stars),0) AS stars,
+       SUM(created_at > (strftime('%s','now') - 7*86400) * 1000) AS compras_7d
+FROM purchases WHERE refunded = 0 GROUP BY product;
+SELECT COUNT(*) AS reembolsos FROM purchases WHERE refunded = 1;
+
+-- Suscriptores Pro (pagos) y pruebas activas
+SELECT plan, status, COUNT(*) AS n FROM members GROUP BY plan, status;
+SELECT COUNT(*) AS pruebas_activas FROM trials WHERE until > strftime('%s','now') * 1000;
+
+-- Clics de los enlaces por red (/ig, /tt, /yt, /x…), últimos 7 días
+SELECT src, dest, SUM(n) AS clics FROM clicks
+WHERE day >= date('now','-7 days') GROUP BY src, dest ORDER BY clics DESC;
+
+-- Vistas de páginas de noticias publicadas en los últimos 7 días
+SELECT COALESCE(SUM(views),0) AS vistas, COUNT(*) AS noticias FROM news
+WHERE detected_at > (strftime('%s','now') - 7*86400) * 1000;
+
+-- Gasto de IA de la semana (USD, con precios de lista de Anthropic)
+SELECT task, model, COUNT(*) AS llamadas, SUM(input_tokens) AS entrada, SUM(output_tokens) AS salida,
+  ROUND(SUM(
+    (CASE WHEN model LIKE 'claude-haiku%' THEN 0.10 WHEN model LIKE 'claude-sonnet%' THEN 2.0 ELSE 4.0 END)
+      * (input_tokens + cache_write * 1.25 + cache_read * 0.1)
+  + (CASE WHEN model LIKE 'claude-haiku%' THEN 0.50 WHEN model LIKE 'claude-sonnet%' THEN 10.0 ELSE 20.0 END)
+      * output_tokens) / 1000000.0, 4) AS usd
+FROM ai_usage WHERE ts > (strftime('%s','now') - 7*86400) * 1000
+GROUP BY task, model ORDER BY usd DESC;
+```
+
+Visitas (analítica de Cloudflare, por día; `ZONA` es el id de la zona `lanaconcafe.com`, que sale de `GET /client/v4/zones?name=lanaconcafe.com`):
+
+```graphql
+{ viewer { zones(filter: {zoneTag: "ZONA"}) {
+  httpRequests1dGroups(limit: 10, filter: {date_geq: "AAAA-MM-DD", date_leq: "AAAA-MM-DD"}) {
+    dimensions { date } sum { pageViews } uniq { uniques } } } } }
+```
+
+## Costos mensuales
+
+Lo que se sabe al 26/11/2026. Donde dice "no registrado", el dueño debe anotar el monto.
+
+| Servicio | Para qué | Costo | Notas |
+|---|---|---|---|
+| Cloudflare Workers, D1 y KV | Sitio, bot, base de datos | **$0** (plan gratis) | Límite de D1: 5 millones de lecturas al día. El plan de pago cuesta 5 USD al mes y da mucho más margen |
+| Dominio `lanaconcafe.com` | Dirección del sitio | No registrado | Pago anual |
+| API de Claude (Anthropic) | Clasificar noticias, edición diaria, IA del bot | Por uso; se mide cada semana con `ai_usage` | Haiku 5.5: 0.10 / 0.50 USD por millón de tokens (entrada / salida). Opus 5.5: 4 / 20 USD |
+| Suscripción de Claude (claude.ai) | Claude Code y la tarea programada de videos | No registrado | Tiene límite semanal de uso; la tarea ya corre con Sonnet 5.5 para gastar menos |
+| vidIQ | Programar videos en 3 redes | No registrado | Funciona con créditos; al 26/11 quedaban 20 y se renuevan a 150 el 8 de diciembre |
+| Speko | Voz de los videos | Por uso; no registrado | |
+| ManyChat | "Comenta GUÍA" en Instagram | $0 (plan gratis) | Ofrece prueba Pro de 14 días |
+| Mixkit, Telegram, GitHub, Search Console, Google Drive | Video y música, bot y canal, código, SEO, archivos | $0 | Google Drive gratis hasta 15 GB |
+| Telegram Stars | Cobro de guías | Comisión por venta | Revisar la comisión vigente antes de calcular ingresos |
+| Mercado Pago | Cobro del plan Pro (pendiente) | Comisión por venta | Revisar la comisión vigente al configurarlo |
 
 ## Pendientes y problemas conocidos (al 26/11/2026)
 
