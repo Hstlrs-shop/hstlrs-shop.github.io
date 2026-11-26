@@ -33,7 +33,7 @@ window.STORE_CONFIG = {
 
   // Medición de visitas sin cookies (Cloudflare Web Analytics). Pega aquí el token del
   // fragmento que da Cloudflare (Web Analytics → hstlrs-shop.github.io). Vacío = sin medir.
-  analytics: { cloudflareToken: "" },
+  analytics: { cloudflareToken: "6c9e632b474d4c439d2e827a0d28fcb6" },
 
   /**
    * Cómo se procesa el pago:
