@@ -46,7 +46,7 @@ Las imágenes están en `docs/redes/` (formato 1080×1350, listo para Instagram,
 > Usa el mismo formato: una frase corta + qué es la prenda + "Enlace en la bio".
 
 **Promoción fija para todos los posts:**
-> 10% en tu primera compra con el código **HSTLR10** · 15% al llevar 3 piezas · Envío gratis desde $1,050
+> 10% en tu primera compra con el código **HSTLR10** · 15% al llevar 3 piezas · Envío gratis desde $999
 
 ## 3. Anuncios (cuando tengas los primeros 2-3 pedidos)
 
@@ -57,9 +57,22 @@ Las imágenes están en `docs/redes/` (formato 1080×1350, listo para Instagram,
 
 ## 4. Lo que ya funciona solo
 
-- Pago en Shopify, producción y envío por Printful, guía de rastreo automática al cliente.
-- Chat 24/7 en la página y botón de WhatsApp.
-- Revisión de pedidos cada 3 horas, que detiene los sospechosos de fraude. Para que confirme pedidos falta activarle el conector de Shopify.
+- **Cobro** en el checkout de Shopify (tarjeta, Shop Pay y PayPal) y **envío** igual en la web y en Shopify: $99, gratis desde $999.
+- **Producción**: los 35 productos y sus 845 variantes están conectados a Printful, que recibe cada pedido, lo fabrica y lo envía. Para que no espere tu aprobación, activa la aprobación automática en Printful.
+- **Rastreo**: Printful sube la guía a Shopify y Shopify se la manda al cliente por correo.
+- **Vigilancia diaria** a las 9:13 (hora de CDMX): una tarea programada revisa pedidos, Printful, envíos y carritos abandonados, y te avisa solo si hay algo (ver `docs/operacion.md`).
+- Chat 24/7 en la página con respuestas automáticas y botón de WhatsApp.
+
+## Mensaje para WhatsApp
+
+Para tus contactos:
+> 🖤🔴 Ya abrí mi marca: **HSTLRS**. Ropa con arte (el jaguar, el ajolote astronauta, la gran ola, las calaveras de Posada…) hecha bajo pedido en México.
+> Envío gratis desde $999 y 10% en tu primera compra con el código **HSTLR10**.
+> 👉 https://hstlrs-shop.github.io
+> Si te late algo, compártelo 🙌
+
+Para tus estados:
+> Nueva marca 🇲🇽 **HSTLRS** · Arte que se usa · Envío gratis desde $999 · 10% con HSTLR10 · hstlrs-shop.github.io
 
 ## 5. Comercial de 8 segundos
 

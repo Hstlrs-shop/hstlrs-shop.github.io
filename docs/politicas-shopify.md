@@ -32,9 +32,8 @@ Una vez recibida y revisada la devolución, el reembolso se emite al mismo méto
 Cada prenda se hace **bajo pedido**: la producimos en **2 a 5 días hábiles** ✏️. Después, el envío tarda entre **3 y 10 días hábiles** ✏️ según tu ubicación. Los plazos son estimados y pueden ampliarse en temporadas de alta demanda.
 
 **Costos en México**
-- Envío estándar: $150 MXN.
-- **Envío gratis** en pedidos desde $1,050 MXN.
-- Envío exprés: $195 MXN.
+- Envío estándar: $99 MXN en pedidos de menos de $999 MXN.
+- **Envío gratis** en pedidos desde $999 MXN.
 
 **Envíos internacionales**
 Enviamos a Estados Unidos, Canadá, España y otros países por $360 MXN. Los impuestos o aranceles de importación del país de destino corren por cuenta del cliente.

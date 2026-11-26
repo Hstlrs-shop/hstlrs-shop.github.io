@@ -57,4 +57,4 @@ Base recomendada: **Oversized Faded T-Shirt (AS Colour 5082)**, teñido en prend
 
 - **Pide una muestra de cada diseño** (Printful ofrece descuento en pedidos de muestra) y revisa la calidad con la lista de `docs/proveedores.md`.
 - **Precio:** revisa en Printful el costo de cada prenda + envío a México y fija tu precio de venta para tener margen. A $799 MXN, comprueba que te quede ganancia después de la producción, el envío, la comisión de pago y el cupón del 10 %.
-- **Envíos en Shopify:** ahora cobras $150 o envío gratis desde $1,050. Asegúrate de que cubra lo que te cobra Printful por el envío.
+- **Envíos en Shopify:** cobras $99 en pedidos de menos de $999 y envío gratis desde $999, en todos los productos (Perfil general). Printful te cobra a ti unos $250 por playera, gorra o beanie y $354 por hoodie, crewneck o jogger hasta CDMX (estándar, 5 a 7 días; no hay exprés a México), y la diferencia sale de tu margen. Compruébalo con `bash scripts/ops/probe-envios.sh`.

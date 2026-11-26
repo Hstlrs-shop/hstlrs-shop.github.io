@@ -7,6 +7,15 @@
   const COUPON_KEY = "hstlrs_coupon_v2";
   const PAGE = document.body.dataset.page;
 
+  // Visitas sin cookies: el script de Cloudflare solo se carga si hay token en config.js
+  if (CFG.analytics && CFG.analytics.cloudflareToken) {
+    const beacon = document.createElement("script");
+    beacon.defer = true;
+    beacon.src = "https://static.cloudflareinsights.com/beacon.min.js";
+    beacon.dataset.cfBeacon = JSON.stringify({ token: CFG.analytics.cloudflareToken });
+    document.head.appendChild(beacon);
+  }
+
   /* ---------- Utilidades ---------- */
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];

@@ -22,6 +22,7 @@ Tienda online de streetwear **HSTLRS**, pensada como dropshipping: impresión ba
 | `assets/css/store.css` | Diseño (colores y tipografías en `:root`) |
 | `assets/img/` | `drop/` tus fotos · `arte/` láminas · `concept/` ilustraciones provisionales |
 | `assets/print/` | Archivos de impresión para Printful |
+| `scripts/ops/` | Revisiones: `printful_estado.py` (variantes y pedidos en Printful) y `probe-envios.sh` (envío que ve el cliente) |
 
 ## Cómo se vende un producto
 
@@ -39,6 +40,8 @@ Los 6 borradores del Drop 01 (CORE 01–03, STUDIO 01–03) ya tienen sus IDs de
 - [`docs/dropshipping-printful.md`](docs/dropshipping-printful.md): conexión con Printful
 - [`docs/proveedores.md`](docs/proveedores.md): proveedores y ficha técnica
 - [`docs/politicas-shopify.md`](docs/politicas-shopify.md): políticas para pegar en Shopify
+- [`docs/operacion.md`](docs/operacion.md): revisión diaria automática de pedidos, Printful y envíos (y cómo hacerla a mano)
+- [`docs/lanzamiento.md`](docs/lanzamiento.md): plan de lanzamiento y mensaje para WhatsApp
 
 ## Ver en local
 

@@ -28,7 +28,7 @@ Investigación del 9 de noviembre de 2026. Criterios: que tenga demanda en Méxi
 | **Tote Bag Acueducto** | $449 | Accesorio diario con tu arte |
 | **Láminas STUDIO** (3 diseños) | $349–$549 | Alto margen; reutiliza el arte sin costo de diseño |
 
-**Estrategia de ticket:** el envío gratis empieza en $1,050. Un hoodie ($1,299), el pack ($1,999) o una playera + gorra ($1,298) lo superan. Así el envío gratis motiva a sumar productos.
+**Estrategia de ticket:** el envío gratis empieza en $999. Un hoodie ($1,299), un crewneck ($1,099 o más), el pack ($1,999) o dos piezas cualesquiera lo superan. Así el envío gratis motiva a sumar productos.
 
 **Antes de fijar precios definitivos:** revisa en Printful el costo de cada prenda + envío a México y deja margen después de la comisión de pago (~3–4 %) y el cupón del 10 %.
 
