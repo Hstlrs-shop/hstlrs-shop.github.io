@@ -112,6 +112,8 @@ Verificado cuando: una corrida manual de la tarea diaria entrega un resumen corr
 
 - La causa de las 120 variantes rotas no era la falta de conexión: Printful las tenía marcadas como "ignorar" y Shopify no las tenía en la ubicación de Printful. Además, 105 variantes de los crewnecks Ajolote, Jaguar y La ola estaban bien en Printful pero tampoco tenían inventario en su ubicación de Shopify. Se arreglaron las dos cosas.
 - El envío que cobra Shopify no sale del "Perfil general", sino de las **opciones de envío del mercado México** (Mercados → México). Ahí estaban el Estándar de $150 con envío gratis desde $1,050 y el Expreso de $195. Se cambió a Estándar $99, gratis desde $999, entrega de 3 a 10 días, y el Expreso quedó inactivo (no borrado).
+- La prueba de envíos (`probe-envios.sh`) pasó de 0 de 9 a 9 de 9 carritos iguales a la web.
+- El script del entorno fallaba en máquinas nuevas: `pip` instalaba para un Python distinto del que corre `python3`. Se cambió a `python3 -m pip`.
 - La tienda de Shopify limita las consultas seguidas al carrito (429), así que la prueba de envíos espera entre carritos. Para comprobar sin la tienda, sirve `draftOrderCalculate` del API de administración, que calcula sin crear nada.
 
 ## Sin especificar todavía
@@ -132,4 +134,4 @@ Verificado cuando: una corrida manual de la tarea diaria entrega un resumen corr
 | 1. Cobro y producción | 1.1–1.4 hechos y verificados (0 de 845 variantes ignoradas; 845 de 845 con inventario en Printful; envío $99 / gratis desde $999 comprobado con el cálculo de Shopify). 1.5 y 1.6 esperan acciones tuyas |
 | 2. Medir visitas | La web ya está lista; falta el token de Cloudflare Web Analytics (el token guardado no puede crear sitios) |
 | 3. Tráfico sin redes | 3.1 hecho (mensaje en `docs/lanzamiento.md`); 3.2 espera a que agregues el canal de Google |
-| 4. Piloto automático | 4.1 instrucciones en `docs/operacion.md`; 4.2 hecho |
+| 4. Piloto automático | 4.1 tarea creada (`trig_01QJhrro2Rdu4XLgRSEha7sv`, diaria 9:13 CDMX, aviso al celular). Corre sin el conector de Shopify hasta que lo agregues en claude.ai; la primera corrida de prueba falló por el script del entorno (pip instalaba para otro Python), ya corregido; 4.2 hecho |
