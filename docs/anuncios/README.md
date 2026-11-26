@@ -44,7 +44,7 @@ Arma tres conjuntos de anuncios para comparar. Divide el presupuesto entre ellos
 **Texto principal (Jaguar)**
 > El jaguar no pide permiso. 🐆🔴
 > Hoodie de felpa premium con arte realista en la espalda, hecha bajo pedido en México.
-> 10% en tu primera compra con HSTLR10 · Envío gratis desde $1,050.
+> 10% en tu primera compra con HSTLR10 · Envío gratis desde $999.
 
 **Texto principal (Ajolote)**
 > El ajolote más lejos de Xochimilco que vas a ver hoy. 🚀🌼

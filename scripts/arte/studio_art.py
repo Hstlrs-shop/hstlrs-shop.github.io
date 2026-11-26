@@ -1,9 +1,11 @@
-"""Arte original HSTLRS — STUDIO 01/02/03. Archivos de impresión DTG espalda 12x16 in a 300 dpi (3600x4800, fondo transparente)."""
-import math, random, sys
+"""Arte original HSTLRS — STUDIO 01/02/03. Archivos de impresión DTG espalda 12x16 in a 300 dpi (3600x4800, fondo transparente).
+Uso: python3 scripts/arte/studio_art.py [carpeta de salida] [carpeta de fuentes .ttf]
+Fuentes: 2.º argumento, o la variable HSTLRS_FONTS, o /opt/hstlrs-fonts (la que instala el entorno)."""
+import math, os, random, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 
-F = "/tmp/claude-0/-home-user/59e60ba7-ae74-5c90-9f57-88be62d1463b/scratchpad/fonts/"
+F = os.path.join(sys.argv[2] if len(sys.argv) > 2 else os.environ.get("HSTLRS_FONTS", "/opt/hstlrs-fonts"), "")
 OUT = sys.argv[1] if len(sys.argv) > 1 else "."
 W, H = 3600, 4800
 CREAM = (233, 223, 202)

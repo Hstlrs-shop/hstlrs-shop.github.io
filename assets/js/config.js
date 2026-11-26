@@ -10,8 +10,8 @@ window.STORE_CONFIG = {
   whatsapp: "525580149227",  // WhatsApp de atención: 52 + 10 dígitos
 
   shipping: {
-    cost: 150,                // Igual que la tarifa "Estándar" de Shopify
-    freeFrom: 1050,           // Igual que el envío gratis configurado en Shopify
+    cost: 99,                 // Igual que la tarifa "Estándar" de Shopify (pedidos de menos de $999)
+    freeFrom: 999,            // Igual que el envío gratis de Shopify (Perfil general). Comprueba con scripts/ops/probe-envios.sh
     processingDays: [2, 5],   // Producción bajo pedido en Printful (impresión/bordado)
     deliveryDays: [3, 10],    // Tránsito dentro de México (confírmalo con tus pedidos de prueba)
   },
@@ -30,6 +30,10 @@ window.STORE_CONFIG = {
   // Asistente de atención 24/7. Con la dirección del Worker de soporte-ia
   // (ver soporte-ia/README.md) responde con IA; vacío = respuestas automáticas locales.
   chat: { endpoint: "" },
+
+  // Medición de visitas sin cookies (Cloudflare Web Analytics). Pega aquí el token del
+  // fragmento que da Cloudflare (Web Analytics → hstlrs-shop.github.io). Vacío = sin medir.
+  analytics: { cloudflareToken: "" },
 
   /**
    * Cómo se procesa el pago:

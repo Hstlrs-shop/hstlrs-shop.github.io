@@ -38,7 +38,7 @@ Moneda: pesos mexicanos (MXN), IVA incluido.
 
 Envíos:
 - Cada prenda se hace BAJO PEDIDO: producción de 2 a 5 días hábiles, luego envío de 3 a 10 días hábiles dentro de México.
-- Envío estándar $150 MXN; GRATIS en pedidos desde $1,050 MXN.
+- Envío estándar $99 MXN; GRATIS en pedidos desde $999 MXN. No hay envío exprés.
 - Al enviarse, el cliente recibe por correo el número de seguimiento (se puede rastrear en https://t.17track.net).
 - Pedidos con varias piezas pueden llegar en paquetes separados sin costo extra.
 
