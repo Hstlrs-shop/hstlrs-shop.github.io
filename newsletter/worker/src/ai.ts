@@ -61,6 +61,16 @@ function client(env: Env): Anthropic {
   return new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 }
 
+/** Fase 1 (medir): guarda tokens y duración de cada llamada en D1. Nunca rompe la llamada si falla. */
+type Usage = { input_tokens?: number | null; output_tokens?: number | null; cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null };
+async function track(env: Env, task: string, t0: number, r: { model?: string; usage?: Usage; stop_reason?: string | null }): Promise<void> {
+  try {
+    const u = r.usage ?? {};
+    await env.DB.prepare("INSERT INTO ai_usage (ts, task, model, input_tokens, output_tokens, cache_read, cache_write, ms, stop) VALUES (?,?,?,?,?,?,?,?,?)")
+      .bind(Date.now(), task, r.model ?? "?", u.input_tokens ?? 0, u.output_tokens ?? 0, u.cache_read_input_tokens ?? 0, u.cache_creation_input_tokens ?? 0, Date.now() - t0, r.stop_reason ?? null).run();
+  } catch (e) { console.log("ai_usage", String(e)); }
+}
+
 /** Analiza un lote de titulares en una sola llamada (más barato y rápido). */
 export async function analyze(env: Env, batch: Candidate[]): Promise<Analysis[]> {
   if (!env.ANTHROPIC_API_KEY || batch.length === 0) return [];
@@ -71,9 +81,11 @@ export async function analyze(env: Env, batch: Candidate[]): Promise<Analysis[]>
     output_config: { effort: "low" as const, format: { type: "json_schema" as const, schema: ANALYSIS_SCHEMA } },
     messages: [{ role: "user" as const, content: JSON.stringify(batch) }],
   };
+  const t0 = Date.now();
   const response = model.startsWith("claude-haiku")
     ? await client(env).messages.create(params)
     : await client(env).beta.messages.create({ ...params, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" });
+  await track(env, "classify", t0, response as any);
   if (response.stop_reason === "refusal" || response.stop_reason === "max_tokens") return [];
   const text = response.content.find((b) => b.type === "text");
   if (!text || text.type !== "text") return [];
@@ -96,6 +108,7 @@ Tono claro, directo, sin jerga innecesaria. Redacción 100 % propia: no copies f
 
 export async function writeDigest(env: Env, items: unknown[]): Promise<string | null> {
   if (!env.ANTHROPIC_API_KEY || items.length === 0) return null;
+  const t0 = Date.now();
   const response = await client(env).beta.messages.create({
     model: env.CLAUDE_MODEL,
     max_tokens: 16000,
@@ -105,6 +118,7 @@ export async function writeDigest(env: Env, items: unknown[]): Promise<string | 
     system: SYSTEM_DIGEST,
     messages: [{ role: "user", content: `Noticias de las últimas 24 h (JSON):\n${JSON.stringify(items)}` }],
   });
+  await track(env, "digest", t0, response as any);
   if (response.stop_reason === "refusal") return null;
   return response.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim() || null;
 }
@@ -149,18 +163,21 @@ export async function answerQuestion(env: Env, input: AskInput): Promise<string 
 
   let content: { type: string; text?: string }[];
   let stop: string | null;
+  const t0 = Date.now();
   if (input.deep) {
     const r = await client(env).beta.messages.create({
       model: env.CLAUDE_MODEL, max_tokens: 12000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
       output_config: { effort: "medium" }, system, messages,
     });
     content = r.content as any; stop = r.stop_reason;
+    await track(env, "ask_deep", t0, r as any);
   } else {
     const r = await client(env).messages.create({
       model: env.CLAUDE_FAST_MODEL || "claude-haiku-5-5", max_tokens: 3000,
       output_config: { effort: "low" }, system, messages,
     });
     content = r.content as any; stop = r.stop_reason;
+    await track(env, "ask_fast", t0, r as any);
   }
   if (stop === "refusal") return "Esa no la puedo responder. Pregúntame sobre mercados, economía o tu dinero ☕";
   return content.map((b) => (b.type === "text" ? b.text ?? "" : "")).join("").trim() || null;
@@ -195,12 +212,14 @@ Es información, no asesoría: nunca digas "compra" o "vende". No inventes cifra
 
 export async function writeContentKit(env: Env, news: { title: string; brief: string | null; source: string }[]): Promise<ContentKit | null> {
   if (!env.ANTHROPIC_API_KEY || news.length === 0) return null;
+  const t0 = Date.now();
   const r = await client(env).beta.messages.create({
     model: env.CLAUDE_MODEL, max_tokens: 8000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
     output_config: { effort: "medium", format: { type: "json_schema", schema: KIT_SCHEMA } },
     system: SYSTEM_KIT,
     messages: [{ role: "user", content: news.map((n, i) => `${i + 1}. ${n.title}${n.brief ? ` — ${n.brief}` : ""} (${n.source})`).join("\n") }],
   });
+  await track(env, "kit", t0, r as any);
   if (r.stop_reason === "refusal" || r.stop_reason === "max_tokens") return null;
   const t = r.content.find((b) => b.type === "text");
   return t && t.type === "text" ? (JSON.parse(t.text) as ContentKit) : null;
