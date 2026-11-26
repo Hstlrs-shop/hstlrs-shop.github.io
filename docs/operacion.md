@@ -20,6 +20,8 @@ Anota estos datos:
 - **Pedidos nuevos** y sus guías de rastreo.
 
 ### 2. Shopify (conector de Shopify, solo consultas)
+Si la sesión no tiene herramientas `mcp__Shopify__*` (búscalas con ToolSearch), sáltate este paso. En el resumen pon una línea: "Falta el conector de Shopify en la tarea: agrégalo en claude.ai → Tareas programadas → HSTLRS · operación diaria". Los pasos 1, 3 y 4 sí funcionan sin él.
+
 - **Pedidos de las últimas 24 horas:** `orders(first: 50, query: "created_at:>=AAAA-MM-DDTHH:MM:SSZ")`, pidiendo `name createdAt displayFinancialStatus displayFulfillmentStatus totalPriceSet { shopMoney { amount } } lineItems(first: 10) { nodes { title quantity } }`.
 - **Pagados sin enviar desde hace más de 7 días:** `orders(first: 20, query: "financial_status:paid fulfillment_status:unshipped created_at:<=FECHA_HACE_7_DIAS")`.
 - **Carritos abandonados de las últimas 24 horas:** `abandonedCheckouts(first: 20, query: "created_at:>=...")`, pidiendo solo `createdAt totalPriceSet { shopMoney { amount } } lineItems(first: 5) { nodes { title quantity } }`.
