@@ -169,7 +169,7 @@ export async function ingest(env: Env): Promise<{ fetched: number; inserted: num
 /** Titulares ya publicados en un canal en las últimas 12 h (para no repetir historias). */
 async function recentHeadlines(env: Env, col: "alerted_free" | "alerted_pro", now: number): Promise<string[]> {
   const q = await env.DB.prepare(
-    `SELECT COALESCE(headline_es, title) t FROM news WHERE ${col} = 1 AND ai = 1 AND impact >= 3 AND detected_at > ?1 ORDER BY detected_at DESC LIMIT 40`,
+    `SELECT COALESCE(headline_es, title) t FROM news INDEXED BY ${col === "alerted_free" ? "idx_news_free_recent" : "idx_news_detected"} WHERE ${col} = 1 AND ai = 1 AND impact >= 3 AND detected_at > ?1 ORDER BY detected_at DESC LIMIT 40`,
   ).bind(now - 12 * 3600_000).all<{ t: string }>();
   return q.results.map((r) => r.t);
 }
@@ -188,7 +188,8 @@ export async function flushFreeQueue(env: Env): Promise<number> {
   if (sentToday >= num(env.FREE_DAILY_MAX, 8)) return 0;
   const gapOk = now - Number((last.results[0] as any)?.v ?? 0) >= num(env.FREE_GAP_MIN, 40) * 60_000;
   const q = await env.DB.prepare(
-    `SELECT * FROM news WHERE alerted_free = 0 AND impact >= ?1 AND detected_at <= ?2 AND detected_at > ?3
+    // INDEXED BY: sin él, D1 elegía idx_news_free_queue y recorría todo el historial cada minuto (migración 009)
+    `SELECT * FROM news INDEXED BY idx_news_free_recent WHERE alerted_free = 0 AND impact >= ?1 AND detected_at <= ?2 AND detected_at > ?3
        AND (ai = 1 OR ?4 = 1) AND (impact >= 5 OR ?5 = 1)
      ORDER BY impact DESC, score DESC LIMIT 10`,
   ).bind(num(env.FREE_MIN_IMPACT, 3), now - delay, now - 3 * 3600_000, env.HEURISTIC_ALERTS === "1" ? 1 : 0, gapOk ? 1 : 0).all<any>();
