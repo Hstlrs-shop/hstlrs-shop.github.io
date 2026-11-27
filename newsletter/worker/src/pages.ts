@@ -78,6 +78,25 @@ ${o.body}
 </html>`;
 }
 
+// Noticias relacionadas: antes, cada visita ordenaba por "misma categoría" y ningún índice servía,
+// así que recorría ~3,700 filas por página (un robot visitó 1,460 páginas el 26/11 y agotó D1).
+// Ahora: las 80 más recientes por el índice de fecha, guardadas 5 min en memoria, y el orden se hace aquí.
+let relCache: { at: number; rows: any[] } | null = null;
+async function recentForRelated(env: Env): Promise<any[]> {
+  if (relCache && Date.now() - relCache.at < 5 * 60_000) return relCache.rows;
+  const q = await env.DB.prepare(
+    `SELECT id, title, headline_es, image, category, source_name, detected_at, impact FROM news INDEXED BY idx_news_detected
+     WHERE detected_at > ?1 AND impact >= 3 ORDER BY detected_at DESC LIMIT 80`,
+  ).bind(Date.now() - 3 * 86400_000).all<any>();
+  relCache = { at: Date.now(), rows: q.results };
+  return q.results;
+}
+export function pickRelated(rows: any[], id: string, category: string | null): any[] {
+  return rows.filter((r) => r.id !== id)
+    .sort((a, b) => Number(b.category === category) - Number(a.category === category) || b.impact - a.impact || b.detected_at - a.detected_at)
+    .slice(0, 4);
+}
+
 export async function articlePage(env: Env, id: string, req: Request, ctx: ExecutionContext): Promise<Response> {
   const n = await env.DB.prepare("SELECT * FROM news WHERE id = ?1").bind(id).first<any>();
   if (!n) return new Response(layout(env, {
@@ -95,10 +114,7 @@ export async function articlePage(env: Env, id: string, req: Request, ctx: Execu
   const url = `${env.SITE_URL}${newsPath(n)}`;
   const img = n.image ?? catImage(env, n.category);
   const assets: string[] = JSON.parse(n.assets ?? "[]");
-  const related = await env.DB.prepare(
-    `SELECT id, title, headline_es, image, category, source_name, detected_at FROM news
-     WHERE id != ?1 AND detected_at > ?2 AND impact >= 3 ORDER BY (category = ?3) DESC, impact DESC, detected_at DESC LIMIT 4`,
-  ).bind(id, Date.now() - 3 * 86400_000, n.category).all<any>();
+  const related = { results: pickRelated(await recentForRelated(env), id, n.category) };
   const ask = await askLink(env, id);
   const share = encodeURIComponent(`${title} ☕`);
   const shareUrl = encodeURIComponent(url);
