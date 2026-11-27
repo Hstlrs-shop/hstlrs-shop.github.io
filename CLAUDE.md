@@ -198,9 +198,10 @@ Lo que se sabe al 26/11/2026. Donde dice "no registrado", el dueño debe anotar 
 
 1. **Límite de lecturas de D1 (plan gratis, 5 millones al día).**
    - El 26/11 se agotó y `/cetes-hoy` y `/api/kit` dieron error 500.
-   - Causa: la cola del canal gratis recorría todo el historial cada minuto. Se corrigió con un índice nuevo (migración 009).
-   - **Falta confirmar** con datos que las lecturas diarias bajaron.
-   - Regla: cualquier consulta que corra cada minuto debe usar un índice por fecha.
+   - **Causa real** (medida con la analítica de D1 de Cloudflare): entre las 04:00 y las 08:00 UTC, probablemente un robot visitó 1,460 páginas de noticias. La consulta de "noticias relacionadas" leía ~3,700 filas por página: 5.4 millones de lecturas en 5 horas. En horas normales la base lee 20,000–50,000 filas por hora.
+   - **Corrección** (27/11, publicada): las relacionadas leen solo las 80 noticias más recientes por el índice de fecha y se guardan 5 minutos en memoria. En prueba local hace unas 28 veces menos trabajo.
+   - La cola del canal gratis también recibió un índice nuevo (migración 009), pero solo sumaba unas 75,000 lecturas: no era la causa.
+   - Regla: toda consulta que corra cada minuto **o en cada visita de página** debe usar un índice por fecha y un `LIMIT`. Para ver qué consulta gasta más, usa el conjunto `d1QueriesAdaptiveGroups` de la analítica de Cloudflare.
 2. **Plan Pro sin cobro.** Faltan los secretos `MP_ACCESS_TOKEN` y `MP_WEBHOOK_SECRET`, los planes `MP_PLAN_PRO` y `MP_PLAN_API` de Mercado Pago, y crear el canal Pro privado (`TELEGRAM_PRO_CHAT` y `PRO_CANAL_ID` en el bot).
 3. **Newsletter sin correo.** Falta `DIGEST_WEBHOOK_URL` para mandarlo por email.
 4. **Guía premium "Plan 30 días" sin escribir.** El cobro existe; la lista de espera se avisa cuando esté lista.
