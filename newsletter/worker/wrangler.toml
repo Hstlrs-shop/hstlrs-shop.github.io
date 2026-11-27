@@ -1,0 +1,72 @@
+name = "lanaconcafe-news"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true   # mantiene viva la dirección vieja (redirige las páginas a lanaconcafe.com)
+
+# La web (carpeta site/) se empaqueta dentro del Worker con `npm run build:site` (se ejecuta antes de cada deploy).
+
+# Cada minuto: ingesta + alertas. Lun-Vie 11:17 UTC: edición diaria del newsletter
+# (≈ 5:17 Ciudad de México / 12:17 Madrid). Si cambias la segunda, cambia DIGEST_CRON en src/index.ts.
+# Dominio propio (el subdominio workers.dev redirige aquí las páginas)
+routes = [
+  { pattern = "lanaconcafe.com", custom_domain = true },
+  { pattern = "www.lanaconcafe.com", custom_domain = true },
+]
+
+[triggers]
+crons = ["* * * * *", "17 11 * * 1-5", "* 12-23 * * 1-5", "2 */4 * * *"]  # señales BTC 6:00–17:05 CDMX · tendencia 4h
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lanaconcafe-news-db"
+database_id = "9ad26b78-509b-403f-b0ba-b72d06b20360"
+
+# El bot "lanaconcafe" envía a Telegram por este Worker (así su token no se copia aquí)
+[[services]]
+binding = "BOT"
+service = "lanaconcafe"
+
+# KV de tu bot "lanaconcafe": solo se escribe la clave "noticias" (1 vez/hora) si BOT_NOTICIAS = "1"
+[[kv_namespaces]]
+binding = "BOT_KV"
+id = "8b002a988c5d49db8dc3ab2820239ed5"
+
+[vars]
+BRAND = "Lana con Café"
+SITE_URL = "https://lanaconcafe.com"
+COUNTRY = "MX"                # MX | ES | CO | AR | VE | CL | PE (ver src/sources.ts)
+CLAUDE_MODEL = "claude-opus-5-5"
+AI_MIN_SCORE = "25"            # la IA (Haiku, centavos al día) revisa casi todo
+PRO_MIN_IMPACT = "3"           # canal Pro: impacto 3+ al instante
+FREE_MIN_IMPACT = "3"          # canal gratis: impacto 3+, con retraso
+FREE_DAILY_MAX = "8"
+PRICE_FOUNDER_MXN = "99"       # precio de fundador (primeros FOUNDERS_TOTAL); cámbialo junto con /crearsuscripcion
+PRICE_MXN = "149"
+FOUNDERS_TOTAL = "100"
+ADMIN_CHAT_ID = "8824524448"   # recibe el kit de contenido de las 6:30
+AFF_NET_MXN = "55"             # neto aprox. por suscriptor fundador (base de comisiones)
+FREE_GAP_MIN = "40"
+FREE_DELAY_MIN = "15"
+ROTATE = "3"                # plan gratuito (10 ms CPU): fuentes no oficiales cada 3 min. Con Workers Paid ($5) pon "1"
+TELEGRAM_FREE_CHAT = "@LanaconCafe"
+YT_CHANNEL_ID = "UCfbPWsNEuagrVBdjCT7IeIA"   # canal de YouTube de la marca: ciclo YouTube → Telegram → sitio
+YT_SINCE = "2026-11-21T00:00:00Z"            # videos anteriores (otra temática) no se muestran ni se anuncian
+INFLATION_PCT = "3.75"          # INEGI, inflación anual; actualízala cada mes (sale ~el día 9)
+INFLATION_PERIOD = "octubre de 2026"
+BOT_NOTICIAS = "1"          # "1" = /noticias del bot se llena solo cada hora; "0" para que /noticias del bot se llene solo cada hora
+TELEGRAM_PRO_CHAT = "-100REEMPLAZAR"
+MP_PLAN_PRO = ""                # id del plan Pro en Mercado Pago (preapproval_plan_id)
+MP_PLAN_API = ""                # id del plan API
+
+[observability]
+enabled = true
+
+# Secretos (no van aquí):
+#   npx wrangler secret put INTERNAL_SECRET   (el mismo valor en el bot)
+#   npx wrangler secret put ANTHROPIC_API_KEY
+#   npx wrangler secret put MP_ACCESS_TOKEN
+#   npx wrangler secret put MP_WEBHOOK_SECRET
+#   npx wrangler secret put ADMIN_TOKEN
+#   npx wrangler secret put TELEGRAM_FORWARD_SECRET
+#   npx wrangler secret put DIGEST_WEBHOOK_URL   (opcional)

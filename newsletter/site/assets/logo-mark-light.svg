@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Lana con Café">
+  <path d="M20 19c-3-4 3-6 0-11M30 19c-3-4 3-6 0-11M40 19c-3-4 3-6 0-11" fill="none" stroke="#E39A55" stroke-width="3" stroke-linecap="round"/>
+  <path d="M9 24h40v15c0 9.4-7.6 17-17 17h-6C16.6 56 9 48.4 9 39z" fill="#F6EFE6"/>
+  <path d="M49 28h3.5a7.5 7.5 0 0 1 0 15H48" fill="none" stroke="#F6EFE6" stroke-width="4" stroke-linecap="round"/>
+  <path d="M15 46l7.5-7 5.5 4 10-11" fill="none" stroke="#1F9D55" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M33 31.5h6.5V38" fill="none" stroke="#1F9D55" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="5" y="58" width="48" height="3.5" rx="1.75" fill="#C9B29B"/>
+</svg>

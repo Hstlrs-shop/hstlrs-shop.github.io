@@ -1,0 +1,26 @@
+# Bot de Telegram "lanaconcafe". Despliegue: cd bot && npx wrangler deploy
+# Secretos (ya existentes en Cloudflare, no van aquí): BOT_TOKEN, WEBHOOK_SECRET, INTERNAL_SECRET, FORWARD_SECRET
+name = "lanaconcafe"
+main = "worker.js"
+compatibility_date = "2026-11-12"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[kv_namespaces]]
+binding = "DB"
+id = "8b002a988c5d49db8dc3ab2820239ed5"
+
+# Lógica Pro (IA, radar, pruebas, referidos, agenda) en el Worker de noticias
+[[services]]
+binding = "NEWS"
+service = "lanaconcafe-news"
+
+[vars]
+ADMIN_ID = "8824524448"
+CANAL_ID = "@LanaconCafe"
+NEWS_URL = "https://lanaconcafe.com"
+PRO_CANAL_ID = ""        # id del canal Pro privado (-100…) cuando lo crees
+
+[observability]
+enabled = true
