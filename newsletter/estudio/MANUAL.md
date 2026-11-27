@@ -35,7 +35,7 @@ Cada video sale en **Instagram y TikTok** a la misma hora, desde un solo borrado
 
 ## Estilo de edición (aprobado por el administrador el 22/11/2026, para todos los videos)
 
-Referencia: el comercial v5–v7 (comerciales de Apple, Tesla y Nvidia como **estilo**, nunca como material). Reglas:
+Referencia: el comercial v5–v7 (comerciales de Apple, Tesla y Nvidia como **estilo**, nunca como material). **Colores, tipografía y zonas seguras:** skill `.claude/skills/estudio-video/SKILL.md` (se carga sola). Reglas:
 
 - **Video real en movimiento**, no fotos fijas: clips de Mixkit (`scripts/clips_mixkit.py`, licencia libre, uso comercial). Temas reconocibles para México: CDMX desde arriba, Catedral, bandera, billetes y monedas en mano, manos con el celular, café (latte, espresso, taza humeante), pantallas de mercado. Commons solo cuando el tema exige una foto específica.
 - **Cortes al ritmo**: en `SC` pon una **lista** de 2–4 claves de clip por escena y el motor cambia de clip cada 2 tiempos (`BEAT`, por defecto 0.968 s = 124 BPM). En el gancho, un corte por cada palabra clave.

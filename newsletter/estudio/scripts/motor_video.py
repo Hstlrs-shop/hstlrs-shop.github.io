@@ -5,7 +5,10 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 D = os.path.dirname(os.path.abspath(__file__))
 NN = int(os.environ.get("NOTICIAS", "5"))  # número de noticias del reel (5 diario, 4 en actualizaciones)
 W, H, FPS, X, TR = 1080, 1920, 30, 70, 0.4
-INK = (43, 29, 22); CAF = (214, 152, 90); CRE = (250, 243, 232); MUT = (205, 185, 165); RED = (232, 84, 70); GRN = (90, 215, 140)
+# Colores del estilo aprobado (comercial 22/11/2026). Contraste medido sobre foto oscurecida: todos ≥ 4.5:1.
+# CAF = dorado de marca (#E2B33C) · CRE = texto principal (#F5F1EA) · MUT = texto secundario (#CFC6BA)
+# GRN / RED = subidas / bajadas: siempre con signo (+/− o ▲/▼), nunca solo el color.
+INK = (43, 29, 22); CAF = (226, 179, 60); CRE = (245, 241, 234); MUT = (207, 198, 186); RED = (255, 122, 107); GRN = (90, 215, 140)
 CRED = json.load(open(D + "/credits.json")); PX = json.load(open(D + "/px.json"))
 _c = {}
 def F(sz, wt="Bold"):
@@ -104,17 +107,18 @@ def ticker(d, x, y, sym, name, t, t0):  # insignia con símbolo bursátil, no lo
     d.text((x + w1 + 20, y + 36), name, font=F(34, "SemiBold"), fill=A(CRE, a), anchor="lm")
 def header(d, n, t, T):
     if n:
-        pill(d, X, 150, f"Noticia {n} de {NN}", t, 0.05, sz=34)
+        pill(d, X, 190, f"Noticia {n} de {NN}", t, 0.05, sz=34)
         for k in range(NN):
-            x0 = W - X - NN * 62 + k * 62 + 12; d.rounded_rectangle([x0, 180, x0 + 50, 192], 6, fill=(255, 255, 255, 60))
+            x0 = W - X - NN * 62 + k * 62 + 12; d.rounded_rectangle([x0, 220, x0 + 50, 232], 6, fill=(255, 255, 255, 60))
             p = 1 if k < n - 1 else (cl(t / T) if k == n - 1 else 0)
-            if p > 0: d.rounded_rectangle([x0, 180, x0 + max(12, int(50 * p)), 192], 6, fill=CAF if k == n - 1 else CRE)
-    else: d.text((W / 2, 120), "LANA CON CAFÉ", font=F(34, "Bold"), fill=A(CAF, cl(t / 0.5)), anchor="mm")
+            if p > 0: d.rounded_rectangle([x0, 220, x0 + max(12, int(50 * p)), 232], 6, fill=CAF if k == n - 1 else CRE)
+    else: d.text((W / 2, 170), "LANA CON CAFÉ", font=F(34, "Bold"), fill=A(CAF, cl(t / 0.5)), anchor="mm")
 def credit(d, key, extra=None):
     if isinstance(key, (list, tuple)): key = key[0]
     c = CRED[key]; s = (f"Video: {c['artist'][:38]} · {c['license']}" if c.get("src") == "mixkit" else f"Foto: {c['artist'][:38]} · {c['license']} · Wikimedia Commons")
-    if extra: d.text((X, 1800), extra, font=F(28, "Medium"), fill=(220, 205, 190, 190))
-    d.text((X, 1846), s, font=F(24, "Medium"), fill=(220, 205, 190, 150))
+    # Opacos, 28 px mínimo y lejos del borde inferior (ahí Instagram y TikTok ponen su texto y botones)
+    if extra: d.text((X, 1640), extra, font=F(28, "SemiBold"), fill=MUT, stroke_width=2, stroke_fill=(18, 11, 7))
+    d.text((X, 1684), s, font=F(28, "Medium"), fill=MUT, stroke_width=2, stroke_fill=(18, 11, 7))
 def pct(v, dec=1): return ("+" if v >= 0 else "−") + f"{abs(v):.{dec}f}%"
 def count(v0, v1, t, t0, dur=0.9): return v0 + (v1 - v0) * eo((t - t0) / dur)
 
